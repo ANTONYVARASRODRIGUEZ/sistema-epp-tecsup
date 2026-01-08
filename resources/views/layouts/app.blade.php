@@ -87,7 +87,7 @@
             <a class="nav-link {{ request()->routeIs('epps.catalogo') ? 'active' : '' }}" href="{{ route('epps.catalogo') }}">
     <i class="bi bi-file-earmark-text"></i> Catálogo EPP
 </a>
-            <a class="nav-link" href="#">
+            <a class="nav-link {{ request()->routeIs('usuarios.index') ? 'active' : '' }}" href="{{ route('usuarios.index') }}">
                 <i class="bi bi-people"></i> Usuarios
             </a>
             <a class="nav-link" href="#">

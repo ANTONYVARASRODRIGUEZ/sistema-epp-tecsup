@@ -12,7 +12,14 @@ class Epp extends Model
     protected $fillable = [
         'nombre',
         'tipo',
+        'descripcion',
         'vida_util_meses',
-        'ficha_tecnica'
+        'ficha_tecnica',
+        'imagen',
+        'frecuencia_entrega',
+        'codigo_logistica',
+        'marca_modelo',
+        'precio',
+        'cantidad'
     ];
 }

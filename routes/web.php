@@ -5,6 +5,7 @@ use App\Http\Controllers\DepartamentoController;
 use App\Http\Controllers\EppController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\UsuarioController;
 
 // --- SECCIÓN PÚBLICA (LOGIN) ---
 
@@ -55,8 +56,15 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('departamentos', DepartamentoController::class);
     Route::get('/departamentos/create', [DepartamentoController::class, 'create']);
 
+    // 7. Usuarios
+    Route::resource('usuarios', UsuarioController::class);
 
     //catalogo de epps
     Route::get('/catalogo', [App\Http\Controllers\EppController::class, 'catalogo'])->name('epps.catalogo');
     
+    //usuarios
+    Route::get('/usuarios', [UsuarioController::class, 'index'])->name('usuarios.index');
+
+    //Agregar usuario
+    Route::post('/usuarios/store', [UsuarioController::class, 'store'])->name('usuarios.store');
 });
