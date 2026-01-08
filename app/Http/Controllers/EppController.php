@@ -59,6 +59,13 @@ class EppController extends Controller
 }
 
 
+    public function catalogo()
+{
+    $epps = Epp::all(); // O puedes usar paginación: Epp::paginate(6);
+    return view('epps.catalogo', compact('epps'));
+}
+
+
     /**
      * Display the specified resource.
      */

@@ -78,15 +78,15 @@
         </div>
 
         <nav class="nav flex-column mt-3">
-            <a class="nav-link {{ request()->is('dashboard*') ? 'active' : '' }}" href="#">
-                <i class="bi bi-bar-chart-line"></i> Dashboard
-            </a>
-            <a class="nav-link {{ request()->is('epps*') ? 'active' : '' }}" href="{{ route('epps.index') }}">
-                <i class="bi bi-box-seam"></i> Inventario
-            </a>
-            <a class="nav-link" href="#">
-                <i class="bi bi-file-earmark-text"></i> Catálogo EPP
-            </a>
+            <a class="nav-link {{ request()->is('dashboard*') ? 'active' : '' }}" href="{{ route('dashboard') }}">
+    <i class="bi bi-bar-chart-line"></i> Dashboard
+</a>
+            <a class="nav-link {{ request()->is('epps/create') ? 'active' : '' }}" href="{{ route('epps.create') }}">
+        <i class="bi bi-box-seam"></i> Inventario
+    </a>
+            <a class="nav-link {{ request()->routeIs('epps.catalogo') ? 'active' : '' }}" href="{{ route('epps.catalogo') }}">
+    <i class="bi bi-file-earmark-text"></i> Catálogo EPP
+</a>
             <a class="nav-link" href="#">
                 <i class="bi bi-people"></i> Usuarios
             </a>

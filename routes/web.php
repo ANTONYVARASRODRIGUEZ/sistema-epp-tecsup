@@ -6,7 +6,7 @@ use App\Http\Controllers\EppController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
-
+// --- SECCIÓN PÚBLICA (LOGIN) ---
 
 // 1. Mostrar el Login (GET en la raíz)
 Route::get('/', function () {
@@ -14,7 +14,6 @@ Route::get('/', function () {
 })->name('login');
 
 // 2. Procesar el Login (POST en la raíz)
-// Cambiamos '/login' por '/' para que coincida con donde está el formulario
 Route::post('/', function (Request $request) {
     $credentials = $request->validate([
         'email' => ['required', 'email'],
@@ -23,7 +22,8 @@ Route::post('/', function (Request $request) {
 
     if (Auth::attempt($credentials)) {
         $request->session()->regenerate();
-        return redirect()->intended('epps');
+        // Al loguearse, lo enviamos directo al dashboard
+        return redirect()->intended('dashboard');
     }
 
     return back()->withErrors([
@@ -31,22 +31,32 @@ Route::post('/', function (Request $request) {
     ])->onlyInput('email');
 })->name('login.post');
 
-// 3. Salir del sistema (POST)
-Route::post('/logout', function (Request $request) {
-    Auth::logout();
-    $request->session()->invalidate();
-    $request->session()->regenerateToken();
-    return redirect()->route('login');
-})->name('logout');
+
+// --- SECCIÓN PROTEGIDA (REQUIERE LOGIN) ---
+
+Route::middleware(['auth'])->group(function () {
+
+    // 3. Salir del sistema
+    Route::post('/logout', function (Request $request) {
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+        return redirect()->route('login');
+    })->name('logout');
+
+    // 4. Ruta del Dashboard (La que usa el diseño de la imagen)
+    // Usamos el método index del EppController para que cargue los datos de la tabla
+    Route::get('/dashboard', [EppController::class, 'index'])->name('dashboard');
+
+    // 5. Rutas de EPPs (Inventario)
+    Route::resource('epps', EppController::class);
+
+    // 6. Departamentos
+    Route::resource('departamentos', DepartamentoController::class);
+    Route::get('/departamentos/create', [DepartamentoController::class, 'create']);
 
 
-
-//Ruta de listado de los epps
-Route::resource('epps', EppController::class);
-
-//listado de los departamentos
-Route::resource('departamentos', DepartamentoController::class);
-
-//crear nuevos departamentos
-Route::get('/departamentos/create', [DepartamentoController::class, 'create']);
-
+    //catalogo de epps
+    Route::get('/catalogo', [App\Http\Controllers\EppController::class, 'catalogo'])->name('epps.catalogo');
+    
+});
