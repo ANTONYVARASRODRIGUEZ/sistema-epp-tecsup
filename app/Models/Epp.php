@@ -20,6 +20,21 @@ class Epp extends Model
         'codigo_logistica',
         'marca_modelo',
         'precio',
-        'cantidad'
+        'cantidad',
+        'departamento_id',
+        'estado',
+        'fecha_vencimiento'
     ];
+
+    protected $casts = [
+        'fecha_vencimiento' => 'datetime',
+    ];
+
+    /**
+     * Relación: Un EPP pertenece a un departamento
+     */
+    public function departamento()
+    {
+        return $this->belongsTo(Departamento::class);
+    }
 }

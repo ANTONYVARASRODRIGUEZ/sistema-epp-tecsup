@@ -23,19 +23,23 @@ class UsuarioController extends Controller
     // 1. Validar los datos
     $request->validate([
         'name' => 'required|string|max:255',
+        'dni' => 'required|string|max:20|unique:users,dni',
         'email' => 'required|email|unique:users,email',
         'password' => 'required|min:6',
-        'role' => 'required'
+        'role' => 'required',
+        'department' => 'nullable|string|max:255',
+        'workshop' => 'nullable|string|max:255'
     ]);
 
     // 2. Crear el usuario
-    // Nota: Asegúrate de que 'role' y 'department' existan en tu tabla 'users' o ajusta según tu DB
     User::create([
         'name' => $request->name,
+        'dni' => $request->dni,
         'email' => $request->email,
         'password' => Hash::make($request->password),
         'role' => $request->role,
         'department' => $request->department,
+        'workshop' => $request->workshop,
     ]);
 
     // 3. Redirigir con mensaje de éxito
@@ -69,17 +73,21 @@ class UsuarioController extends Controller
 
         $request->validate([
             'name' => 'required|string|max:255',
+            'dni' => 'required|string|max:20|unique:users,dni,' . $id,
             'email' => 'required|email|unique:users,email,' . $id,
             'role' => 'required',
             'department' => 'nullable|string|max:255',
+            'workshop' => 'nullable|string|max:255',
             'password' => 'nullable|min:6'
         ]);
 
         $data = [
             'name' => $request->name,
+            'dni' => $request->dni,
             'email' => $request->email,
             'role' => $request->role,
             'department' => $request->department,
+            'workshop' => $request->workshop,
         ];
 
         if ($request->password) {

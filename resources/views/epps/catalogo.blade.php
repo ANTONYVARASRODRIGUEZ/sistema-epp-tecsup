@@ -45,6 +45,9 @@
                             <small class="text-muted">{{ $epp->tipo }}</small>
                         </div>
                         <div class="d-flex gap-2">
+                            <a href="{{ route('epps.show', $epp->id) }}" class="btn btn-sm btn-light" title="Ver detalles" style="padding: 4px 8px;">
+                                <i class="bi bi-eye text-info"></i>
+                            </a>
                             <a href="{{ route('epps.edit', $epp->id) }}" class="btn btn-sm btn-light" title="Editar" style="padding: 4px 8px;">
                                 <i class="bi bi-pencil text-primary"></i>
                             </a>

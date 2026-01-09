@@ -71,14 +71,33 @@
                         </div>
 
                         <div class="row">
-                            <div class="col-md-3 mb-3">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Departamento</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-building"></i></span>
+                                    <select name="departamento_id" class="form-select bg-light border-start-0">
+                                        <option value="">-- Selecciona un departamento --</option>
+                                        @forelse($departamentos as $depto)
+                                            <option value="{{ $depto->id }}" {{ old('departamento_id') == $depto->id ? 'selected' : '' }}>
+                                                {{ $depto->nombre }}
+                                            </option>
+                                        @empty
+                                            <option value="" disabled>No hay departamentos disponibles</option>
+                                        @endforelse
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
                                 <label class="form-label fw-bold">Vida útil (meses)</label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-calendar-event"></i></span>
                                     <input type="number" name="vida_util_meses" class="form-control bg-light border-start-0" placeholder="Ej: 12" value="{{ old('vida_util_meses') }}" required>
                                 </div>
                             </div>
+                        </div>
 
+                        <div class="row">
                             <div class="col-md-3 mb-3">
                                 <label class="form-label fw-bold">Frecuencia de Entrega</label>
                                 <div class="input-group">

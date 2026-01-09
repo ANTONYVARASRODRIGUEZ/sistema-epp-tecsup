@@ -79,24 +79,27 @@
 
         <nav class="nav flex-column mt-3">
             <a class="nav-link {{ request()->is('dashboard*') ? 'active' : '' }}" href="{{ route('dashboard') }}">
-    <i class="bi bi-bar-chart-line"></i> Dashboard
-</a>
-            <a class="nav-link {{ request()->is('epps/create') ? 'active' : '' }}" href="{{ route('epps.create') }}">
-        <i class="bi bi-box-seam"></i> Inventario
-    </a>
+                <i class="bi bi-bar-chart-line"></i> Dashboard
+            </a>
+            <a class="nav-link {{ request()->is('solicitudes*') ? 'active' : '' }}" href="{{ route('solicitudes.index') }}">
+                <i class="bi bi-file-earmark-check"></i> Solicitudes
+            </a>
+            <a class="nav-link {{ request()->is('epps*') ? 'active' : '' }}" href="{{ route('epps.index') }}">
+                <i class="bi bi-box-seam"></i> Inventario
+            </a>
             <a class="nav-link {{ request()->routeIs('epps.catalogo') ? 'active' : '' }}" href="{{ route('epps.catalogo') }}">
-    <i class="bi bi-file-earmark-text"></i> Catálogo EPP
-</a>
+                <i class="bi bi-file-earmark-text"></i> Catálogo EPP
+            </a>
             <a class="nav-link {{ request()->routeIs('usuarios.index') ? 'active' : '' }}" href="{{ route('usuarios.index') }}">
                 <i class="bi bi-people"></i> Usuarios
             </a>
-            <a class="nav-link" href="#">
+            <a class="nav-link {{ request()->routeIs('configuracion.index') ? 'active' : '' }}" href="{{ route('configuracion.index') }}">
                 <i class="bi bi-gear"></i> Configuración
             </a>
         </nav>
 
         <div class="user-section">
-            <a class="nav-link p-0 mb-3" href="#">
+            <a class="nav-link p-0 mb-3" href="{{ route('perfil.show') }}">
                 <i class="bi bi-person-circle"></i> Mi Perfil
             </a>
             <form action="{{ route('logout') }}" method="POST" id="logout-form">

@@ -21,6 +21,11 @@
                         <p class="fw-bold fs-5">{{ $usuario->name }}</p>
                     </div>
 
+                    <div class="mb-4">
+                        <h5 class="text-muted small text-uppercase mb-2">DNI/Código</h5>
+                        <p class="fw-bold">{{ $usuario->dni ?? '-' }}</p>
+                    </div>
+
                     <div class="row">
                         <div class="col-md-6 mb-4">
                             <h5 class="text-muted small text-uppercase mb-2">Correo Electrónico</h5>
@@ -46,9 +51,16 @@
                         </div>
                     </div>
 
-                    <div class="mb-4">
-                        <h5 class="text-muted small text-uppercase mb-2">Departamento</h5>
-                        <p class="fw-bold">{{ $usuario->department ?? 'No asignado' }}</p>
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <h5 class="text-muted small text-uppercase mb-2">Departamento</h5>
+                            <p class="fw-bold">{{ $usuario->department ?? 'No asignado' }}</p>
+                        </div>
+
+                        <div class="col-md-6 mb-4">
+                            <h5 class="text-muted small text-uppercase mb-2">Taller/Laboratorio</h5>
+                            <p class="fw-bold">{{ $usuario->workshop ?? 'No asignado' }}</p>
+                        </div>
                     </div>
 
                     <div class="row">

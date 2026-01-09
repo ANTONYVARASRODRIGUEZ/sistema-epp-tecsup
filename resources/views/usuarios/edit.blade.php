@@ -36,6 +36,11 @@
                         </div>
 
                         <div class="mb-3">
+                            <label class="form-label fw-semibold">DNI/Código</label>
+                            <input type="text" name="dni" class="form-control" value="{{ old('dni', $usuario->dni) }}" required>
+                        </div>
+
+                        <div class="mb-3">
                             <label class="form-label fw-semibold">Correo Institucional</label>
                             <input type="email" name="email" class="form-control" value="{{ old('email', $usuario->email) }}" required>
                         </div>
@@ -54,6 +59,11 @@
                                 <label class="form-label fw-semibold">Departamento</label>
                                 <input type="text" name="department" class="form-control" value="{{ old('department', $usuario->department) }}" placeholder="Ej. Operaciones">
                             </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Taller/Laboratorio</label>
+                            <input type="text" name="workshop" class="form-control" value="{{ old('workshop', $usuario->workshop) }}" placeholder="Ej. Laboratorio de Sistemas">
                         </div>
 
                         <div class="mb-3">
