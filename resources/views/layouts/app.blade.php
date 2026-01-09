@@ -93,6 +93,12 @@
             <a class="nav-link {{ request()->routeIs('usuarios.index') ? 'active' : '' }}" href="{{ route('usuarios.index') }}">
                 <i class="bi bi-people"></i> Usuarios
             </a>
+            <a class="nav-link {{ request()->routeIs('matriz-epp.index') ? 'active' : '' }}" href="{{ route('matriz-epp.index') }}">
+                <i class="bi bi-grid-3x3"></i> Matriz EPP
+            </a>
+            <a class="nav-link {{ request()->routeIs('departamentos.index') ? 'active' : '' }}" href="{{ route('departamentos.index') }}">
+                <i class="bi bi-building"></i> Departamentos
+            </a>
             <a class="nav-link {{ request()->routeIs('configuracion.index') ? 'active' : '' }}" href="{{ route('configuracion.index') }}">
                 <i class="bi bi-gear"></i> Configuración
             </a>

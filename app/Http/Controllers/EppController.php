@@ -14,7 +14,8 @@ class EppController extends Controller
     public function index()
     {
         $epps = Epp::all();
-        return view('epps.index', compact('epps'));
+        $departamentos = Departamento::where('activo', true)->get();
+        return view('epps.index', compact('epps', 'departamentos'));
     }
 
     /**
@@ -44,7 +45,10 @@ class EppController extends Controller
             'codigo_logistica' => 'nullable|string|max:255',
             'marca_modelo' => 'nullable|string|max:255',
             'precio' => 'nullable|numeric|min:0',
-            'cantidad' => 'nullable|integer|min:0'
+            'cantidad' => 'nullable|integer|min:0',
+            'stock' => 'nullable|integer|min:0',
+            'entregado' => 'nullable|integer|min:0',
+            'deteriorado' => 'nullable|integer|min:0'
         ]);
 
         // 2️⃣ Datos del formulario
@@ -58,7 +62,10 @@ class EppController extends Controller
             'codigo_logistica',
             'marca_modelo',
             'precio',
-            'cantidad'
+            'cantidad',
+            'stock',
+            'entregado',
+            'deteriorado'
         ]);
 
         // 3️⃣ Guardar archivo PDF si existe
@@ -84,8 +91,9 @@ class EppController extends Controller
 
     public function catalogo()
 {
-    $epps = Epp::all(); // O puedes usar paginación: Epp::paginate(6);
-    return view('epps.catalogo', compact('epps'));
+    $epps = Epp::all();
+    $departamentos = Departamento::all();
+    return view('epps.catalogo', compact('epps', 'departamentos'));
 }
 
 
@@ -115,7 +123,31 @@ class EppController extends Controller
     {
         $epp = Epp::findOrFail($id);
 
-        // Validación
+        // Si solo viene datos de inventario (modal simplificado)
+        if ($request->has('stock') && !$request->has('nombre')) {
+            $request->validate([
+                'cantidad' => 'nullable|integer|min:0',
+                'stock' => 'nullable|integer|min:0',
+                'entregado' => 'nullable|integer|min:0',
+                'deteriorado' => 'nullable|integer|min:0',
+                'estado' => 'nullable|string|in:disponible,bajo_stock,agotado'
+            ]);
+
+            $epp->update($request->only([
+                'cantidad',
+                'stock',
+                'entregado',
+                'deteriorado',
+                'estado'
+            ]));
+
+            if ($request->expectsJson()) {
+                return response()->json(['success' => true, 'message' => 'Inventario actualizado correctamente']);
+            }
+            return redirect()->route('epps.index')->with('success', 'Inventario actualizado correctamente');
+        }
+
+        // Si viene formulario completo de edición (modal de catalogo)
         $request->validate([
             'nombre' => 'required|string|max:255',
             'tipo' => 'required|string|max:255',

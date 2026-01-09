@@ -21,6 +21,9 @@ class Epp extends Model
         'marca_modelo',
         'precio',
         'cantidad',
+        'stock',
+        'entregado',
+        'deteriorado',
         'departamento_id',
         'estado',
         'fecha_vencimiento'

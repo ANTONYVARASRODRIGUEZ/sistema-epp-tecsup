@@ -7,6 +7,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\SolicitudController;
 use App\Http\Controllers\ConfiguracionController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\MatrizEppController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\UsuarioController;
@@ -71,6 +72,11 @@ Route::middleware(['auth'])->group(function () {
 
     // 8. Usuarios
     Route::resource('usuarios', UsuarioController::class);
+
+    // 8.5. Matriz EPP
+    Route::resource('matriz-epp', MatrizEppController::class);
+    Route::post('/matriz-epp', [MatrizEppController::class, 'store'])->name('matriz-epp.store');
+    Route::delete('/matriz-epp/{id}', [MatrizEppController::class, 'destroy'])->name('matriz-epp.destroy');
 
     //catalogo de epps
     Route::get('/catalogo', [App\Http\Controllers\EppController::class, 'catalogo'])->name('epps.catalogo');

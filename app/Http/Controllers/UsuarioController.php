@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\MatrizHomologacion;
+use App\Models\Departamento;
+use App\Models\Epp;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 // use App\Models\User; // Descomenta esto cuando vayas a traer datos reales

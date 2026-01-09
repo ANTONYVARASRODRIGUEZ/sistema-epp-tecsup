@@ -11,7 +11,9 @@ class Departamento extends Model
 
     protected $fillable = [
         'nombre',
+        'codigo',
         'descripcion',
+        'talleres',
         'activo'
     ];
 
