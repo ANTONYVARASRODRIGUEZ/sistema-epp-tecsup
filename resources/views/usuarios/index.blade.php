@@ -30,9 +30,11 @@
                     <thead>
                         <tr>
                             <th>Nombre</th>
+                            <th>DNI/Código</th>
                             <th>Email</th>
                             <th>Rol</th>
                             <th>Departamento</th>
+                            <th>Taller/Laboratorio</th>
                             <th class="text-center">Acciones</th>
                         </tr>
                     </thead>
@@ -40,6 +42,7 @@
                         @forelse($usuarios as $usuario)
                         <tr>
                             <td class="fw-bold">{{ $usuario->name }}</td>
+                            <td>{{ $usuario->dni ?? '-' }}</td>
                             <td class="text-muted">{{ $usuario->email }}</td>
                             <td>
                                 @php
@@ -55,6 +58,7 @@
                                 <span class="badge-role" style="background-color: {{ $colors['bg'] }}; color: {{ $colors['text'] }};">{{ $role }}</span>
                             </td>
                             <td>{{ $usuario->department ?? '-' }}</td>
+                            <td>{{ $usuario->workshop ?? '-' }}</td>
                             <td class="text-center">
                                 <a href="{{ route('usuarios.show', $usuario->id) }}" class="btn btn-action p-1" title="Ver detalles"><i class="bi bi-eye"></i></a>
                                 <a href="{{ route('usuarios.edit', $usuario->id) }}" class="btn btn-action p-1" title="Editar"><i class="bi bi-pencil"></i></a>
@@ -63,7 +67,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="5" class="text-center text-muted py-4">
+                            <td colspan="7" class="text-center text-muted py-4">
                                 <i class="bi bi-inbox" style="font-size: 2rem; opacity: 0.5;"></i>
                                 <p class="mt-2">No hay usuarios registrados</p>
                             </td>
@@ -75,6 +79,7 @@
         </div>
     </div>
 </div>
+
 <div class="modal fade" id="modalNuevoUsuario" tabindex="-1" aria-labelledby="modalNuevoUsuarioLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content" style="border-radius: 15px;">
@@ -90,6 +95,10 @@
                         <input type="text" name="name" class="form-control" placeholder="Ej. Juan Pérez" required>
                     </div>
                     <div class="mb-3">
+                        <label class="form-label fw-semibold">DNI/Código</label>
+                        <input type="text" name="dni" class="form-control" placeholder="Ej. 12345678" required>
+                    </div>
+                    <div class="mb-3">
                         <label class="form-label fw-semibold">Correo Institucional</label>
                         <input type="email" name="email" class="form-control" placeholder="usuario@tecsup.edu.pe" required>
                     </div>
@@ -100,12 +109,17 @@
                                 <option value="Admin">Admin</option>
                                 <option value="Coordinador">Coordinador</option>
                                 <option value="Docente">Docente</option>
+                                <option value="Usuario">Usuario</option>
                             </select>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-semibold">Departamento</label>
                             <input type="text" name="department" class="form-control" placeholder="Ej. Operaciones">
                         </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Taller/Laboratorio</label>
+                        <input type="text" name="workshop" class="form-control" placeholder="Ej. Laboratorio de Sistemas">
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Contraseña Temporal</label>

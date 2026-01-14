@@ -11,6 +11,21 @@ class Departamento extends Model
 
     protected $fillable = [
         'nombre',
-        'descripcion'
+        'codigo',
+        'descripcion',
+        'talleres',
+        'activo'
     ];
+
+    protected $casts = [
+        'activo' => 'boolean',
+    ];
+
+    /**
+     * Relación: Un departamento tiene muchos EPPs
+     */
+    public function epps()
+    {
+        return $this->hasMany(Epp::class);
+    }
 }

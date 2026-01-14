@@ -37,7 +37,11 @@ class DepartamentoController extends Controller
     {
 
          $request->validate([
-        'nombre' => 'required'
+        'nombre' => 'required',
+        'codigo' => 'nullable|string|max:10',
+        'descripcion' => 'nullable|string',
+        'talleres' => 'nullable|string',
+        'activo' => 'nullable|boolean'
     ]);
 
     Departamento::create($request->all());
@@ -68,7 +72,18 @@ class DepartamentoController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $request->validate([
+            'nombre' => 'required',
+            'codigo' => 'nullable|string|max:10',
+            'descripcion' => 'nullable|string',
+            'talleres' => 'nullable|string',
+            'activo' => 'nullable|boolean'
+        ]);
+
+        $departamento = Departamento::findOrFail($id);
+        $departamento->update($request->all());
+
+        return redirect()->route('departamentos.index')->with('success', 'Departamento actualizado correctamente.');
     }
 
     /**
@@ -76,6 +91,9 @@ class DepartamentoController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $departamento = Departamento::findOrFail($id);
+        $departamento->delete();
+
+        return redirect()->route('departamentos.index')->with('success', 'Departamento eliminado correctamente.');
     }
 }

@@ -3,18 +3,20 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DepartamentoController;
 use App\Http\Controllers\EppController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\SolicitudController;
+use App\Http\Controllers\ConfiguracionController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\MatrizEppController;
+use App\Http\Controllers\UsuarioController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Http\Controllers\UsuarioController;
 
 // --- SECCIÓN PÚBLICA (LOGIN) ---
-
-// 1. Mostrar el Login (GET en la raíz)
 Route::get('/', function () {
     return view('auth.login');
 })->name('login');
 
-// 2. Procesar el Login (POST en la raíz)
 Route::post('/', function (Request $request) {
     $credentials = $request->validate([
         'email' => ['required', 'email'],
@@ -25,12 +27,9 @@ Route::post('/', function (Request $request) {
         $request->session()->regenerate();
         $user = Auth::user();
 
-        // REDIRECCIÓN POR ROL (Súper seguro)
         if ($user->role === 'Docente') {
             return redirect()->route('docente.dashboard');
         }
-
-        // Si es Admin o Coordinador, va al dashboard principal
         return redirect()->route('dashboard'); 
     }
 
@@ -41,10 +40,8 @@ Route::post('/', function (Request $request) {
 
 
 // --- SECCIÓN PROTEGIDA (REQUIERE LOGIN) ---
-
 Route::middleware(['auth'])->group(function () {
 
-    // 3. Salir del sistema
     Route::post('/logout', function (Request $request) {
         Auth::logout();
         $request->session()->invalidate();
@@ -52,36 +49,43 @@ Route::middleware(['auth'])->group(function () {
         return redirect()->route('login');
     })->name('logout');
 
-    // 4. Ruta del Dashboard (La que usa el diseño de la imagen)
-    // Usamos el método index del EppController para que cargue los datos de la tabla
-    Route::get('/dashboard', [EppController::class, 'index'])->name('dashboard');
+    // Dashboard y Perfil
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/perfil', [ProfileController::class, 'show'])->name('perfil.show');
+    Route::post('/perfil/email', [ProfileController::class, 'actualizarEmail'])->name('perfil.actualizar-email');
+    Route::post('/perfil/contrasena', [ProfileController::class, 'cambiarContrasena'])->name('perfil.cambiar-contrasena');
 
-    // 5. Rutas de EPPs (Inventario)
+    // Recursos Principales (Epps, Departamentos, Usuarios, Solicitudes)
     Route::resource('epps', EppController::class);
-
-    // 6. Departamentos
     Route::resource('departamentos', DepartamentoController::class);
-    Route::get('/departamentos/create', [DepartamentoController::class, 'create']);
-
-    // 7. Usuarios
     Route::resource('usuarios', UsuarioController::class);
-
-    //catalogo de epps
-    Route::get('/catalogo', [App\Http\Controllers\EppController::class, 'catalogo'])->name('epps.catalogo');
+    Route::resource('solicitudes', SolicitudController::class);
     
-    //usuarios
-    Route::get('/usuarios', [UsuarioController::class, 'index'])->name('usuarios.index');
+    // Acciones de Solicitudes
+    Route::post('/solicitudes/{id}/aprobar', [SolicitudController::class, 'aprobar'])->name('solicitudes.aprobar');
+    Route::post('/solicitudes/{id}/rechazar', [SolicitudController::class, 'rechazar'])->name('solicitudes.rechazar');
 
-    //Agregar usuario
-    Route::post('/usuarios/store', [UsuarioController::class, 'store'])->name('usuarios.store');
-
-
-
-    //solicitudes
-    Route::post('/solicitudes', [App\Http\Controllers\SolicitudController::class, 'store'])->name('solicitudes.store');
-
-    //dashboard docente
+    // Catálogo y Dashboard Docente
+    Route::get('/catalogo', [EppController::class, 'catalogo'])->name('epps.catalogo');
     Route::get('/docente/dashboard', function () {
         return view('docente.dashboard');
     })->name('docente.dashboard');
+
+    // Matriz EPP
+    Route::resource('matriz-epp', MatrizEppController::class);
+
+    // 9. Configuración (Solo Admin) - Cambios de tu compañera
+    Route::middleware('isAdmin')->group(function () {
+        Route::get('/configuracion', [ConfiguracionController::class, 'index'])->name('configuracion.index');
+        Route::post('/configuracion/general', [ConfiguracionController::class, 'actualizarGeneral'])->name('configuracion.actualizar-general');
+        Route::post('/configuracion/parametros-epp', [ConfiguracionController::class, 'actualizarParametrosEpp'])->name('configuracion.actualizar-parametros-epp');
+        Route::post('/configuracion/notificaciones', [ConfiguracionController::class, 'actualizarNotificaciones'])->name('configuracion.actualizar-notificaciones');
+        Route::post('/configuracion/auditoria', [ConfiguracionController::class, 'actualizarAuditoria'])->name('configuracion.actualizar-auditoria');
+        Route::post('/configuracion/departamentos', [ConfiguracionController::class, 'crearDepartamento'])->name('configuracion.crear-departamento');
+        Route::put('/configuracion/departamentos/{id}', [ConfiguracionController::class, 'actualizarDepartamento'])->name('configuracion.actualizar-departamento');
+        Route::put('/configuracion/departamentos/{id}/desactivar', [ConfiguracionController::class, 'desactivarDepartamento'])->name('configuracion.desactivar-departamento');
+        Route::put('/configuracion/departamentos/{id}/activar', [ConfiguracionController::class, 'activarDepartamento'])->name('configuracion.activar-departamento');
+        Route::post('/configuracion/matriz', [ConfiguracionController::class, 'agregarMatriz'])->name('configuracion.agregar-matriz');
+        Route::delete('/configuracion/matriz/{id}', [ConfiguracionController::class, 'eliminarMatriz'])->name('configuracion.eliminar-matriz');
+    });
 });
