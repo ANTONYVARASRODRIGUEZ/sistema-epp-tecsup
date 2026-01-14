@@ -13,7 +13,6 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        /* Sidebar Styling */
         .sidebar {
             width: 250px;
             height: 100vh;
@@ -26,7 +25,7 @@
 
         .sidebar-header {
             padding: 20px;
-            color: #003366; /* Azul Tecsup */
+            color: #003366;
         }
 
         .nav-link {
@@ -56,7 +55,6 @@
             margin: 10px 20px;
         }
 
-        /* Main Content */
         .main-content {
             margin-left: 250px;
             padding: 30px;
@@ -78,21 +76,39 @@
         </div>
 
         <nav class="nav flex-column mt-3">
-            <a class="nav-link {{ request()->is('dashboard*') ? 'active' : '' }}" href="{{ route('dashboard') }}">
-    <i class="bi bi-bar-chart-line"></i> Dashboard
-</a>
-            <a class="nav-link {{ request()->is('epps/create') ? 'active' : '' }}" href="{{ route('epps.create') }}">
-        <i class="bi bi-box-seam"></i> Inventario
-    </a>
-            <a class="nav-link {{ request()->routeIs('epps.catalogo') ? 'active' : '' }}" href="{{ route('epps.catalogo') }}">
-    <i class="bi bi-file-earmark-text"></i> Catálogo EPP
-</a>
-            <a class="nav-link {{ request()->routeIs('usuarios.index') ? 'active' : '' }}" href="{{ route('usuarios.index') }}">
-                <i class="bi bi-people"></i> Usuarios
-            </a>
-            <a class="nav-link" href="#">
-                <i class="bi bi-gear"></i> Configuración
-            </a>
+            {{-- VERIFICACIÓN DE ROL POR EMAIL (TEMPORAL) --}}
+            @if(str_contains(Auth::user()->email, 'docente'))
+                {{-- MENU DOCENTE --}}
+                <a class="nav-link {{ request()->routeIs('docente.dashboard') ? 'active' : '' }}" href="{{ route('docente.dashboard') }}">
+                    <i class="bi bi-house-door"></i> Inicio
+                </a>
+                <a class="nav-link {{ request()->routeIs('epps.catalogo') ? 'active' : '' }}" href="{{ route('epps.catalogo') }}">
+                    <i class="bi bi-file-earmark-text"></i> Catálogo de EPP
+                </a>
+                <a class="nav-link" href="#">
+                    <i class="bi bi-box-seam"></i> Mis EPP
+                </a>
+                <a class="nav-link" href="#">
+                    <i class="bi bi-journal-text"></i> Mis Solicitudes
+                </a>
+            @else
+                {{-- MENU ADMINISTRADOR --}}
+                <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">
+                    <i class="bi bi-bar-chart-line"></i> Dashboard
+                </a>
+                <a class="nav-link {{ request()->is('epps/create') ? 'active' : '' }}" href="{{ route('epps.create') }}">
+                    <i class="bi bi-box-seam"></i> Inventario
+                </a>
+                <a class="nav-link {{ request()->routeIs('epps.catalogo') ? 'active' : '' }}" href="{{ route('epps.catalogo') }}">
+                    <i class="bi bi-file-earmark-text"></i> Catálogo EPP
+                </a>
+                <a class="nav-link {{ request()->routeIs('usuarios.index') ? 'active' : '' }}" href="{{ route('usuarios.index') }}">
+                    <i class="bi bi-people"></i> Usuarios
+                </a>
+                <a class="nav-link" href="#">
+                    <i class="bi bi-gear"></i> Configuración
+                </a>
+            @endif
         </nav>
 
         <div class="user-section">

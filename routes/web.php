@@ -23,8 +23,15 @@ Route::post('/', function (Request $request) {
 
     if (Auth::attempt($credentials)) {
         $request->session()->regenerate();
-        // Al loguearse, lo enviamos directo al dashboard
-        return redirect()->intended('dashboard');
+        $user = Auth::user();
+
+        // REDIRECCIÓN POR ROL (Súper seguro)
+        if ($user->role === 'Docente') {
+            return redirect()->route('docente.dashboard');
+        }
+
+        // Si es Admin o Coordinador, va al dashboard principal
+        return redirect()->route('dashboard'); 
     }
 
     return back()->withErrors([
@@ -67,4 +74,14 @@ Route::middleware(['auth'])->group(function () {
 
     //Agregar usuario
     Route::post('/usuarios/store', [UsuarioController::class, 'store'])->name('usuarios.store');
+
+
+
+    //solicitudes
+    Route::post('/solicitudes', [App\Http\Controllers\SolicitudController::class, 'store'])->name('solicitudes.store');
+
+    //dashboard docente
+    Route::get('/docente/dashboard', function () {
+        return view('docente.dashboard');
+    })->name('docente.dashboard');
 });

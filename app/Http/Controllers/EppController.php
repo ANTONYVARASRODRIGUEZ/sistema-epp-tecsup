@@ -80,7 +80,15 @@ class EppController extends Controller
 
     public function catalogo()
 {
-    $epps = Epp::all(); // O puedes usar paginación: Epp::paginate(6);
+    // Obtenemos los mismos datos para ambos
+    $epps = \App\Models\Epp::all();
+
+    // Si el usuario es docente, mostramos la vista de solicitudes
+    if (str_contains(auth()->user()->email, 'docente')) {
+        return view('docente.catalogo', compact('epps'));
+    }
+
+    // Si es admin, mostramos la vista original de gestión
     return view('epps.catalogo', compact('epps'));
 }
 
