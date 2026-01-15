@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DepartamentoController;
 use App\Http\Controllers\EppController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DocenteDashboardController;
 use App\Http\Controllers\SolicitudController;
 use App\Http\Controllers\ConfiguracionController;
 use App\Http\Controllers\ProfileController;
@@ -52,6 +53,7 @@ Route::middleware(['auth'])->group(function () {
     // Dashboard y Perfil
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/perfil', [ProfileController::class, 'show'])->name('perfil.show');
+    Route::post('/perfil/datos', [ProfileController::class, 'actualizarDatosPersonales'])->name('perfil.actualizar-datos');
     Route::post('/perfil/email', [ProfileController::class, 'actualizarEmail'])->name('perfil.actualizar-email');
     Route::post('/perfil/contrasena', [ProfileController::class, 'cambiarContrasena'])->name('perfil.cambiar-contrasena');
 
@@ -67,9 +69,11 @@ Route::middleware(['auth'])->group(function () {
 
     // Catálogo y Dashboard Docente
     Route::get('/catalogo', [EppController::class, 'catalogo'])->name('epps.catalogo');
-    Route::get('/docente/dashboard', function () {
-        return view('docente.dashboard');
-    })->name('docente.dashboard');
+    Route::get('/docente/dashboard', DocenteDashboardController::class)->name('docente.dashboard');
+
+    Route::get('/docente/mis-epp', [SolicitudController::class, 'misEpps'])->name('docente.mis-epp');
+
+    Route::get('/docente/mis-solicitudes', [SolicitudController::class, 'misSolicitudes'])->name('docente.mis-solicitudes');
 
     // Matriz EPP
     Route::resource('matriz-epp', MatrizEppController::class);

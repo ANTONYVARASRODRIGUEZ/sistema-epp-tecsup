@@ -17,7 +17,15 @@ class Solicitud extends Model
         'user_id',
         'epp_id',
         'motivo',
-        'estado'
+        'cantidad',
+        'estado',
+        'fecha_aprobacion',
+        'fecha_vencimiento',
+    ];
+
+    protected $casts = [
+        'fecha_aprobacion' => 'datetime',
+        'fecha_vencimiento' => 'datetime',
     ];
 
     // Relación con el usuario (Docente)

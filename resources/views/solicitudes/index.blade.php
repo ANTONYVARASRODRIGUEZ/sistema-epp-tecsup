@@ -14,75 +14,72 @@
     </div>
     @endif
 
-    <div class="row mb-4">
-        <div class="col-lg-4 col-md-6 mb-3">
-            <div class="card border-0 shadow-sm" style="border-left: 5px solid #ffc107;">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <p class="text-muted mb-2 small">Pendientes</p>
-                            <h2 class="fw-bold" style="color: #ffc107;">{{ $pendientes }}</h2>
-                        </div>
-                        <div style="font-size: 2rem; color: #ffc107; opacity: 0.3;">
-                            <i class="bi bi-bell"></i>
-                        </div>
+    <div class="row mb-4 g-3">
+        <div class="col-lg-4 col-md-6">
+            <div class="card border-0 shadow-sm h-100" style="border-radius: 20px;">
+                <div class="card-body d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="text-muted mb-1">Pendientes</p>
+                        <h3 class="fw-bold">{{ $pendientes }}</h3>
                     </div>
+                    <span class="badge bg-warning-subtle text-warning rounded-pill p-3">
+                        <i class="bi bi-bell-fill"></i>
+                    </span>
                 </div>
             </div>
         </div>
-
-        <div class="col-lg-4 col-md-6 mb-3">
-            <div class="card border-0 shadow-sm" style="border-left: 5px solid #28a745;">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <p class="text-muted mb-2 small">Aprobadas</p>
-                            <h2 class="fw-bold" style="color: #28a745;">{{ $aprobadas }}</h2>
-                        </div>
-                        <div style="font-size: 2rem; color: #28a745; opacity: 0.3;">
-                            <i class="bi bi-check-circle"></i>
-                        </div>
+        <div class="col-lg-4 col-md-6">
+            <div class="card border-0 shadow-sm h-100" style="border-radius: 20px;">
+                <div class="card-body d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="text-muted mb-1">Aprobadas</p>
+                        <h3 class="fw-bold">{{ $aprobadas }}</h3>
                     </div>
+                    <span class="badge bg-success-subtle text-success rounded-pill p-3">
+                        <i class="bi bi-check-lg"></i>
+                    </span>
                 </div>
             </div>
         </div>
-
-        <div class="col-lg-4 col-md-6 mb-3">
-            <div class="card border-0 shadow-sm" style="border-left: 5px solid #dc3545;">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <p class="text-muted mb-2 small">Rechazadas</p>
-                            <h2 class="fw-bold" style="color: #dc3545;">{{ $rechazadas }}</h2>
-                        </div>
-                        <div style="font-size: 2rem; color: #dc3545; opacity: 0.3;">
-                            <i class="bi bi-x-circle"></i>
-                        </div>
+        <div class="col-lg-4 col-md-6">
+            <div class="card border-0 shadow-sm h-100" style="border-radius: 20px;">
+                <div class="card-body d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="text-muted mb-1">Rechazadas</p>
+                        <h3 class="fw-bold">{{ $rechazadas }}</h3>
                     </div>
+                    <span class="badge bg-danger-subtle text-danger rounded-pill p-3">
+                        <i class="bi bi-x-lg"></i>
+                    </span>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="row mb-4">
-        <div class="col-md-6">
-            <label class="form-label fw-semibold">Filtrar por estado</label>
-            <select class="form-select" id="filterEstado">
-                <option value="">Todos</option>
-                <option value="Pendiente">Pendiente</option>
-                <option value="Aprobado">Aprobado</option>
-                <option value="Rechazado">Rechazado</option>
-            </select>
-        </div>
-        <div class="col-md-6">
-            <label class="form-label fw-semibold">Filtrar por tipo</label>
-            <select class="form-select" id="filterTipo">
-                <option value="">Todos</option>
-                <option value="Nuevo">Nuevo</option>
-                <option value="Renovación">Renovación</option>
-                <option value="Devolución">Devolución</option>
-            </select>
-        </div>
+    <div class="card border-0 shadow-sm p-4 mb-4" style="border-radius: 20px;">
+        <form class="row g-3 align-items-end" method="GET">
+            <div class="col-md-6">
+                <label class="text-muted small mb-1">Filtrar por estado</label>
+                <select name="estado" class="form-select">
+                    <option value="todos" {{ $estadoFiltro === 'todos' ? 'selected' : '' }}>Todos</option>
+                    <option value="pendiente" {{ $estadoFiltro === 'pendiente' ? 'selected' : '' }}>Pendientes</option>
+                    <option value="aprobado" {{ $estadoFiltro === 'aprobado' ? 'selected' : '' }}>Aprobadas</option>
+                    <option value="rechazado" {{ $estadoFiltro === 'rechazado' ? 'selected' : '' }}>Rechazadas</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="text-muted small mb-1">Filtrar por tipo</label>
+                <select name="tipo" class="form-select">
+                    <option value="todos" {{ $tipoFiltro === 'todos' ? 'selected' : '' }}>Todos</option>
+                    @foreach($tiposDisponibles as $valor => $label)
+                        <option value="{{ $valor }}" {{ $tipoFiltro === $valor ? 'selected' : '' }}>{{ $label }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-md-2 d-grid">
+                <button type="submit" class="btn btn-dark" style="border-radius: 12px;">Aplicar</button>
+            </div>
+        </form>
     </div>
 
     <!-- TABLA DE SOLICITUDES -->
@@ -103,40 +100,35 @@
                     </thead>
                     <tbody>
                         @forelse($solicitudes as $solicitud)
-                        <tr class="solicitud-row" data-estado="{{ $solicitud['estado'] }}" data-tipo="{{ $solicitud['tipo'] }}">
+                        <tr class="solicitud-row" data-estado="{{ $solicitud->estado }}" data-tipo="solicitud_epp">
                             <td>
-                                @if($solicitud['tipo'] === 'Nuevo')
-                                    <span class="badge bg-info">Nuevo</span>
-                                @elseif($solicitud['tipo'] === 'Renovación')
-                                    <span class="badge bg-warning">Renovación</span>
-                                @else
-                                    <span class="badge bg-secondary">Devolución</span>
-                                @endif
+                                <span class="badge bg-secondary-subtle text-dark">Solicitud de EPP</span>
                             </td>
-                            <td class="fw-bold">{{ $solicitud['usuario'] }}</td>
-                            <td>{{ $solicitud['epp'] }}</td>
+                            <td class="fw-bold">{{ $solicitud->user->name ?? 'Usuario' }}</td>
+                            <td>{{ $solicitud->epp->nombre ?? 'Equipo' }}</td>
                             <td>
-                                <span class="badge bg-light text-dark">{{ $solicitud['cantidad'] }}</span>
+                                <span class="badge bg-light text-dark">{{ $solicitud->cantidad }}</span>
                             </td>
-                            <td>{{ $solicitud['fecha'] }}</td>
+                            <td>{{ $solicitud->created_at?->format('Y-m-d') }}</td>
                             <td>
-                                @if($solicitud['estado'] === 'Pendiente')
-                                    <span class="badge bg-warning text-dark">Pendiente</span>
-                                @elseif($solicitud['estado'] === 'Aprobado')
-                                    <span class="badge bg-success">Aprobado</span>
-                                @else
-                                    <span class="badge bg-danger">Rechazado</span>
-                                @endif
+                                @php
+                                    $estadoBadge = [
+                                        'pendiente' => 'bg-warning text-dark',
+                                        'aprobado' => 'bg-success',
+                                        'rechazado' => 'bg-danger',
+                                    ][$solicitud->estado] ?? 'bg-secondary';
+                                @endphp
+                                <span class="badge {{ $estadoBadge }}">{{ ucfirst($solicitud->estado) }}</span>
                             </td>
                             <td class="text-center">
-                                @if($solicitud['estado'] === 'Pendiente')
-                                    <form action="{{ route('solicitudes.aprobar', $solicitud['id']) }}" method="POST" class="d-inline">
+                                @if($solicitud->estado === 'pendiente')
+                                    <form action="{{ route('solicitudes.aprobar', $solicitud->id) }}" method="POST" class="d-inline">
                                         @csrf
                                         <button type="submit" class="btn btn-sm btn-success" title="Aprobar">
                                             <i class="bi bi-check-circle"></i>
                                         </button>
                                     </form>
-                                    <form action="{{ route('solicitudes.rechazar', $solicitud['id']) }}" method="POST" class="d-inline">
+                                    <form action="{{ route('solicitudes.rechazar', $solicitud->id) }}" method="POST" class="d-inline">
                                         @csrf
                                         <button type="submit" class="btn btn-sm btn-danger" title="Rechazar">
                                             <i class="bi bi-x-circle"></i>

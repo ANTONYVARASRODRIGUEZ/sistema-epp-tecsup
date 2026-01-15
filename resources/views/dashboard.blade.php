@@ -217,8 +217,12 @@
                                 <tr>
                                     <td><strong>{{ $entrega->user->name ?? 'N/A' }}</strong></td>
                                     <td>{{ $entrega->epp->nombre ?? 'N/A' }}</td>
-                                    <td>{{ $entrega->created_at->format('d/m/Y') ?? 'N/A' }}</td>
-                                    <td><span class="badge bg-info">{{ $entrega->epp->departamento->nombre ?? 'N/A' }}</span></td>
+                                    <td>{{ optional($entrega->fecha_aprobacion ?? $entrega->created_at)->format('d/m/Y') }}</td>
+                                    <td>
+                                        <span class="badge bg-info">
+                                            {{ $entrega->epp->departamento->nombre ?? 'Sin área' }}
+                                        </span>
+                                    </td>
                                 </tr>
                                 @empty
                                 <tr>
@@ -253,7 +257,7 @@
                                 @forelse($eppBaja as $epp)
                                 <tr>
                                     <td><strong>{{ $epp->nombre }}</strong></td>
-                                    <td><span class="badge bg-danger">{{ $epp->cantidad }}</span></td>
+                                    <td><span class="badge bg-danger">{{ $epp->deteriorado ?? $epp->cantidad }}</span></td>
                                     <td><span class="badge bg-warning text-dark">{{ ucfirst($epp->estado) }}</span></td>
                                     <td>{{ $epp->updated_at->format('d/m/Y') ?? 'N/A' }}</td>
                                 </tr>

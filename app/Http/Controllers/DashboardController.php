@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Epp;
-use App\Models\Entrega;
+use App\Models\Solicitud;
 use App\Models\Departamento;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -12,26 +12,35 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        // Stock Disponible
-        $stockDisponible = Epp::sum('cantidad') ?? 0;
+        // Métricas base de inventario
+        $stockDisponible = Epp::sum('stock') ?? 0;
+        $totalDeteriorado = Epp::sum('deteriorado') ?? 0;
+        $deteriorados = $totalDeteriorado;
 
-        // EPP Entregados
-        $eppEntregados = Entrega::count() ?? 0;
+        // Flujo de solicitudes aprobadas (entregas reales)
+        $solicitudesAprobadasBase = Solicitud::with(['user', 'epp.departamento'])
+            ->where('estado', 'aprobado');
 
-        // EPP Próximos a Vencer (30 días)
-        $proximosVencer = Epp::whereBetween('fecha_vencimiento', [now(), now()->addDays(30)])->count() ?? 0;
+        $eppEntregados = (clone $solicitudesAprobadasBase)->count();
+        $proximosVencer = (clone $solicitudesAprobadasBase)
+            ->whereBetween('fecha_vencimiento', [now(), now()->addDays(30)])
+            ->count();
+        $vencidos = (clone $solicitudesAprobadasBase)
+            ->whereNotNull('fecha_vencimiento')
+            ->where('fecha_vencimiento', '<', now())
+            ->count();
 
-        // EPP Deteriorados/Baja
-        $deteriorados = Epp::whereIn('estado', ['deteriorado', 'baja'])->count() ?? 0;
+        $alertasVencidos = (clone $solicitudesAprobadasBase)
+            ->whereNotNull('fecha_vencimiento')
+            ->where('fecha_vencimiento', '<', now())
+            ->orderBy('fecha_vencimiento')
+            ->take(5)
+            ->get();
 
-        // EPP Vencidos
-        $vencidos = Epp::where('fecha_vencimiento', '<', now())->count() ?? 0;
-
-        // Alertas: EPP Vencidos
-        $alertasVencidos = Epp::where('fecha_vencimiento', '<', now())->get();
-
-        // Alertas: Stock Crítico (menos de 20 unidades)
-        $alertasStockCritico = Epp::where('cantidad', '<', 20)->where('cantidad', '>', 0)->get();
+        $alertasStockCritico = Epp::whereBetween('stock', [1, 10])
+            ->orderBy('stock')
+            ->take(5)
+            ->get();
 
         // Datos por Estado
         $estadisticasEstado = [
@@ -39,7 +48,7 @@ class DashboardController extends Controller
             'entregados' => $eppEntregados,
             'porVencer' => $proximosVencer,
             'vencidos' => $vencidos,
-            'deteriorados' => $deteriorados,
+            'deteriorados' => $totalDeteriorado,
         ];
 
         // EPP por Departamento
@@ -62,8 +71,8 @@ class DashboardController extends Controller
         }
 
         // Últimas entregas
-        $ultimasEntregas = Entrega::with(['user', 'epp'])
-            ->latest()
+        $ultimasEntregas = (clone $solicitudesAprobadasBase)
+            ->orderByDesc('fecha_aprobacion')
             ->take(5)
             ->get();
 

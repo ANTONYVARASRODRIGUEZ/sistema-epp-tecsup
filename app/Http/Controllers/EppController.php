@@ -65,7 +65,8 @@ class EppController extends Controller
             'cantidad',
             'stock',
             'entregado',
-            'deteriorado'
+            'deteriorado',
+            'estado'
         ]);
 
         // 3️⃣ Guardar archivo PDF si existe
@@ -211,7 +212,11 @@ class EppController extends Controller
         $epp = Epp::findOrFail($id);
         $epp->delete();
 
-        return redirect()->route('epps.catalogo')
+        if (request()->expectsJson()) {
+            return response()->json(['success' => true]);
+        }
+
+        return redirect()->route('epps.index')
             ->with('success', 'EPP eliminado correctamente');
     }
 }

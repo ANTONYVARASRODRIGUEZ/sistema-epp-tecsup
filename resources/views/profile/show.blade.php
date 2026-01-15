@@ -24,34 +24,53 @@
             <div class="card border-0 shadow-sm p-4 mb-4">
                 <h5 class="fw-bold mb-4"><i class="bi bi-person-circle me-2" style="color: #003366;"></i>Información Personal</h5>
                 
-                <div class="mb-3">
-                    <label class="form-label text-muted small fw-bold">Nombre Completo</label>
-                    <p class="fw-bold fs-6">{{ $usuario->name }}</p>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label text-muted small fw-bold">DNI / Código Institucional</label>
-                    <p class="fw-bold fs-6">{{ $usuario->dni ?? '-' }}</p>
-                </div>
-
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <label class="form-label text-muted small fw-bold">Rol</label>
-                        <p>
-                            <span class="badge" style="background-color: #003366; padding: 8px 12px; font-size: 0.9rem;">
-                                {{ $usuario->role }}
-                            </span>
-                        </p>
+                <form action="{{ route('perfil.actualizar-datos') }}" method="POST" class="needs-validation" novalidate>
+                    @csrf
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small fw-bold">Nombre Completo</label>
+                            <input type="text" name="name" class="form-control" value="{{ old('name', $usuario->name) }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small fw-bold">DNI / Código Institucional</label>
+                            <input type="text" name="dni" class="form-control" value="{{ old('dni', $usuario->dni) }}">
+                        </div>
                     </div>
-                    <div class="col-md-6">
-                        <label class="form-label text-muted small fw-bold">Centro</label>
-                        <p class="fw-bold">Tecsup Norte</p>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small fw-bold">Departamento</label>
+                            <input type="text" name="department" class="form-control" value="{{ old('department', $usuario->department) }}" placeholder="Ej. Seguridad Industrial">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small fw-bold">Taller/Laboratorio</label>
+                            <input type="text" name="workshop" class="form-control" value="{{ old('workshop', $usuario->workshop) }}" placeholder="Ej. Taller de Casco">
+                        </div>
                     </div>
-                </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small fw-bold">Rol</label>
+                            <p>
+                                <span class="badge" style="background-color: #003366; padding: 8px 12px; font-size: 0.9rem;">
+                                    {{ $usuario->role }}
+                                </span>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small fw-bold">Centro</label>
+                            <p class="fw-bold">Tecsup Norte</p>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-sm btn-outline-primary mb-4">
+                        <i class="bi bi-person-check me-1"></i>Guardar Datos Personales
+                    </button>
+                </form>
 
                 <hr class="my-3">
 
-                <h6 class="fw-bold mb-3">Datos Editables</h6>
+                <h6 class="fw-bold mb-3">Datos de acceso</h6>
 
                 <!-- Cambiar Email -->
                 <form action="{{ route('perfil.actualizar-email') }}" method="POST" class="mb-4">
