@@ -2,10 +2,11 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+// Importamos el modelo Departamento para la relación
+use App\Models\Departamento;
 
 class User extends Authenticatable
 {
@@ -13,40 +14,39 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
+     * Los atributos que se pueden asignar masivamente.
      */
     protected $fillable = [
-        'name',
-        'dni',
-        'email',
-        'password',
-        'role',
-        'department',
-        'workshop',
-    ];
+    'name',
+    'dni',
+    'email',
+    'password',
+    'role',
+    'departamento_id',
+    'workshop',
+    'talla_zapatos', 
+    'talla_mandil',
+];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
-            //'password' => 'hashed',
+            'password' => 'hashed',
         ];
+    }
+
+    /**
+     * RELACIÓN: Un usuario pertenece a un departamento.
+     * Esto permite hacer: $user->departamento->nombre
+     */
+    public function departamento()
+    {
+        return $this->belongsTo(Departamento::class, 'departamento_id');
     }
 }

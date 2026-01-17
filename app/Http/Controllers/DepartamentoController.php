@@ -5,95 +5,93 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Departamento;
-
+use App\Models\User; 
+// --- NUEVOS IMPORTS PARA EL EXCEL ---
+use App\Imports\DocentesImport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class DepartamentoController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Muestra las "Cards" de los departamentos.
      */
     public function index()
     {
-
-        $departamentos = Departamento::all();
+        // Traemos los departamentos contando sus usuarios vinculados
+        $departamentos = Departamento::withCount('usuarios')->get(); 
+        
         return view('departamentos.index', compact('departamentos'));
-    
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-
-        return view('departamentos.create');
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-
-         $request->validate([
-        'nombre' => 'required',
-        'codigo' => 'nullable|string|max:10',
-        'descripcion' => 'nullable|string',
-        'talleres' => 'nullable|string',
-        'activo' => 'nullable|boolean'
-    ]);
-
-    Departamento::create($request->all());
-
-    return redirect('/departamentos')
-        ->with('success', 'Departamento registrado correctamente');
-        //
-    }
-
-    /**
-     * Display the specified resource.
+     * Muestra los docentes de un departamento específico.
      */
     public function show(string $id)
     {
-        //
+        $departamento = Departamento::findOrFail($id);
+
+        // Buscamos los usuarios vinculados por departamento_id
+        $docentes = User::where('departamento_id', $id)
+                        ->where('role', 'Docente')
+                        ->get();
+
+        return view('departamentos.show', compact('departamento', 'docentes'));
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * MÉTODO NUEVO: Procesa el archivo Excel cargado desde el Modal
      */
-    public function edit(string $id)
+    public function importar(Request $request, $id)
     {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
+        // 1. Validamos que el archivo sea un Excel
         $request->validate([
-            'nombre' => 'required',
-            'codigo' => 'nullable|string|max:10',
-            'descripcion' => 'nullable|string',
-            'talleres' => 'nullable|string',
-            'activo' => 'nullable|boolean'
+            'excel_file' => 'required|mimes:xlsx,xls'
+        ], [
+            'excel_file.required' => 'Por favor, selecciona un archivo.',
+            'excel_file.mimes' => 'El archivo debe ser un Excel (.xlsx o .xls).'
         ]);
 
-        $departamento = Departamento::findOrFail($id);
-        $departamento->update($request->all());
+        try {
+            // 2. Ejecutamos la importación
+            // El DocentesImport se encargará de crear los registros
+            Excel::import(new DocentesImport, $request->file('excel_file'));
 
-        return redirect()->route('departamentos.index')->with('success', 'Departamento actualizado correctamente.');
+            // 3. Vinculamos los usuarios recién creados que no tengan departamento
+            // (Esto asume que el importador los crea y nosotros los asignamos al depto actual)
+            User::whereNull('departamento_id')->update(['departamento_id' => $id]);
+
+            return back()->with('success', '¡Excelente! Los docentes se han sincronizado con la Matriz de Consistencia.');
+            
+        } catch (\Exception $e) {
+            return back()->with('error', 'Hubo un error al procesar el Excel: ' . $e->getMessage());
+        }
     }
+
 
     /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        $departamento = Departamento::findOrFail($id);
-        $departamento->delete();
+ * MÉTODO NUEVO: Importación General (Mapeo automático por columna 'departamento')
+ * Se usa desde el index para cargar a todos los docentes de una vez.
+ */
+public function importarGeneral(Request $request)
+{
+    $request->validate([
+        'excel_file' => 'required|mimes:xlsx,xls'
+    ], [
+        'excel_file.required' => 'Selecciona la Matriz General.',
+        'excel_file.mimes' => 'El archivo debe ser un Excel (.xlsx o .xls).'
+    ]);
 
-        return redirect()->route('departamentos.index')->with('success', 'Departamento eliminado correctamente.');
+    try {
+        // Ejecutamos la importación masiva
+        // Nota: El archivo DocentesImport debe estar preparado para leer la columna 'departamento'
+        Excel::import(new DocentesImport, $request->file('excel_file'));
+
+        return back()->with('success', 'Matriz General procesada. Los docentes han sido mapeados a sus áreas correspondientes.');
+        
+    } catch (\Exception $e) {
+        return back()->with('error', 'Error en Matriz General: ' . $e->getMessage());
     }
+}
+
+    // ... (Mantén aquí tus métodos create, store, edit, update y destroy)
 }

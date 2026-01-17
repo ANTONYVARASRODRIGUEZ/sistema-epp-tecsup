@@ -10,15 +10,17 @@ return new class extends Migration
      * Run the migrations.
      */
     public function up(): void
-    {
-        Schema::create('departamentos', function (Blueprint $table) {
-    $table->id();
-    $table->string('nombre');
-    $table->text('descripcion')->nullable();
-    $table->timestamps();
-});
-
-    }
+{
+    Schema::create('departamentos', function (Blueprint $table) {
+        $table->id();
+        $table->string('nombre'); 
+        $table->text('descripcion')->nullable();
+        // --- CAMPOS NUEVOS PARA LO QUE PIDIÓ TU COORDINADOR ---
+        $table->string('imagen_url')->nullable(); // Para la imagen referencial
+        $table->string('nivel_riesgo')->default('Medio'); // Para el mapeo de EPPs
+        $table->timestamps();
+    });
+}
 
     /**
      * Reverse the migrations.

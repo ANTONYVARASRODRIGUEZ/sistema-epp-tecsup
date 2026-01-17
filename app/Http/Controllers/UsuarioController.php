@@ -8,7 +8,6 @@ use App\Models\Departamento;
 use App\Models\Epp;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-// use App\Models\User; // Descomenta esto cuando vayas a traer datos reales
 
 class UsuarioController extends Controller
 {
@@ -17,44 +16,43 @@ class UsuarioController extends Controller
      */
     public function index()
     {
-        $usuarios = User::all();
+        // Agregamos with('departamento') para que la lista principal también los cargue
+        $usuarios = User::with('departamento')->get();
         return view('usuarios.index', compact('usuarios'));
     }
 
     public function store(Request $request)
-{
-    // 1. Validar los datos
-    $request->validate([
-        'name' => 'required|string|max:255',
-        'dni' => 'required|string|max:20|unique:users,dni',
-        'email' => 'required|email|unique:users,email',
-        'password' => 'required|min:6',
-        'role' => 'required',
-        'department' => 'nullable|string|max:255',
-        'workshop' => 'nullable|string|max:255'
-    ]);
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'dni' => 'required|string|max:20|unique:users,dni',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|min:6',
+            'role' => 'required',
+            'departamento_id' => 'nullable|exists:departamentos,id', // Validamos contra ID real
+        ]);
 
-    // 2. Crear el usuario
-    User::create([
-        'name' => $request->name,
-        'dni' => $request->dni,
-        'email' => $request->email,
-        'password' => Hash::make($request->password),
-        'role' => $request->role,
-        'department' => $request->department,
-        'workshop' => $request->workshop,
-    ]);
+        User::create([
+            'name' => $request->name,
+            'dni' => $request->dni,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'role' => $request->role,
+            'departamento_id' => $request->departamento_id,
+        ]);
 
-    // 3. Redirigir con mensaje de éxito
-    return redirect()->route('usuarios.index')->with('success', 'Usuario creado correctamente.');
-}
+        return redirect()->route('usuarios.index')->with('success', 'Usuario creado correctamente.');
+    }
 
     /**
      * Ver detalles de un usuario específico.
+     * ESTA FUNCIÓN ES LA QUE ARREGLA TU FICHA TÉCNICA
      */
     public function show($id)
     {
-        $usuario = User::findOrFail($id);
+        // Cargamos la relación 'departamento' para que no salga "No asignado"
+        $usuario = User::with('departamento')->findOrFail($id);
+        
         return view('usuarios.show', compact('usuario'));
     }
 
@@ -64,7 +62,8 @@ class UsuarioController extends Controller
     public function edit($id)
     {
         $usuario = User::findOrFail($id);
-        return view('usuarios.edit', compact('usuario'));
+        $departamentos = Departamento::all(); // Necesario para el select de edición
+        return view('usuarios.edit', compact('usuario', 'departamentos'));
     }
 
     /**
@@ -79,8 +78,7 @@ class UsuarioController extends Controller
             'dni' => 'required|string|max:20|unique:users,dni,' . $id,
             'email' => 'required|email|unique:users,email,' . $id,
             'role' => 'required',
-            'department' => 'nullable|string|max:255',
-            'workshop' => 'nullable|string|max:255',
+            'departamento_id' => 'nullable|exists:departamentos,id',
             'password' => 'nullable|min:6'
         ]);
 
@@ -89,8 +87,7 @@ class UsuarioController extends Controller
             'dni' => $request->dni,
             'email' => $request->email,
             'role' => $request->role,
-            'department' => $request->department,
-            'workshop' => $request->workshop,
+            'departamento_id' => $request->departamento_id,
         ];
 
         if ($request->password) {

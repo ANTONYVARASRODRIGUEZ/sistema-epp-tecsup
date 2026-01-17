@@ -88,4 +88,11 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/configuracion/matriz', [ConfiguracionController::class, 'agregarMatriz'])->name('configuracion.agregar-matriz');
         Route::delete('/configuracion/matriz/{id}', [ConfiguracionController::class, 'eliminarMatriz'])->name('configuracion.eliminar-matriz');
     });
+
+    // Importación General (Desde el Index de Departamentos)
+Route::post('/departamentos/importar-general', [DepartamentoController::class, 'importarGeneral'])->name('departamentos.importar_general');
+
+
+   
+    Route::post('/departamentos/{id}/importar', [DepartamentoController::class, 'importar'])->name('departamentos.importar');
 });
