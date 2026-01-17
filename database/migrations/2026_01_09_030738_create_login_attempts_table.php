@@ -11,7 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Migración vacía - usaremos la 2026_01_09_030756_create_login_attempts_table.php
+        if (!Schema::hasTable('login_attempts')) {
+            Schema::create('login_attempts', function (Blueprint $table) {
+                $table->id();
+                $table->unsignedBigInteger('user_id')->nullable();
+                $table->string('ip_address')->nullable();
+                $table->string('user_agent')->nullable();
+                $table->boolean('exitoso')->default(true);
+                $table->string('razon_fallo')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     /**
@@ -19,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // Migración vacía
+        Schema::dropIfExists('login_attempts');
     }
 };

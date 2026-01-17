@@ -8,6 +8,7 @@ use App\Models\AuditLog;
 use App\Models\Entrega;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 
 class ProfileController extends Controller
 {
@@ -17,25 +18,36 @@ class ProfileController extends Controller
     public function show()
     {
         $usuario = auth()->user();
+
+        // Vista simplificada para docentes
+        if ($usuario->role === 'Docente' || str_contains($usuario->email, 'docente')) {
+            return view('docente.perfil', compact('usuario'));
+        }
         
-        // Intentos de acceso recientes
-        $accesosRecientes = LoginAttempt::where('user_id', $usuario->id)
-            ->where('exitoso', true)
-            ->latest()
-            ->take(10)
-            ->get();
-        
-        // Último acceso exitoso
-        $ultimoAcceso = LoginAttempt::where('user_id', $usuario->id)
-            ->where('exitoso', true)
-            ->latest()
-            ->first();
-        
-        // Intentos fallidos recientes (últimos 7 días)
-        $intentosFallidos = LoginAttempt::where('user_id', $usuario->id)
-            ->where('exitoso', false)
-            ->where('created_at', '>=', now()->subDays(7))
-            ->count();
+        if (Schema::hasTable('login_attempts')) {
+            // Intentos de acceso recientes
+            $accesosRecientes = LoginAttempt::where('user_id', $usuario->id)
+                ->where('exitoso', true)
+                ->latest()
+                ->take(10)
+                ->get();
+            
+            // Último acceso exitoso
+            $ultimoAcceso = LoginAttempt::where('user_id', $usuario->id)
+                ->where('exitoso', true)
+                ->latest()
+                ->first();
+            
+            // Intentos fallidos recientes (últimos 7 días)
+            $intentosFallidos = LoginAttempt::where('user_id', $usuario->id)
+                ->where('exitoso', false)
+                ->where('created_at', '>=', now()->subDays(7))
+                ->count();
+        } else {
+            $accesosRecientes = collect();
+            $ultimoAcceso = null;
+            $intentosFallidos = 0;
+        }
         
         // Actividad del admin (últimas acciones registradas en auditoría)
         $actividadAdmin = AuditLog::where('user_id', $usuario->id)
@@ -66,6 +78,32 @@ class ProfileController extends Controller
             'bajaEpp',
             'modificacionesInventario'
         ));
+    }
+
+    /**
+     * Actualizar datos personales del administrador
+     */
+    public function actualizarDatosPersonales(Request $request)
+    {
+        $usuario = auth()->user();
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'dni' => 'nullable|string|max:20',
+            'department' => 'nullable|string|max:255',
+            'workshop' => 'nullable|string|max:255',
+        ]);
+
+        $usuario->update($request->only(['name', 'dni', 'department', 'workshop']));
+
+        AuditLog::registrar(
+            'perfil_actualizado',
+            'User',
+            $usuario->id,
+            'Actualizó su información personal'
+        );
+
+        return redirect()->route('perfil.show')->with('success', 'Información personal actualizada correctamente');
     }
 
     /**

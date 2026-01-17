@@ -39,10 +39,10 @@
                 <a class="nav-link {{ request()->routeIs('epps.catalogo') ? 'active' : '' }}" href="{{ route('epps.catalogo') }}">
                     <i class="bi bi-file-earmark-text"></i> Catálogo de EPP
                 </a>
-                <a class="nav-link" href="#">
+                <a class="nav-link {{ request()->routeIs('docente.mis-epp') ? 'active' : '' }}" href="{{ route('docente.mis-epp') }}">
                     <i class="bi bi-box-seam"></i> Mis EPP
                 </a>
-                <a class="nav-link" href="#">
+                <a class="nav-link {{ request()->routeIs('docente.mis-solicitudes') ? 'active' : '' }}" href="{{ route('docente.mis-solicitudes') }}">
                     <i class="bi bi-journal-text"></i> Mis Solicitudes
                 </a>
             @else

@@ -80,6 +80,11 @@
                                 <textarea name="motivo" class="form-control border-0 bg-light" rows="3" placeholder="Ej: Mi casco actual está dañado o vencido..." style="border-radius: 12px;" required></textarea>
                             </div>
 
+                            <div class="mb-4">
+                                <label class="form-label small fw-bold text-secondary">Cantidad</label>
+                                <input type="number" name="cantidad" class="form-control border-0 bg-light" min="1" value="1" style="border-radius: 12px;">
+                            </div>
+
                             <div class="alert alert-info border-0 small d-flex align-items-center" style="border-radius: 12px; background-color: #e7f3ff; color: #004a99;">
                                 <i class="bi bi-info-circle-fill me-2 fs-5"></i>
                                 <span>Tu solicitud será enviada al administrador para su revisión.</span>
