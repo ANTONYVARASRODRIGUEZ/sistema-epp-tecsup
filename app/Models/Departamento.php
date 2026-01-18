@@ -22,14 +22,20 @@ class Departamento extends Model
     ];
 
     /**
-     * Relación: Un departamento tiene muchos usuarios (Docentes/Admin)
-     * Esto permite hacer Departamento::withCount('usuarios')
+     * Relación General: Trae a todos los usuarios vinculados.
      */
     public function usuarios()
     {
-        // Importante: 'departamento_id' debe ser el nombre de la columna 
-        // en tu tabla 'users' que conecta con esta tabla
         return $this->hasMany(User::class, 'departamento_id');
+    }
+
+    /**
+     * NUEVA RELACIÓN: Trae solo a los usuarios con rol 'Docente'.
+     * Úsalo para los contadores de la vista principal.
+     */
+    public function docentes()
+    {
+        return $this->hasMany(User::class, 'departamento_id')->where('role', 'Docente');
     }
 
     /**

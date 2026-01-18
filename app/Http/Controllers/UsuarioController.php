@@ -22,28 +22,38 @@ class UsuarioController extends Controller
     }
 
     public function store(Request $request)
-    {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'dni' => 'required|string|max:20|unique:users,dni',
-            'email' => 'required|email|unique:users,email',
-            'password' => 'required|min:6',
-            'role' => 'required',
-            'departamento_id' => 'nullable|exists:departamentos,id', // Validamos contra ID real
-        ]);
+{
+    // 1. Construimos el correo completo antes de validar
+    $emailCompleto = $request->email_prefix . '@tecsup.edu.pe';
+    
+    // Agregamos el email completo al request para que la validación 'unique' funcione
+    $request->merge(['email' => $emailCompleto]);
 
-        User::create([
-            'name' => $request->name,
-            'dni' => $request->dni,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'role' => $request->role,
-            'departamento_id' => $request->departamento_id,
-        ]);
+    // 2. Validación adaptada a la nueva lógica
+    $request->validate([
+        'name'         => 'required|string|max:255',
+        'email'        => 'required|email|unique:users,email', // Valida el correo construido
+        'password'     => 'required|min:6',
+        'role'         => 'required|in:Admin,Coordinador,Docente,Usuario',
+    ]);
 
-        return redirect()->route('usuarios.index')->with('success', 'Usuario creado correctamente.');
-    }
+    // 3. Creación del usuario con valores por defecto para el docente
+    User::create([
+        'name'            => $request->name,
+        'email'           => $emailCompleto,
+        'password'        => Hash::make($request->password), // Tecsup2026
+        'role'            => $request->role,
+        
+        // Estos campos quedan NULL porque el docente los llenará al unirse
+        'dni'             => null, 
+        'departamento_id' => null,
+        'talla_zapatos'   => null,
+        'talla_mandil'    => null,
+    ]);
 
+    return redirect()->route('usuarios.index')
+        ->with('success', 'Cuenta creada. El usuario deberá completar su perfil al iniciar sesión.');
+}
     /**
      * Ver detalles de un usuario específico.
      * ESTA FUNCIÓN ES LA QUE ARREGLA TU FICHA TÉCNICA
@@ -69,36 +79,30 @@ class UsuarioController extends Controller
     /**
      * Actualizar un usuario.
      */
-    public function update(Request $request, $id)
-    {
-        $usuario = User::findOrFail($id);
+   public function update(Request $request, $id)
+{
+    $usuario = User::findOrFail($id);
 
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'dni' => 'required|string|max:20|unique:users,dni,' . $id,
-            'email' => 'required|email|unique:users,email,' . $id,
-            'role' => 'required',
-            'departamento_id' => 'nullable|exists:departamentos,id',
-            'password' => 'nullable|min:6'
-        ]);
+    $request->validate([
+        'name'  => 'required|string|max:255',
+        'email' => 'required|email|unique:users,email,' . $id,
+        'dni'   => 'nullable|string|max:20|unique:users,dni,' . $id, // Permite que sea nulo
+        'role'  => 'required',
+    ]);
 
-        $data = [
-            'name' => $request->name,
-            'dni' => $request->dni,
-            'email' => $request->email,
-            'role' => $request->role,
-            'departamento_id' => $request->departamento_id,
-        ];
+    $usuario->name = $request->name;
+    $usuario->email = $request->email;
+    $usuario->role = $request->role;
+    $usuario->dni = $request->dni; // Se guardará null si el campo llega vacío
 
-        if ($request->password) {
-            $data['password'] = Hash::make($request->password);
-        }
-
-        $usuario->update($data);
-
-        return redirect()->route('usuarios.index')->with('success', 'Usuario actualizado correctamente.');
+    if ($request->filled('password')) {
+        $usuario->password = Hash::make($request->password);
     }
 
+    $usuario->save();
+
+    return redirect()->route('usuarios.index')->with('success', 'Usuario actualizado correctamente.');
+}
     /**
      * Eliminar un usuario.
      */

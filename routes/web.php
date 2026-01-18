@@ -57,11 +57,11 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/perfil/email', [ProfileController::class, 'actualizarEmail'])->name('perfil.actualizar-email');
     Route::post('/perfil/contrasena', [ProfileController::class, 'cambiarContrasena'])->name('perfil.cambiar-contrasena');
 
-    // Recursos Principales (Epps, Departamentos, Usuarios, Solicitudes)
+    // Recursos Principales
     Route::resource('epps', EppController::class);
     Route::resource('departamentos', DepartamentoController::class);
-    Route::resource('usuarios', UsuarioController::class);
     Route::resource('solicitudes', SolicitudController::class);
+    Route::resource('matriz-epp', MatrizEppController::class);
     
     // Acciones de Solicitudes
     Route::post('/solicitudes/{id}/aprobar', [SolicitudController::class, 'aprobar'])->name('solicitudes.aprobar');
@@ -69,17 +69,22 @@ Route::middleware(['auth'])->group(function () {
 
     // Catálogo y Dashboard Docente
     Route::get('/catalogo', [EppController::class, 'catalogo'])->name('epps.catalogo');
+    
+    // Rutas Dashboard Docente
     Route::get('/docente/dashboard', DocenteDashboardController::class)->name('docente.dashboard');
-
+    Route::post('/docente/unirse', [DocenteDashboardController::class, 'unirse'])->name('docente.unirse');
+    
     Route::get('/docente/mis-epp', [SolicitudController::class, 'misEpps'])->name('docente.mis-epp');
-
     Route::get('/docente/mis-solicitudes', [SolicitudController::class, 'misSolicitudes'])->name('docente.mis-solicitudes');
 
-    // Matriz EPP
-    Route::resource('matriz-epp', MatrizEppController::class);
-
-    // 9. Configuración (Solo Admin) - Cambios de tu compañera
+    // --- SECCIÓN EXCLUSIVA DE ADMINISTRADOR ---
     Route::middleware('isAdmin')->group(function () {
+        // --- RUTA NUEVA PARA IMPORTAR EXCEL DE EPP ---
+        Route::post('/epps/importar', [EppController::class, 'import'])->name('epps.import');
+        
+        Route::resource('usuarios', UsuarioController::class);
+        Route::post('/departamentos/importar-general', [DepartamentoController::class, 'importarGeneral'])->name('departamentos.importar_general');
+        Route::post('/departamentos/{id}/importar', [DepartamentoController::class, 'importar'])->name('departamentos.importar');
         Route::get('/configuracion', [ConfiguracionController::class, 'index'])->name('configuracion.index');
         Route::post('/configuracion/general', [ConfiguracionController::class, 'actualizarGeneral'])->name('configuracion.actualizar-general');
         Route::post('/configuracion/parametros-epp', [ConfiguracionController::class, 'actualizarParametrosEpp'])->name('configuracion.actualizar-parametros-epp');
@@ -92,11 +97,4 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/configuracion/matriz', [ConfiguracionController::class, 'agregarMatriz'])->name('configuracion.agregar-matriz');
         Route::delete('/configuracion/matriz/{id}', [ConfiguracionController::class, 'eliminarMatriz'])->name('configuracion.eliminar-matriz');
     });
-
-    // Importación General (Desde el Index de Departamentos)
-Route::post('/departamentos/importar-general', [DepartamentoController::class, 'importarGeneral'])->name('departamentos.importar_general');
-
-
-   
-    Route::post('/departamentos/{id}/importar', [DepartamentoController::class, 'importar'])->name('departamentos.importar');
 });

@@ -60,6 +60,10 @@
 
                     </button>
 
+                    <button class="btn btn-outline-light w-100 fw-bold mb-2" data-bs-toggle="modal" data-bs-target="#manualModal">
+                <i class="bi bi-person-plus-fill me-2"></i>Agregar Manualmente
+            </button>
+
                     <small class="opacity-75">Última actualización: Hoy, {{ date('H:i A') }}</small>
 
                 </div>
@@ -353,6 +357,46 @@
     }
 
 </style>
+
+
+<div class="modal fade" id="manualModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 15px;">
+            <div class="modal-header border-0 pt-4 px-4">
+                <h5 class="fw-bold">Nuevo Docente: {{ $departamento->nombre }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ route('usuarios.store') }}" method="POST">
+                @csrf
+                <input type="hidden" name="departamento_id" value="{{ $departamento->id }}">
+                <input type="hidden" name="role" value="Docente">
+                <div class="modal-body px-4">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Nombre Completo</label>
+                        <input type="text" name="name" class="form-control" placeholder="Ej: Juan Perez" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Correo Institucional</label>
+                        <input type="email" name="email" class="form-control" placeholder="jperez@tecsup.edu.pe" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label small fw-bold">Talla Zapatos</label>
+                            <input type="text" name="talla_zapatos" class="form-control" placeholder="42">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label small fw-bold">Talla Mandil/Chaleco</label>
+                            <input type="text" name="talla_mandil" class="form-control" placeholder="M">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pb-4">
+                    <button type="submit" class="btn btn-primary w-100 rounded-pill">Guardar Docente</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 @endsection
 

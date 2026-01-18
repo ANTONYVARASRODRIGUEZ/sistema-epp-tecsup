@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Departamento;
 use App\Models\User; 
-// --- NUEVOS IMPORTS PARA EL EXCEL ---
 use App\Imports\DocentesImport;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -17,8 +16,9 @@ class DepartamentoController extends Controller
      */
     public function index()
     {
-        // Traemos los departamentos contando sus usuarios vinculados
-        $departamentos = Departamento::withCount('usuarios')->get(); 
+        // CAMBIO: Ahora contamos 'docentes' (la relación filtrada) en lugar de 'usuarios'
+        // Esto ignora automáticamente a los Administradores en el contador de la Card.
+        $departamentos = Departamento::withCount('docentes')->get(); 
         
         return view('departamentos.index', compact('departamentos'));
     }
@@ -30,7 +30,7 @@ class DepartamentoController extends Controller
     {
         $departamento = Departamento::findOrFail($id);
 
-        // Buscamos los usuarios vinculados por departamento_id
+        // Buscamos solo usuarios con el rol 'Docente'
         $docentes = User::where('departamento_id', $id)
                         ->where('role', 'Docente')
                         ->get();
@@ -39,59 +39,47 @@ class DepartamentoController extends Controller
     }
 
     /**
-     * MÉTODO NUEVO: Procesa el archivo Excel cargado desde el Modal
+     * Importación General (Sincronización Total)
      */
-    public function importar(Request $request, $id)
+    public function importarGeneral(Request $request)
     {
-        // 1. Validamos que el archivo sea un Excel
         $request->validate([
             'excel_file' => 'required|mimes:xlsx,xls'
         ], [
-            'excel_file.required' => 'Por favor, selecciona un archivo.',
+            'excel_file.required' => 'Selecciona la Matriz General.',
             'excel_file.mimes' => 'El archivo debe ser un Excel (.xlsx o .xls).'
         ]);
 
         try {
-            // 2. Ejecutamos la importación
-            // El DocentesImport se encargará de crear los registros
+            // OPCIONAL: Limpiar docentes antiguos antes de la nueva carga 
+            // para evitar duplicados si los nombres cambiaron en el Excel.
+            // User::where('role', 'Docente')->delete();
+
             Excel::import(new DocentesImport, $request->file('excel_file'));
 
-            // 3. Vinculamos los usuarios recién creados que no tengan departamento
-            // (Esto asume que el importador los crea y nosotros los asignamos al depto actual)
-            User::whereNull('departamento_id')->update(['departamento_id' => $id]);
-
-            return back()->with('success', '¡Excelente! Los docentes se han sincronizado con la Matriz de Consistencia.');
+            return back()->with('success', 'Matriz General procesada. Los docentes han sido mapeados a sus áreas correspondientes.');
             
         } catch (\Exception $e) {
-            return back()->with('error', 'Hubo un error al procesar el Excel: ' . $e->getMessage());
+            return back()->with('error', 'Error en Matriz General: ' . $e->getMessage());
         }
     }
 
-
     /**
- * MÉTODO NUEVO: Importación General (Mapeo automático por columna 'departamento')
- * Se usa desde el index para cargar a todos los docentes de una vez.
- */
-public function importarGeneral(Request $request)
+     * Importación por Departamento Específico
+     */
+    public function importar(Request $request, $id)
 {
     $request->validate([
         'excel_file' => 'required|mimes:xlsx,xls'
-    ], [
-        'excel_file.required' => 'Selecciona la Matriz General.',
-        'excel_file.mimes' => 'El archivo debe ser un Excel (.xlsx o .xls).'
     ]);
 
     try {
-        // Ejecutamos la importación masiva
-        // Nota: El archivo DocentesImport debe estar preparado para leer la columna 'departamento'
-        Excel::import(new DocentesImport, $request->file('excel_file'));
+        // Pasamos el $id del departamento directamente al constructor del Importador
+        Excel::import(new DocentesImport($id), $request->file('excel_file'));
 
-        return back()->with('success', 'Matriz General procesada. Los docentes han sido mapeados a sus áreas correspondientes.');
-        
+        return back()->with('success', 'Docentes importados correctamente en este departamento.');
     } catch (\Exception $e) {
-        return back()->with('error', 'Error en Matriz General: ' . $e->getMessage());
+        return back()->with('error', 'Error: ' . $e->getMessage());
     }
 }
-
-    // ... (Mantén aquí tus métodos create, store, edit, update y destroy)
 }

@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Epp;
 use App\Models\Departamento;
 use Illuminate\Http\Request;
+use App\Imports\EppImport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class EppController extends Controller
 {
@@ -219,4 +221,18 @@ class EppController extends Controller
         return redirect()->route('epps.index')
             ->with('success', 'EPP eliminado correctamente');
     }
+
+    public function import(Request $request) 
+{
+    $request->validate([
+        'file' => 'required|mimes:xlsx,xls,csv'
+    ]);
+
+    try {
+        Excel::import(new EppImport, $request->file('file'));
+        return back()->with('success', '¡Matriz de EPP importada correctamente!');
+    } catch (\Exception $e) {
+        return back()->with('error', 'Error en el formato del archivo: ' . $e->getMessage());
+    }
+}
 }
