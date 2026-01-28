@@ -4,16 +4,17 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DepartamentoController;
 use App\Http\Controllers\EppController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\DocenteDashboardController;
-use App\Http\Controllers\SolicitudController;
+use App\Http\Controllers\AsignacionController;
+use App\Http\Controllers\PersonalController; 
 use App\Http\Controllers\ConfiguracionController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\MatrizEppController;
 use App\Http\Controllers\UsuarioController;
+use App\Http\Controllers\CategoriaController;
+use App\Http\Controllers\OrganizadorController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
-// --- SECCIÓN PÚBLICA (LOGIN) ---
+// --- SECCIÓN PÚBLICA (LOGIN ÚNICO) ---
 Route::get('/', function () {
     return view('auth.login');
 })->name('login');
@@ -26,22 +27,17 @@ Route::post('/', function (Request $request) {
 
     if (Auth::attempt($credentials)) {
         $request->session()->regenerate();
-        $user = Auth::user();
-
-        if ($user->role === 'Docente') {
-            return redirect()->route('docente.dashboard');
-        }
         return redirect()->route('dashboard'); 
     }
 
     return back()->withErrors([
-        'email' => 'El correo o la contraseña no coinciden con nuestros registros.',
+        'email' => 'Acceso denegado. Verifique sus credenciales.',
     ])->onlyInput('email');
 })->name('login.post');
 
 
-// --- SECCIÓN PROTEGIDA (REQUIERE LOGIN) ---
-Route::middleware(['auth'])->group(function () {
+// --- SECCIÓN PROTEGIDA (SOLO PARA ADMIN) ---
+Route::middleware(['auth', 'isAdmin'])->group(function () {
 
     Route::post('/logout', function (Request $request) {
         Auth::logout();
@@ -54,47 +50,37 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/perfil', [ProfileController::class, 'show'])->name('perfil.show');
     Route::post('/perfil/datos', [ProfileController::class, 'actualizarDatosPersonales'])->name('perfil.actualizar-datos');
-    Route::post('/perfil/email', [ProfileController::class, 'actualizarEmail'])->name('perfil.actualizar-email');
     Route::post('/perfil/contrasena', [ProfileController::class, 'cambiarContrasena'])->name('perfil.cambiar-contrasena');
 
-    // Recursos Principales
+    // --- MANTENEDORES (CATÁLOGO E INVENTARIO) ---
+    Route::post('/epps/importar', [EppController::class, 'import'])->name('epps.import');
+    Route::delete('/epps-truncate', [EppController::class, 'clearAll'])->name('epps.clearAll');
     Route::resource('epps', EppController::class);
+    Route::resource('categorias', CategoriaController::class);
+
+    // --- GESTIÓN DE PERSONAL (LISTA MAESTRA DE DOCENTES) ---
+    // Jiancarlo registra aquí a los docentes que no tienen cuenta
+    Route::post('/personals/importar', [PersonalController::class, 'import'])->name('personals.import');
+    Route::resource('personals', PersonalController::class);
+
+    // --- DEPARTAMENTOS Y ORGANIZADOR ---
+    // Borrado masivo
+    Route::delete('/departamentos-destroy-all', [DepartamentoController::class, 'destroyAll'])->name('departamentos.destroy_all');
+    Route::delete('/departamentos-destroy-selected', [DepartamentoController::class, 'destroySelected'])->name('departamentos.destroy_selected');
+    
+    // Rutas de Departamentos
     Route::resource('departamentos', DepartamentoController::class);
-    Route::resource('solicitudes', SolicitudController::class);
-    Route::resource('matriz-epp', MatrizEppController::class);
     
-    // Acciones de Solicitudes
-    Route::post('/solicitudes/{id}/aprobar', [SolicitudController::class, 'aprobar'])->name('solicitudes.aprobar');
-    Route::post('/solicitudes/{id}/rechazar', [SolicitudController::class, 'rechazar'])->name('solicitudes.rechazar');
+    // Organizador Visual (Mover docentes a departamentos)
+    Route::get('/organizador', [OrganizadorController::class, 'index'])->name('organizador.index');
+    Route::post('/organizador/asignar', [OrganizadorController::class, 'asignarMasivo'])->name('organizador.asignar');
 
-    // Catálogo y Dashboard Docente
-    Route::get('/catalogo', [EppController::class, 'catalogo'])->name('epps.catalogo');
-    
-    // Rutas Dashboard Docente
-    Route::get('/docente/dashboard', DocenteDashboardController::class)->name('docente.dashboard');
-    Route::post('/docente/unirse', [DocenteDashboardController::class, 'unirse'])->name('docente.unirse');
-    
-    Route::get('/docente/mis-epp', [SolicitudController::class, 'misEpps'])->name('docente.mis-epp');
-    Route::get('/docente/mis-solicitudes', [SolicitudController::class, 'misSolicitudes'])->name('docente.mis-solicitudes');
+    // --- MÓDULO DE ASIGNACIÓN (ENTREGA DE EPP) ---
+    Route::get('/asignaciones', [AsignacionController::class, 'index'])->name('asignaciones.index');
+    Route::post('/asignaciones/entregar', [AsignacionController::class, 'store'])->name('asignaciones.store');
+    Route::delete('/asignaciones/{id}', [AsignacionController::class, 'destroy'])->name('asignaciones.destroy');
 
-    // --- SECCIÓN EXCLUSIVA DE ADMINISTRADOR ---
-    Route::middleware('isAdmin')->group(function () {
-        // --- RUTA NUEVA PARA IMPORTAR EXCEL DE EPP ---
-        Route::post('/epps/importar', [EppController::class, 'import'])->name('epps.import');
-        
-        Route::resource('usuarios', UsuarioController::class);
-        Route::post('/departamentos/importar-general', [DepartamentoController::class, 'importarGeneral'])->name('departamentos.importar_general');
-        Route::post('/departamentos/{id}/importar', [DepartamentoController::class, 'importar'])->name('departamentos.importar');
-        Route::get('/configuracion', [ConfiguracionController::class, 'index'])->name('configuracion.index');
-        Route::post('/configuracion/general', [ConfiguracionController::class, 'actualizarGeneral'])->name('configuracion.actualizar-general');
-        Route::post('/configuracion/parametros-epp', [ConfiguracionController::class, 'actualizarParametrosEpp'])->name('configuracion.actualizar-parametros-epp');
-        Route::post('/configuracion/notificaciones', [ConfiguracionController::class, 'actualizarNotificaciones'])->name('configuracion.actualizar-notificaciones');
-        Route::post('/configuracion/auditoria', [ConfiguracionController::class, 'actualizarAuditoria'])->name('configuracion.actualizar-auditoria');
-        Route::post('/configuracion/departamentos', [ConfiguracionController::class, 'crearDepartamento'])->name('configuracion.crear-departamento');
-        Route::put('/configuracion/departamentos/{id}', [ConfiguracionController::class, 'actualizarDepartamento'])->name('configuracion.actualizar-departamento');
-        Route::put('/configuracion/departamentos/{id}/desactivar', [ConfiguracionController::class, 'desactivarDepartamento'])->name('configuracion.desactivar-departamento');
-        Route::put('/configuracion/departamentos/{id}/activar', [ConfiguracionController::class, 'activarDepartamento'])->name('configuracion.activar-departamento');
-        Route::post('/configuracion/matriz', [ConfiguracionController::class, 'agregarMatriz'])->name('configuracion.agregar-matriz');
-        Route::delete('/configuracion/matriz/{id}', [ConfiguracionController::class, 'eliminarMatriz'])->name('configuracion.eliminar-matriz');
-    });
+    // --- OTROS (ADMINISTRACIÓN DE USUARIOS DEL SISTEMA Y CONFIG) ---
+    Route::resource('usuarios', UsuarioController::class); // Quién puede entrar al sistema
+    Route::get('/configuracion', [ConfiguracionController::class, 'index'])->name('configuracion.index');
 });

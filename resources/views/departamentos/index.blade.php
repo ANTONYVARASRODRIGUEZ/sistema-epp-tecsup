@@ -1,46 +1,122 @@
 @extends('layouts.app')
 
 @section('content')
+<style>
+    :root {
+        --tecsup-blue: #003a70;
+        --accent-color: #007bff;
+    }
+    .card-modern {
+        border: none;
+        border-radius: 24px;
+        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        overflow: hidden;
+        background: #fff;
+    }
+    .card-modern:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.12) !important;
+    }
+    .img-container {
+        position: relative;
+        height: 160px;
+        overflow: hidden;
+    }
+    .img-gradient {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+        z-index: 1;
+    }
+    .badge-docentes {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(5px);
+        color: var(--tecsup-blue);
+        padding: 8px 15px;
+        border-radius: 12px;
+        font-weight: 800;
+        z-index: 2;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    .btn-manage {
+        background: var(--tecsup-blue);
+        border: none;
+        padding: 12px;
+        font-weight: 600;
+        transition: 0.3s;
+    }
+    .btn-manage:hover {
+        background: var(--accent-color);
+        box-shadow: 0 8px 15px rgba(0,123,255,0.3);
+    }
+    .page-header {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        padding: 40px 0;
+        border-radius: 30px;
+        margin-bottom: 40px;
+    }
+</style>
+
 <div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="page-header px-5 shadow-sm d-flex justify-content-between align-items-center">
         <div>
-            <h2 class="fw-bold text-dark">Panel de Seguridad: Departamentos</h2>
-            <p class="text-muted">Mapeo de EPP y control de cumplimiento por área</p>
+            <h1 class="display-5 fw-bold text-dark mb-1">Panel de Control</h1>
+            <p class="fs-5 text-muted mb-0">Gestión de Seguridad por Departamentos</p>
         </div>
-        <button class="btn btn-success rounded-pill px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#importarMatrizGeneralModal">
-            <i class="fas fa-file-upload me-2"></i>Cargar Matriz General
-        </button>
+        <div class="d-flex gap-3">
+            <a href="{{ route('organizador.index') }}" class="btn btn-white shadow-sm rounded-pill px-4 py-2 fw-bold text-primary border">
+                <i class="bi bi-person-gear me-2"></i>Organizar
+            </a>
+            <button class="btn btn-primary rounded-pill px-4 py-2 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#nuevoDeptoModal">
+                <i class="bi bi-plus-lg me-2"></i>Nuevo Departamento
+            </button>
+            <form action="{{ route('departamentos.destroy_all') }}" method="POST" onsubmit="return confirm('¿Borrar todo?')">
+                @csrf @method('DELETE')
+                <button type="submit" class="btn btn-outline-danger rounded-circle p-2 shadow-sm" title="Limpiar todo">
+                    <i class="bi bi-trash3 px-1"></i>
+                </button>
+            </form>
+        </div>
     </div>
 
     <div class="row">
         @foreach($departamentos as $depto)
-        <div class="col-md-6 col-lg-4 mb-4">
-            <div class="card h-100 border-0 shadow-sm card-depto" style="border-radius: 20px; overflow: hidden;">
-                <div style="height: 200px; overflow: hidden; position: relative;">
-                    <img src="{{ $depto->imagen_url ?? 'https://via.placeholder.com/400x200?text=Tecsup+Area' }}" 
-                         class="card-img-top w-100 h-100" style="object-fit: cover;" alt="{{ $depto->nombre }}">
-                    <span class="position-absolute top-0 end-0 m-3 badge rounded-pill {{ $depto->nivel_riesgo == 'Alto' ? 'bg-danger' : 'bg-warning' }} shadow">
-                        Riesgo {{ $depto->nivel_riesgo }}
-                    </span>
+        <div class="col-md-6 col-lg-4 mb-5">
+            <div class="card card-modern shadow-sm h-100">
+                <div class="img-container">
+                    <div class="badge-docentes">
+                        <i class="bi bi-people-fill me-1"></i> {{ $depto->personals_count ?? 0 }}
+                    </div>
+                    <img src="https://source.unsplash.com/featured/?{{ Str::slug($depto->nombre) }},technology,industry" 
+                         class="w-100 h-100 object-fit-cover" 
+                         alt="{{ $depto->nombre }}">
+                    <div class="img-gradient"></div>
+                    <h4 class="position-absolute bottom-0 start-0 m-3 text-white fw-bold z-2">{{ $depto->nombre }}</h4>
                 </div>
-
-                <div class="card-body">
-                    <h5 class="card-title fw-bold text-dark">{{ $depto->nombre }}</h5>
-                    <p class="text-muted small">{{ Str::limit($depto->descripcion, 50) }}</p>
-                    
-                    <div class="row my-3 text-center bg-light py-2 rounded-3 mx-1">
-                        <div class="col-6 border-end">
-                            <h4 class="mb-0 fw-bold text-dark">{{ $depto->docentes_count ?? 0 }}</h4>
-                            <small class="text-muted">Docentes</small>
+                
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div class="text-start">
+                            <small class="text-uppercase text-muted fw-bold ls-1" style="font-size: 0.7rem;">Estado</small>
+                            <div class="d-flex align-items-center">
+                                <span class="bg-success rounded-circle me-2" style="width: 8px; height: 8px;"></span>
+                                <span class="fw-bold text-dark">Operativo</span>
+                            </div>
                         </div>
-                        <div class="col-6">
-                            <h4 class="mb-0 fw-bold text-success">100%</h4>
-                            <small class="text-muted">Checking</small>
+                        <div class="text-end">
+                            <small class="text-uppercase text-muted fw-bold ls-1" style="font-size: 0.7rem;">Seguridad</small>
+                            <div class="text-warning fw-bold">100% OK</div>
                         </div>
                     </div>
 
-                    <a href="{{ route('departamentos.show', $depto->id) }}" class="btn btn-primary w-100 rounded-pill fw-bold">
-                        <i class="fas fa-clipboard-check me-2"></i>Gestionar Asignación
+                    <a href="{{ route('departamentos.show', $depto->id) }}" class="btn btn-manage w-100 rounded-pill text-white">
+                        Gestionar Personal <i class="bi bi-arrow-right ms-2"></i>
                     </a>
                 </div>
             </div>
@@ -49,35 +125,31 @@
     </div>
 </div>
 
-<div class="modal fade" id="importarMatrizGeneralModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="nuevoDeptoModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content" style="border-radius: 20px; border: none;">
-            <div class="modal-header border-0 pt-4 px-4">
-                <h5 class="modal-title fw-bold">Subir Matriz General (Excel)</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form action="{{ route('departamentos.importar_general') }}" method="POST" enctype="multipart/form-data">
-                @csrf
-                <div class="modal-body px-4 text-center">
-                    <div class="bg-success bg-opacity-10 p-4 rounded-circle d-inline-block mb-3">
-                        <i class="fas fa-file-excel text-success fs-1"></i>
+        <div class="modal-content border-0 shadow" style="border-radius: 28px;">
+            <div class="modal-body p-5">
+                <div class="text-center mb-4">
+                    <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                        <i class="bi bi-building-add text-primary fs-1"></i>
                     </div>
-                    <p class="text-muted">Se mapearán automáticamente los docentes a sus áreas.</p>
-                    <input class="form-control mb-3" type="file" name="excel_file" accept=".xlsx, .xls" required style="border-radius: 10px;">
+                    <h3 class="fw-bold">Nueva Área</h3>
+                    <p class="text-muted">Ingresa el nombre del departamento para comenzar la gestión de EPP.</p>
                 </div>
-                <div class="modal-footer border-0 pb-4 px-4">
-                    <button type="button" class="btn btn-light rounded-pill" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold">Procesar Excel</button>
-                </div>
-            </form>
+                
+                <form action="{{ route('departamentos.store') }}" method="POST">
+                    @csrf
+                    <div class="mb-4">
+                        <input type="text" name="nombre" class="form-control form-control-lg border-0 bg-light px-4 py-3" 
+                               placeholder="Nombre del Departamento..." required style="border-radius: 15px;">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill fw-bold py-3">
+                        Crear Departamento
+                    </button>
+                    <button type="button" class="btn btn-link w-100 text-muted text-decoration-none mt-2" data-bs-dismiss="modal">Cancelar</button>
+                </form>
+            </div>
         </div>
     </div>
 </div>
-
-<style>
-    .card-depto { transition: all 0.3s ease; }
-    .card-depto:hover { transform: translateY(-8px); box-shadow: 0 15px 30px rgba(0,0,0,0.15) !important; }
-    .btn-primary { background-color: #003a70; border: none; }
-    .btn-primary:hover { background-color: #002a50; }
-</style>
 @endsection

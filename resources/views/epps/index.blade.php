@@ -2,436 +2,384 @@
 
 @section('content')
 <div class="container-fluid">
+    {{-- ENCABEZADO --}}
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold">Panel Administrativo</h2>
-        <span class="text-muted">Bienvenido Admin Centro</span>
-    </div>
-
-    @if(session('success'))
-        <div class="alert alert-success border-0 shadow-sm" id="inventoryAlert">
-            <i class="bi bi-check-circle-fill me-2"></i>{{ session('success') }}
+        <div>
+            <h2 class="fw-bold mb-0">Panel de Gestión EPP</h2>
+            <p class="text-muted">Control de inventario y asignaciones para Jiancarlo</p>
         </div>
-    @else
-        <div class="alert alert-success border-0 shadow-sm d-none" id="inventoryAlert">
-            <i class="bi bi-check-circle-fill me-2"></i><span></span>
-        </div>
-    @endif
-
-    <div class="row mb-4">
-        @php
-            $stockDisponible = $epps->sum('stock');
-            $totalEntregado = $epps->sum('entregado');
-            $stockBajo = $epps->where('stock', '>', 0)->where('stock', '<=', 10)->count();
-            $totalDeteriorado = $epps->sum('deteriorado');
-        @endphp
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm border-start border-primary border-4 py-2">
-                <div class="card-body d-flex justify-content-between align-items-center">
-                    <div>
-                        <p class="text-muted mb-1">Stock Disponible</p>
-                        <h3 class="fw-bold mb-0">{{ $stockDisponible }}</h3>
-                    </div>
-                    <i class="bi bi-box fs-1 text-primary opacity-50"></i>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm border-start border-success border-4 py-2">
-                <div class="card-body d-flex justify-content-between align-items-center">
-                    <div>
-                        <p class="text-muted mb-1">EPP Entregados</p>
-                        <h3 class="fw-bold mb-0">{{ $totalEntregado }}</h3> </div>
-                    <i class="bi bi-truck fs-1 text-success opacity-50"></i>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm border-start border-dark border-4 py-2">
-                <div class="card-body d-flex justify-content-between align-items-center">
-                    <div>
-                        <p class="text-muted mb-1">Stock Bajo</p>
-                        <h3 class="fw-bold mb-0">{{ $stockBajo }}</h3>
-                    </div>
-                    <i class="bi bi-exclamation-circle fs-1 text-dark opacity-50"></i>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm border-start border-danger border-4 py-2">
-                <div class="card-body d-flex justify-content-between align-items-center">
-                    <div>
-                        <p class="text-muted mb-1">Deteriorados</p>
-                        <h3 class="fw-bold mb-0">{{ $totalDeteriorado }}</h3>
-                    </div>
-                    <i class="bi bi-trash fs-1 text-danger opacity-50"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="card border-0 shadow-sm p-4">
-        <h4 class="fw-bold mb-4">Gestión de Inventario</h4>
-        
-        <div class="d-flex justify-content-between mb-3">
-            <div class="input-group w-50">
-                <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
-                <input type="text" class="form-control border-start-0" placeholder="Buscar por nombre o código...">
-            </div>
-            <button type="button" class="btn btn-primary d-flex align-items-center" style="background-color: #003366;" data-bs-toggle="modal" data-bs-target="#modalNuevoEppInventario" id="btnNuevoInventario">
-                <i class="bi bi-plus fs-4 me-1"></i> Nuevo
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-outline-danger d-flex align-items-center shadow-sm" data-bs-toggle="modal" data-bs-target="#modalVaciarEpps">
+                <i class="bi bi-trash3 me-1"></i> Vaciar Todo
+            </button>
+            <button type="button" class="btn btn-success d-flex align-items-center shadow-sm" data-bs-toggle="modal" data-bs-target="#modalImportarEpp">
+                <i class="bi bi-file-earmark-excel me-1"></i> Importar Matriz
+            </button>
+            <button type="button" class="btn btn-primary d-flex align-items-center shadow-sm" style="background-color: #003366; border: none;" data-bs-toggle="modal" data-bs-target="#modalNuevoEpp">
+                <i class="bi bi-plus fs-4 me-1"></i> Nuevo EPP
             </button>
         </div>
-
-        @if(session('success'))
-            <div class="alert alert-success border-0 shadow-sm">{{ session('success') }}</div>
-        @endif
-
-        @if($epps->isEmpty())
-            <div class="alert alert-warning border-0 shadow-sm">No hay EPP registrados aún</div>
-        @else
-            <div class="table-responsive">
-                <table class="table align-middle">
-                    <thead class="bg-light">
-                        <tr class="text-muted small">
-                            <th>EPP</th>
-                            <th>Código</th>
-                            <th>Stock</th>
-                            <th>Total</th>
-                            <th>Entregado</th>
-                            <th>Deteriorado</th>
-                            <th>Estado</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($epps as $epp)
-                        <tr>
-                            <td>
-                                <div class="fw-bold">{{ $epp->nombre }}</div>
-                                <small class="text-muted">{{ $epp->tipo }}</small>
-                            </td>
-                            <td>{{ $epp->codigo_logistica ?? 'CSK-00' . $epp->id }}</td>
-                            <td class="fw-bold">{{ $epp->stock ?? 0 }}</td>
-                            <td>{{ $epp->cantidad ?? 0 }}</td>
-                            <td class="text-success fw-bold">{{ $epp->entregado ?? 0 }}</td>
-                            <td class="text-danger fw-bold">{{ $epp->deteriorado ?? 0 }}</td>
-                            <td>
-                                @if($epp->stock > 10)
-                                    <span class="badge bg-success-soft text-success">Disponible</span>
-                                @elseif($epp->stock > 0)
-                                    <span class="badge bg-warning-soft text-warning">Bajo Stock</span>
-                                @else
-                                    <span class="badge bg-danger-soft text-danger">Agotado</span>
-                                @endif
-                            </td>
-                            <td>
-                                <div class="d-flex gap-2">
-                                    <button
-                                        type="button"
-                                        class="btn btn-outline-secondary btn-sm border-0 btn-edit-inventario"
-                                        title="Editar inventario"
-                                        data-epp-id="{{ $epp->id }}"
-                                        data-epp-name="{{ $epp->nombre }}"
-                                        data-cantidad="{{ $epp->cantidad ?? 0 }}"
-                                        data-stock="{{ $epp->stock ?? 0 }}"
-                                        data-entregado="{{ $epp->entregado ?? 0 }}"
-                                        data-deteriorado="{{ $epp->deteriorado ?? 0 }}"
-                                        data-estado="{{ $epp->estado ?? 'disponible' }}"
-                                    >
-                                        <i class="bi bi-pencil"></i>
-                                    </button>
-                                    <button class="btn btn-outline-danger btn-sm border-0 btn-delete-epp" data-epp-id="{{ $epp->id }}" data-epp-name="{{ $epp->nombre }}" data-epp-url="{{ route('epps.destroy', $epp) }}" title="Eliminar">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        @endif
     </div>
-</div>
 
-<!-- Modal Nuevo Inventario -->
-<div class="modal fade" id="modalNuevoEppInventario" tabindex="-1" aria-labelledby="modalNuevoInventarioLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content" style="border-radius: 15px;">
-            <div class="modal-header border-0 pt-4 px-4">
-                <h5 class="modal-title fw-bold" id="modalNuevoInventarioLabel">Nuevo Inventario</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form id="formNuevoInventario" method="POST" data-mode="create">
-                @csrf
-                <input type="hidden" name="_method" value="POST">
-                <div class="modal-body px-4">
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">EPP</label>
-                        <select name="epp_id" class="form-select" id="eppSelect" required>
-                            <option value="">-- Selecciona un EPP --</option>
-                            @foreach($epps as $epp)
-                                <option value="{{ $epp->id }}">{{ $epp->nombre }} ({{ $epp->codigo_logistica }})</option>
+    {{-- BARRA DE FILTROS AVANZADA --}}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm p-3">
+                <div class="row g-3">
+                    {{-- 1. Filtro por Categoría (Botones) --}}
+                    <div class="col-md-12">
+                        <div class="d-flex align-items-center gap-2 overflow-auto pb-2">
+                            <span class="fw-bold text-muted small text-nowrap"><i class="bi bi-tag"></i> Categoría:</span>
+                            <button class="btn btn-sm btn-primary rounded-pill filter-btn px-3" data-filter="all">Todas</button>
+                            @foreach($categorias as $cat)
+                                <button class="btn btn-sm btn-outline-primary rounded-pill filter-btn text-nowrap px-3" data-filter="cat-{{ $cat->id }}">
+                                    {{ $cat->nombre }}
+                                </button>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    {{-- 2. Filtro por Subtipo (Select) --}}
+                    <div class="col-md-4">
+                        <label class="small fw-bold text-muted mb-1 d-block"><i class="bi bi-list-stars"></i> Seleccionar Tipo Específico:</label>
+                        <select id="subtipoFilter" class="form-select form-select-sm border-primary shadow-sm">
+                            <option value="all">-- Todos los tipos --</option>
+                            @foreach($epps->pluck('nombre')->unique()->sort() as $nombreUnico)
+                                <option value="{{ strtolower($nombreUnico) }}">{{ $nombreUnico }}</option>
                             @endforeach
                         </select>
                     </div>
-                    
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Total</label>
-                        <input type="number" name="cantidad" class="form-control" placeholder="Ej. 50" value="0" min="0" required>
-                    </div>
 
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Stock</label>
-                        <input type="number" name="stock" class="form-control" placeholder="Ej. 35" value="0" min="0" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Entregado</label>
-                        <input type="number" name="entregado" class="form-control" placeholder="Ej. 15" value="0" min="0" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Deteriorado</label>
-                        <input type="number" name="deteriorado" class="form-control" placeholder="Ej. 0" value="0" min="0" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Estado</label>
-                        <select name="estado" class="form-select" required>
-                            <option value="">-- Selecciona estado --</option>
-                            <option value="disponible">Disponible</option>
-                            <option value="bajo_stock">Bajo Stock</option>
-                            <option value="agotado">Agotado</option>
-                        </select>
+                    {{-- 3. Buscador Manual --}}
+                    <div class="col-md-8">
+                        <label class="small fw-bold text-muted mb-1 d-block"><i class="bi bi-search"></i> Búsqueda por texto:</label>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                            <input type="text" id="searchEpp" class="form-control border-start-0 ps-0" placeholder="Escribe código o descripción...">
+                        </div>
                     </div>
                 </div>
-                <div class="modal-footer border-0 pb-4 px-4">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary px-4" style="background-color: #003366;">Guardar Inventario</button>
-                </div>
-            </form>
+            </div>
         </div>
+    </div>
+
+    {{-- GRILLA DE CARDS --}}
+    <div class="row" id="eppGrid">
+        @forelse($epps as $epp)
+        <div class="col-md-4 mb-4 epp-item cat-{{ $epp->categoria_id }}" 
+             data-subtipo="{{ strtolower($epp->nombre) }}" 
+             data-nombre="{{ strtolower($epp->nombre) }}" 
+             data-codigo="{{ strtolower($epp->codigo_logistica) }}">
+            
+            <div class="card border-0 shadow-sm h-100 card-epp">
+                <div class="epp-image-container position-relative" style="height: 180px; background: #f8f9fa; display: flex; align-items: center; justify-content: center;">
+                    @if($epp->imagen)
+                        <img src="{{ asset('storage/' . $epp->imagen) }}" class="img-fluid h-100 p-2" style="object-fit: contain;">
+                    @else
+                        <i class="bi bi-box-seam display-4 text-light"></i>
+                    @endif
+                    
+                    <div class="position-absolute top-0 end-0 m-2">
+                        @if($epp->stock > 10)
+                            <span class="badge bg-success shadow-sm">Disponible</span>
+                        @elseif($epp->stock > 0)
+                            <span class="badge bg-warning text-dark shadow-sm">Stock Bajo</span>
+                        @else
+                            <span class="badge bg-danger shadow-sm">Agotado</span>
+                        @endif
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            @php
+                                // Lógica de Subtipos: Separamos el nombre por el guión "-" si existe
+                                $partes = explode('-', $epp->nombre);
+                                $principal = trim($partes[0]);
+                                $subtipoDetalle = isset($partes[1]) ? trim($partes[1]) : null;
+                            @endphp
+
+                            <h6 class="fw-bold mb-0 text-dark">{{ Str::upper($principal) }}</h6>
+                            @if($subtipoDetalle)
+                                <span class="badge bg-light text-primary border border-primary-subtle" style="font-size: 0.65rem;">
+                                    {{ Str::upper($subtipoDetalle) }}
+                                </span>
+                            @endif
+                            <div class="mt-1">
+                                <small class="text-primary fw-semibold" style="font-size: 0.75rem;">
+                                    <i class="bi bi-tag-fill me-1"></i>{{ $epp->categoria->nombre ?? 'Sin Categoría' }}
+                                </small>
+                            </div>
+                        </div>
+                        <div class="dropdown">
+                            <button class="btn btn-light btn-sm border" type="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-three-dots-vertical"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
+                                <li>
+                                    <a class="dropdown-item btn-edit-inventario" href="javascript:void(0)" 
+                                       data-epp-id="{{ $epp->id }}" 
+                                       data-cantidad="{{ $epp->cantidad }}"
+                                       data-stock="{{ $epp->stock }}"
+                                       data-entregado="{{ $epp->entregado }}"
+                                       data-deteriorado="{{ $epp->deteriorado }}">
+                                         <i class="bi bi-pencil me-2 text-primary"></i> Editar Stock
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <button class="dropdown-item text-danger btn-delete-epp" data-epp-id="{{ $epp->id }}" data-epp-url="{{ route('epps.destroy', $epp) }}">
+                                        <i class="bi bi-trash me-2"></i> Eliminar
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="spec-container mb-3 bg-light p-2 rounded border">
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span class="text-muted">Código:</span>
+                            <span class="fw-bold text-dark">{{ $epp->codigo_logistica ?? 'CSK-'.$epp->id }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between small">
+                            <span class="text-muted">Stock actual:</span>
+                            <span class="fw-bold {{ $epp->stock <= 10 ? 'text-danger' : 'text-success' }}">{{ $epp->stock }} und.</span>
+                        </div>
+                    </div>
+
+                    <div class="d-grid">
+                        <a href="{{ route('departamentos.index') }}" class="btn btn-success btn-sm shadow-sm {{ $epp->stock <= 0 ? 'disabled' : '' }}">
+    <i class="bi bi-building me-1"></i> Ir a Departamentos para Asignar
+</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @empty
+        <div class="col-12 text-center py-5">
+            <i class="bi bi-archive display-1 text-muted opacity-25"></i>
+            <p class="mt-3 text-muted">No hay EPPs registrados en esta categoría.</p>
+        </div>
+        @endforelse
     </div>
 </div>
 
-<!-- Modal Eliminar EPP -->
-<div class="modal fade" id="deleteEppModal" tabindex="-1" aria-labelledby="deleteEppModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0" style="border-radius: 15px;">
-            <form id="deleteEppForm" method="POST">
+{{-- MODALES INTEGRADOS --}}
+
+<div class="modal fade" id="modalNuevoEpp" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title fw-bold">Registrar Nuevo EPP</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ route('epps.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
-                @method('DELETE')
-                <div class="modal-header border-0">
-                    <h5 class="modal-title fw-bold" id="deleteEppModalLabel">Eliminar EPP</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <p class="mb-0">¿Quieres eliminar <strong id="deleteEppName"></strong>? Esta acción no se puede deshacer.</p>
+                <div class="modal-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small">Nombre del Equipo</label>
+                            <input type="text" name="nombre" class="form-control" placeholder="Ej. Guante - Nitrilo" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small">Categoría</label>
+                            <select name="categoria_id" class="form-select" required>
+                                <option value="">Seleccione...</option>
+                                @foreach($categorias as $cat)
+                                    <option value="{{ $cat->id }}">{{ $cat->nombre }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold small">Código Logística</label>
+                            <input type="text" name="codigo_logistica" class="form-control">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold small">Precio S/.</label>
+                            <input type="number" name="precio" step="0.01" class="form-control" value="0.00">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold small">Stock Inicial</label>
+                            <input type="number" name="cantidad" class="form-control" value="0">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-bold small">Imagen del producto</label>
+                            <input type="file" name="imagen" class="form-control" accept="image/*">
+                        </div>
+                    </div>
                 </div>
                 <div class="modal-footer border-0">
                     <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-danger">Eliminar</button>
+                    <button type="submit" class="btn btn-primary px-4" style="background-color: #003366;">Guardar EPP</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
+<div class="modal fade" id="modalImportarEpp" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">Importar Matriz desde Excel</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ route('epps.import') }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                <div class="modal-body p-4 text-center">
+                    <div class="mb-3">
+                        <i class="bi bi-file-earmark-spreadsheet display-1 text-success"></i>
+                    </div>
+                    <p class="text-muted small">Asegúrate que el nombre tenga el formato "Nombre - Subtipo" para una mejor clasificación.</p>
+                    <input type="file" name="file" class="form-control" accept=".xlsx, .xls, .csv" required>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success px-4">Subir e Importar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalEditarInventario" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">Actualizar Stock</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="formEditarInventario" method="POST">
+                @csrf
+                @method('PUT')
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Total Comprado (Histórico)</label>
+                        <input type="number" name="cantidad" id="edit_cantidad" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Stock Disponible en Almacén</label>
+                        <input type="number" name="stock" id="edit_stock" class="form-control" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-6">
+                            <label class="form-label fw-bold small text-primary">Entregados</label>
+                            <input type="number" name="entregado" id="edit_entregado" class="form-control">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-bold small text-danger">Deteriorados</label>
+                            <input type="number" name="deteriorado" id="edit_deteriorado" class="form-control">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="submit" class="btn btn-primary" style="background-color: #003366;">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalVaciarEpps" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 shadow-lg">
+            <form action="{{ route('epps.clearAll') }}" method="POST">
+                @csrf
+                @method('DELETE')
+                <div class="modal-body text-center p-4">
+                    <i class="bi bi-exclamation-octagon-fill text-danger display-4 mb-3"></i>
+                    <h5 class="fw-bold">¿Limpiar Almacén?</h5>
+                    <p class="text-muted small">Se borrarán todos los registros de EPP.</p>
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="submit" class="btn btn-danger shadow-sm">Sí, borrar todo</button>
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">No, cancelar</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteEppModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 shadow-lg">
+            <form id="deleteEppForm" method="POST">
+                @csrf
+                @method('DELETE')
+                <div class="modal-body text-center p-4">
+                    <i class="bi bi-trash3 text-danger display-4 mb-3"></i>
+                    <h5 class="fw-bold">¿Eliminar este EPP?</h5>
+                    <div class="d-flex gap-2 justify-content-center mt-4">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">No</button>
+                        <button type="submit" class="btn btn-danger px-4 shadow-sm">Sí, eliminar</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{{-- SCRIPTS DE FILTRADO --}}
 <script>
-    const inventoryAlert = document.getElementById('inventoryAlert');
-    const alertMessageSpan = inventoryAlert.querySelector('span') ?? inventoryAlert;
-    const deleteModalElement = document.getElementById('deleteEppModal');
-    const deleteModal = new bootstrap.Modal(deleteModalElement);
-    const deleteEppForm = document.getElementById('deleteEppForm');
-    const deleteEppName = document.getElementById('deleteEppName');
-    const modalInventarioElement = document.getElementById('modalNuevoEppInventario');
-    const modalInventario = new bootstrap.Modal(modalInventarioElement);
-    const formInventario = document.getElementById('formNuevoInventario');
-    const modalInventarioTitle = document.getElementById('modalNuevoInventarioLabel');
-    const btnSubmitInventario = formInventario.querySelector('button[type="submit"]');
-    const inputCantidad = formInventario.querySelector('input[name="cantidad"]');
-    const inputStock = formInventario.querySelector('input[name="stock"]');
-    const inputEntregado = formInventario.querySelector('input[name="entregado"]');
-    const inputDeteriorado = formInventario.querySelector('input[name="deteriorado"]');
-    const selectEstado = formInventario.querySelector('select[name="estado"]');
-    const eppSelect = document.getElementById('eppSelect');
-    const btnNuevoInventario = document.getElementById('btnNuevoInventario');
-    const editButtons = document.querySelectorAll('.btn-edit-inventario');
-    const deleteButtons = document.querySelectorAll('.btn-delete-epp');
-    let currentEppId = null;
+    document.addEventListener('DOMContentLoaded', function() {
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        const subtipoFilter = document.getElementById('subtipoFilter');
+        const searchInput = document.getElementById('searchEpp');
+        const items = document.querySelectorAll('.epp-item');
 
-    const resetInventarioForm = () => {
-        formInventario.dataset.mode = 'create';
-        currentEppId = null;
-        modalInventarioTitle.textContent = 'Nuevo Inventario';
-        btnSubmitInventario.textContent = 'Guardar Inventario';
-        formInventario.reset();
-        eppSelect.disabled = false;
-        inputCantidad.value = 0;
-        inputStock.value = 0;
-        inputEntregado.value = 0;
-        inputDeteriorado.value = 0;
-        selectEstado.value = '';
-    };
+        function applyFilters() {
+            const activeCat = document.querySelector('.filter-btn.btn-primary').dataset.filter;
+            const activeSubtipo = subtipoFilter.value;
+            const searchText = searchInput.value.toLowerCase();
 
-    btnNuevoInventario?.addEventListener('click', () => {
-        resetInventarioForm();
-    });
+            items.forEach(item => {
+                const matchesCat = activeCat === 'all' || item.classList.contains(activeCat);
+                const matchesSubtipo = activeSubtipo === 'all' || item.dataset.subtipo === activeSubtipo;
+                const matchesSearch = item.dataset.nombre.includes(searchText) || item.dataset.codigo.includes(searchText);
 
-    editButtons.forEach((button) => {
-        button.addEventListener('click', () => {
-            formInventario.dataset.mode = 'edit';
-            currentEppId = button.dataset.eppId;
-            modalInventarioTitle.textContent = `Editar inventario - ${button.dataset.eppName}`;
-            btnSubmitInventario.textContent = 'Actualizar Inventario';
-
-            eppSelect.value = currentEppId;
-            eppSelect.disabled = true;
-            inputCantidad.value = button.dataset.cantidad ?? 0;
-            inputStock.value = button.dataset.stock ?? 0;
-            inputEntregado.value = button.dataset.entregado ?? 0;
-            inputDeteriorado.value = button.dataset.deteriorado ?? 0;
-            selectEstado.value = button.dataset.estado ?? 'disponible';
-
-            modalInventario.show();
-        });
-    });
-
-    deleteButtons.forEach((button) => {
-        button.addEventListener('click', () => {
-            deleteEppName.textContent = button.dataset.eppName;
-            deleteEppForm.action = button.dataset.eppUrl;
-            deleteModal.show();
-        });
-    });
-
-    modalInventarioElement.addEventListener('hidden.bs.modal', () => {
-        eppSelect.disabled = false;
-    });
-
-    document.getElementById('formNuevoInventario').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const mode = formInventario.dataset.mode || 'create';
-        const targetEppId = mode === 'edit' ? currentEppId : eppSelect.value;
-
-        if (!targetEppId) {
-            alert('Por favor selecciona un EPP');
-            return;
+                item.style.display = (matchesCat && matchesSubtipo && matchesSearch) ? 'block' : 'none';
+            });
         }
 
-        const formData = new FormData(formInventario);
-        const url = `{{ url('epps') }}/${targetEppId}`;
-        const methodOverride = mode === 'edit' ? 'PUT' : 'PUT';
-
-        formData.delete('_method');
-        formData.set('_method', methodOverride);
-        formData.set('epp_id', targetEppId);
-
-        fetch(url, {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                'X-Requested-With': 'XMLHttpRequest',
-                'Accept': 'application/json'
-            },
-            body: formData
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.success) {
-                const modalInstance = bootstrap.Modal.getInstance(document.getElementById('modalNuevoEppInventario'));
-                modalInstance.hide();
-
-                inventoryAlert.classList.remove('d-none', 'alert-danger');
-                inventoryAlert.classList.add('alert-success');
-                if (alertMessageSpan !== inventoryAlert) {
-                    alertMessageSpan.textContent = 'Inventario guardado correctamente';
-                } else {
-                    inventoryAlert.innerHTML = '<i class="bi bi-check-circle-fill me-2"></i>Inventario guardado correctamente';
-                }
-
-                setTimeout(() => {
-                    location.reload();
-                }, 1200);
-            } else {
-                throw new Error(data.message || 'Algo salió mal');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            inventoryAlert.classList.remove('d-none', 'alert-success');
-            inventoryAlert.classList.add('alert-danger');
-            if (alertMessageSpan !== inventoryAlert) {
-                alertMessageSpan.textContent = 'Error al guardar el inventario: ' + error.message;
-            } else {
-                inventoryAlert.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-2"></i>Error al guardar el inventario: ' + error.message;
-            }
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                filterBtns.forEach(b => b.classList.replace('btn-primary', 'btn-outline-primary'));
+                this.classList.replace('btn-outline-primary', 'btn-primary');
+                applyFilters();
+            });
         });
-    });
 
-    deleteEppForm.addEventListener('submit', function(e) {
-        e.preventDefault();
+        subtipoFilter.addEventListener('change', applyFilters);
+        searchInput.addEventListener('input', applyFilters);
 
-        fetch(this.action, {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                'X-Requested-With': 'XMLHttpRequest',
-                'Accept': 'application/json'
-            },
-            body: new URLSearchParams(new FormData(this))
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.success) {
-                deleteModal.hide();
-                inventoryAlert.classList.remove('d-none', 'alert-danger');
-                inventoryAlert.classList.add('alert-success');
-                if (alertMessageSpan !== inventoryAlert) {
-                    alertMessageSpan.textContent = 'EPP eliminado correctamente';
-                } else {
-                    inventoryAlert.innerHTML = '<i class="bi bi-check-circle-fill me-2"></i>EPP eliminado correctamente';
-                }
-                setTimeout(() => location.reload(), 1000);
-            } else {
-                throw new Error(data.message || 'No se pudo eliminar');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            inventoryAlert.classList.remove('d-none', 'alert-success');
-            inventoryAlert.classList.add('alert-danger');
-            if (alertMessageSpan !== inventoryAlert) {
-                alertMessageSpan.textContent = 'Error al eliminar el EPP: ' + error.message;
-            } else {
-                inventoryAlert.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-2"></i>Error al eliminar el EPP: ' + error.message;
-            }
+        // Script para cargar datos en el modal de edición
+        document.querySelectorAll('.btn-edit-inventario').forEach(button => {
+            button.addEventListener('click', function() {
+                document.getElementById('formEditarInventario').action = `/epps/${this.dataset.eppId}`;
+                document.getElementById('edit_cantidad').value = this.dataset.cantidad;
+                document.getElementById('edit_stock').value = this.dataset.stock;
+                document.getElementById('edit_entregado').value = this.dataset.entregado;
+                document.getElementById('edit_deteriorado').value = this.dataset.deteriorado;
+                new bootstrap.Modal(document.getElementById('modalEditarInventario')).show();
+            });
+        });
+
+        // Script para cargar URL en el modal de eliminación
+        document.querySelectorAll('.btn-delete-epp').forEach(button => {
+            button.addEventListener('click', function() {
+                document.getElementById('deleteEppForm').action = this.dataset.eppUrl;
+                new bootstrap.Modal(document.getElementById('deleteEppModal')).show();
+            });
         });
     });
 </script>
 
 <style>
-    .border-start-4 { border-left-width: 4px !important; }
-    .bg-success-soft { background-color: #e6f7ee; }
-    .bg-warning-soft { background-color: #fff3cd; }
-    .bg-danger-soft { background-color: #f8d7da; }
-    .bg-secondary-soft { background-color: #f0f2f5; }
-    .table thead th { border-bottom: none; text-transform: none; font-weight: 500; }
-    .card { border-radius: 12px; }
-    .btn-primary { border-radius: 8px; }
+    .card-epp { transition: transform 0.2s, box-shadow 0.2s; border-radius: 12px; }
+    .card-epp:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important; }
+    .filter-btn { transition: all 0.2s; }
+    .overflow-auto::-webkit-scrollbar { display: none; }
 </style>
 @endsection

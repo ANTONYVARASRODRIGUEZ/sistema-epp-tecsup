@@ -25,6 +25,7 @@ class Epp extends Model
         'entregado',
         'deteriorado',
         'departamento_id',
+        'categoria_id', // <--- Agregamos esto para que permita guardar la categoría
         'estado',
         'fecha_vencimiento'
     ];
@@ -32,6 +33,14 @@ class Epp extends Model
     protected $casts = [
         'fecha_vencimiento' => 'datetime',
     ];
+
+    /**
+     * Relación: Un EPP pertenece a una categoría (NUEVO)
+     */
+    public function categoria()
+    {
+        return $this->belongsTo(Categoria::class);
+    }
 
     /**
      * Relación: Un EPP pertenece a un departamento

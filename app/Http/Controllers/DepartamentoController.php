@@ -2,84 +2,82 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Departamento;
-use App\Models\User; 
-use App\Imports\DocentesImport;
-use Maatwebsite\Excel\Facades\Excel;
+use App\Models\Personal;
+use App\Models\Epp;
+use Illuminate\Http\Request;
 
 class DepartamentoController extends Controller
 {
     /**
-     * Muestra las "Cards" de los departamentos.
+     * Muestra las "Cards" de los departamentos en el Panel.
      */
     public function index()
     {
-        // CAMBIO: Ahora contamos 'docentes' (la relación filtrada) en lugar de 'usuarios'
-        // Esto ignora automáticamente a los Administradores en el contador de la Card.
-        $departamentos = Departamento::withCount('docentes')->get(); 
+        // Contamos cuántos personals (docentes) tiene cada departamento
+        $departamentos = Departamento::withCount('personals')->get(); 
         
         return view('departamentos.index', compact('departamentos'));
     }
 
     /**
-     * Muestra los docentes de un departamento específico.
+     * Guarda un nuevo departamento creado desde el modal de Jiancarlo.
+     */
+    public function store(Request $request)
+    {
+        $request->validate([
+            'nombre' => 'required|string|unique:departamentos,nombre|max:255',
+        ]);
+
+        Departamento::create([
+            'nombre' => $request->nombre,
+            'nivel_riesgo' => 'Bajo', // Valor por defecto
+            // 'imagen_url' => '...' (puedes añadir una imagen predeterminada aquí)
+        ]);
+
+        return back()->with('success', '¡Departamento creado con éxito!');
+    }
+
+    /**
+     * Muestra los detalles de un departamento y su lista de docentes asignados.
      */
     public function show(string $id)
     {
-        $departamento = Departamento::findOrFail($id);
+        $departamento = Departamento::with('personals')->findOrFail($id);
+        $epps = Epp::where('stock', '>', 0)->orderBy('nombre', 'asc')->get();
 
-        // Buscamos solo usuarios con el rol 'Docente'
-        $docentes = User::where('departamento_id', $id)
-                        ->where('role', 'Docente')
-                        ->get();
-
-        return view('departamentos.show', compact('departamento', 'docentes'));
+        return view('departamentos.show', compact('departamento', 'epps'));
     }
 
     /**
-     * Importación General (Sincronización Total)
+     * Elimina todos los departamentos y deja a los docentes "sin asignar".
      */
-    public function importarGeneral(Request $request)
+    public function destroyAll()
     {
-        $request->validate([
-            'excel_file' => 'required|mimes:xlsx,xls'
-        ], [
-            'excel_file.required' => 'Selecciona la Matriz General.',
-            'excel_file.mimes' => 'El archivo debe ser un Excel (.xlsx o .xls).'
-        ]);
+        // Primero dejamos a todos los docentes sin departamento (en lugar de borrarlos)
+        // Así Jiancarlo no pierde su "Lista Maestra"
+        Personal::query()->update(['departamento_id' => null]);
+        
+        // Luego borramos los departamentos
+        Departamento::query()->delete();
 
-        try {
-            // OPCIONAL: Limpiar docentes antiguos antes de la nueva carga 
-            // para evitar duplicados si los nombres cambiaron en el Excel.
-            // User::where('role', 'Docente')->delete();
-
-            Excel::import(new DocentesImport, $request->file('excel_file'));
-
-            return back()->with('success', 'Matriz General procesada. Los docentes han sido mapeados a sus áreas correspondientes.');
-            
-        } catch (\Exception $e) {
-            return back()->with('error', 'Error en Matriz General: ' . $e->getMessage());
-        }
+        return back()->with('success', 'Departamentos eliminados. El personal ha vuelto a la Lista Maestra.');
     }
 
     /**
-     * Importación por Departamento Específico
+     * Elimina departamentos seleccionados.
      */
-    public function importar(Request $request, $id)
-{
-    $request->validate([
-        'excel_file' => 'required|mimes:xlsx,xls'
-    ]);
+    public function destroySelected(Request $request)
+    {
+        if (!$request->ids) {
+            return back()->with('error', 'No has seleccionado nada.');
+        }
 
-    try {
-        // Pasamos el $id del departamento directamente al constructor del Importador
-        Excel::import(new DocentesImport($id), $request->file('excel_file'));
+        // Desasignamos al personal de esos departamentos antes de borrar
+        Personal::whereIn('departamento_id', $request->ids)->update(['departamento_id' => null]);
+        
+        Departamento::whereIn('id', $request->ids)->delete();
 
-        return back()->with('success', 'Docentes importados correctamente en este departamento.');
-    } catch (\Exception $e) {
-        return back()->with('error', 'Error: ' . $e->getMessage());
+        return back()->with('success', 'Departamentos eliminados correctamente.');
     }
-}
 }

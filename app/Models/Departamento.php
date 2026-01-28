@@ -45,4 +45,9 @@ class Departamento extends Model
     {
         return $this->hasMany(Epp::class);
     }
+
+    public function personals()
+{
+    return $this->hasMany(Personal::class, 'departamento_id');
+}
 }

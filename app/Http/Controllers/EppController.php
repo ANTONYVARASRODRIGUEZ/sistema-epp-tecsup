@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Epp;
 use App\Models\Departamento;
+use App\Models\Categoria; // <--- IMPORTANTE: Añadimos esto
 use Illuminate\Http\Request;
 use App\Imports\EppImport;
 use Maatwebsite\Excel\Facades\Excel;
@@ -11,14 +12,14 @@ use Maatwebsite\Excel\Facades\Excel;
 class EppController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Display a listing of the resource (CATÁLOGO PRINCIPAL).
      */
     public function index()
-    {
-        $epps = Epp::all();
-        $departamentos = Departamento::where('activo', true)->get();
-        return view('epps.index', compact('epps', 'departamentos'));
-    }
+{
+    $epps = Epp::with('categoria')->get();
+    $categorias = Categoria::all(); // Esto es vital para los botones de filtro
+    return view('epps.index', compact('epps', 'categorias'));
+}
 
     /**
      * Show the form for creating a new resource.
@@ -26,7 +27,8 @@ class EppController extends Controller
     public function create()
     {
         $departamentos = Departamento::all();
-        return view('epps.create', compact('departamentos'));
+        $categorias = Categoria::all();
+        return view('epps.create', compact('departamentos', 'categorias'));
     }
 
     /**
@@ -34,85 +36,41 @@ class EppController extends Controller
      */
     public function store(Request $request)
     {
-        // 1️⃣ Validación
         $request->validate([
             'nombre' => 'required|string|max:255',
-            'tipo' => 'required|string|max:255',
+            'categoria_id' => 'required|exists:categorias,id', // Validamos la categoría
             'descripcion' => 'nullable|string',
             'vida_util_meses' => 'required|integer|min:1',
             'departamento_id' => 'nullable|exists:departamentos,id',
             'ficha_tecnica' => 'nullable|mimes:pdf|max:2048',
             'imagen' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'frecuencia_entrega' => 'nullable|string|max:255',
-            'codigo_logistica' => 'nullable|string|max:255',
-            'marca_modelo' => 'nullable|string|max:255',
             'precio' => 'nullable|numeric|min:0',
             'cantidad' => 'nullable|integer|min:0',
-            'stock' => 'nullable|integer|min:0',
-            'entregado' => 'nullable|integer|min:0',
-            'deteriorado' => 'nullable|integer|min:0'
         ]);
 
-        // 2️⃣ Datos del formulario
-        $data = $request->only([
-            'nombre',
-            'tipo',
-            'descripcion',
-            'vida_util_meses',
-            'departamento_id',
-            'frecuencia_entrega',
-            'codigo_logistica',
-            'marca_modelo',
-            'precio',
-            'cantidad',
-            'stock',
-            'entregado',
-            'deteriorado',
-            'estado'
-        ]);
+        $data = $request->all();
 
-        // 3️⃣ Guardar archivo PDF si existe
+        // Guardar archivo PDF si existe
         if ($request->hasFile('ficha_tecnica')) {
-            $data['ficha_tecnica'] = $request->file('ficha_tecnica')
-                ->store('fichas_tecnicas', 'public');
+            $data['ficha_tecnica'] = $request->file('ficha_tecnica')->store('fichas_tecnicas', 'public');
         }
 
-        // 4️⃣ Guardar imagen si existe
+        // Guardar imagen si existe
         if ($request->hasFile('imagen')) {
-            $data['imagen'] = $request->file('imagen')
-                ->store('epps', 'public');
+            $data['imagen'] = $request->file('imagen')->store('epps', 'public');
         }
 
-        // 5️⃣ Crear EPP
         Epp::create($data);
 
-        // 6️⃣ Redireccionar
-        return redirect()->route('epps.index')
-            ->with('success', 'EPP registrado correctamente');
+        return redirect()->route('epps.index')->with('success', 'EPP registrado correctamente');
     }
-
-
-    public function catalogo()
-{
-    $epps = Epp::all();
-    $departamentos = Departamento::all();
-
-    // Si el usuario es docente (usamos el rol que es más seguro)
-    if (auth()->user()->role === 'Docente' || str_contains(auth()->user()->email, 'docente')) {
-        return view('docente.catalogo', compact('epps', 'departamentos'));
-    }
-
-    // Si es admin, mostramos la vista de gestión
-    return view('epps.catalogo', compact('epps', 'departamentos'));
-}
-
 
     /**
      * Display the specified resource.
      */
     public function show(string $id)
     {
-        $epp = Epp::findOrFail($id);
+        $epp = Epp::with('categoria')->findOrFail($id);
         return view('epps.show', compact('epp'));
     }
 
@@ -123,7 +81,8 @@ class EppController extends Controller
     {
         $epp = Epp::findOrFail($id);
         $departamentos = Departamento::all();
-        return view('epps.edit', compact('epp', 'departamentos'));
+        $categorias = Categoria::all();
+        return view('epps.edit', compact('epp', 'departamentos', 'categorias'));
     }
 
     /**
@@ -133,77 +92,19 @@ class EppController extends Controller
     {
         $epp = Epp::findOrFail($id);
 
-        // Si solo viene datos de inventario (modal simplificado)
-        if ($request->has('stock') && !$request->has('nombre')) {
-            $request->validate([
-                'cantidad' => 'nullable|integer|min:0',
-                'stock' => 'nullable|integer|min:0',
-                'entregado' => 'nullable|integer|min:0',
-                'deteriorado' => 'nullable|integer|min:0',
-                'estado' => 'nullable|string|in:disponible,bajo_stock,agotado'
-            ]);
+        $data = $request->all();
 
-            $epp->update($request->only([
-                'cantidad',
-                'stock',
-                'entregado',
-                'deteriorado',
-                'estado'
-            ]));
-
-            if ($request->expectsJson()) {
-                return response()->json(['success' => true, 'message' => 'Inventario actualizado correctamente']);
-            }
-            return redirect()->route('epps.index')->with('success', 'Inventario actualizado correctamente');
-        }
-
-        // Si viene formulario completo de edición (modal de catalogo)
-        $request->validate([
-            'nombre' => 'required|string|max:255',
-            'tipo' => 'required|string|max:255',
-            'descripcion' => 'nullable|string',
-            'vida_util_meses' => 'required|integer|min:1',
-            'departamento_id' => 'nullable|exists:departamentos,id',
-            'ficha_tecnica' => 'nullable|mimes:pdf|max:2048',
-            'imagen' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'frecuencia_entrega' => 'nullable|string|max:255',
-            'codigo_logistica' => 'nullable|string|max:255',
-            'marca_modelo' => 'nullable|string|max:255',
-            'precio' => 'nullable|numeric|min:0',
-            'cantidad' => 'nullable|integer|min:0'
-        ]);
-
-        // Datos del formulario
-        $data = $request->only([
-            'nombre',
-            'tipo',
-            'descripcion',
-            'vida_util_meses',
-            'departamento_id',
-            'frecuencia_entrega',
-            'codigo_logistica',
-            'marca_modelo',
-            'precio',
-            'cantidad'
-        ]);
-
-        // Guardar archivo PDF si existe
         if ($request->hasFile('ficha_tecnica')) {
-            $data['ficha_tecnica'] = $request->file('ficha_tecnica')
-                ->store('fichas_tecnicas', 'public');
+            $data['ficha_tecnica'] = $request->file('ficha_tecnica')->store('fichas_tecnicas', 'public');
         }
 
-        // Guardar imagen si existe
         if ($request->hasFile('imagen')) {
-            $data['imagen'] = $request->file('imagen')
-                ->store('epps', 'public');
+            $data['imagen'] = $request->file('imagen')->store('epps', 'public');
         }
 
-        // Actualizar EPP
         $epp->update($data);
 
-        return redirect()->route('epps.catalogo')
-            ->with('success', 'EPP actualizado correctamente');
+        return redirect()->route('epps.index')->with('success', 'EPP actualizado correctamente');
     }
 
     /**
@@ -214,25 +115,36 @@ class EppController extends Controller
         $epp = Epp::findOrFail($id);
         $epp->delete();
 
-        if (request()->expectsJson()) {
-            return response()->json(['success' => true]);
-        }
-
-        return redirect()->route('epps.index')
-            ->with('success', 'EPP eliminado correctamente');
+        return redirect()->route('epps.index')->with('success', 'EPP eliminado correctamente');
     }
 
+    /**
+     * Import masivo desde Excel.
+     */
     public function import(Request $request) 
-{
-    $request->validate([
-        'file' => 'required|mimes:xlsx,xls,csv'
-    ]);
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls,csv'
+        ]);
 
+        try {
+            Excel::import(new EppImport, $request->file('file'));
+            return back()->with('success', '¡Matriz de EPP importada correctamente!');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Error en el formato del archivo: ' . $e->getMessage());
+        }
+    }
+
+
+    public function clearAll()
+{
     try {
-        Excel::import(new EppImport, $request->file('file'));
-        return back()->with('success', '¡Matriz de EPP importada correctamente!');
+        // Opción A: Vacía la tabla y reinicia el contador de IDs (Recomendado)
+        \App\Models\Epp::truncate(); 
+        
+        return back()->with('success', '¡Se han eliminado todos los registros del inventario!');
     } catch (\Exception $e) {
-        return back()->with('error', 'Error en el formato del archivo: ' . $e->getMessage());
+        return back()->with('error', 'No se pudo vaciar la tabla: ' . $e->getMessage());
     }
 }
 }
