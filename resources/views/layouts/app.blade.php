@@ -66,9 +66,6 @@
 
     <hr class="mx-3 my-2 text-secondary opacity-25">
 
-    <a class="nav-link {{ request()->routeIs('usuarios.index') ? 'active' : '' }}" href="{{ route('usuarios.index') }}">
-        <i class="bi bi-shield-lock"></i> Usuarios Sistema
-    </a>
 </nav>
 
         <div class="user-section">

@@ -25,10 +25,10 @@ class Epp extends Model
         'entregado',
         'deteriorado',
         'departamento_id',
-        'categoria_id', // <--- Agregamos esto para que permita guardar la categoría
-        'subcategoria', // <--- NUEVO: Para cumplir con el punto 2A
+        'categoria_id',
+        'subcategoria_id',
         'estado',
-        'fecha_vencimiento'
+        'fecha_vencimiento',
     ];
 
     protected $casts = [
@@ -36,7 +36,7 @@ class Epp extends Model
     ];
 
     /**
-     * Relación: Un EPP pertenece a una categoría (NUEVO)
+     * Relación: Un EPP pertenece a una Categoría
      */
     public function categoria()
     {
@@ -44,7 +44,15 @@ class Epp extends Model
     }
 
     /**
-     * Relación: Un EPP pertenece a un departamento
+     * Relación: Un EPP pertenece a una Subcategoría
+     */
+    public function subcategoria()
+    {
+        return $this->belongsTo(Subcategoria::class);
+    }
+
+    /**
+     * Relación: Un EPP pertenece a un Departamento
      */
     public function departamento()
     {

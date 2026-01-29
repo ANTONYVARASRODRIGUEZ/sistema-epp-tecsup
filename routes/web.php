@@ -8,7 +8,6 @@ use App\Http\Controllers\AsignacionController;
 use App\Http\Controllers\PersonalController; 
 use App\Http\Controllers\ConfiguracionController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\CategoriaController;
 use App\Http\Controllers\OrganizadorController;
 use Illuminate\Http\Request;
@@ -85,6 +84,5 @@ Route::middleware(['auth', 'isAdmin'])->group(function () {
     Route::put('/asignaciones/{id}/incidencia', [AsignacionController::class, 'reportarIncidencia'])->name('asignaciones.incidencia');
 
     // --- OTROS (ADMINISTRACIÓN DE USUARIOS DEL SISTEMA Y CONFIG) ---
-    Route::resource('usuarios', UsuarioController::class); // Quién puede entrar al sistema
     Route::get('/configuracion', [ConfiguracionController::class, 'index'])->name('configuracion.index');
 });

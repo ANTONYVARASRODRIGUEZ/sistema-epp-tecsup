@@ -3,46 +3,81 @@
 namespace App\Http\Controllers;
 
 use App\Models\Epp;
-use App\Models\Solicitud;
+use App\Models\Asignacion;
 use App\Models\Departamento;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        // Métricas base de inventario
-        $stockDisponible = Epp::sum('stock') ?? 0;
-        $totalDeteriorado = Epp::sum('deteriorado') ?? 0;
-        $deteriorados = $totalDeteriorado;
+        $depId = $request->get('departamento_id');
 
-        // Flujo de solicitudes aprobadas (entregas reales)
-        $solicitudesAprobadasBase = Solicitud::with(['user', 'epp.departamento'])
-            ->where('estado', 'aprobado');
+        // Base EPP filtrada opcionalmente por departamento
+        $eppBase = Epp::query();
+        if ($depId) {
+            $eppBase->where('departamento_id', $depId);
+        }
 
-        $eppEntregados = (clone $solicitudesAprobadasBase)->count();
-        $proximosVencer = (clone $solicitudesAprobadasBase)
+        // Stock disponible: estados disponibles o fallback por (cantidad - entregado - deteriorado)
+        $noDisponibles = ['Asignado','asignado','Baja','baja','Perdido','perdido','Deteriorado','deteriorado'];
+        $disponiblesQuery = (clone $eppBase)
+            ->where(function ($q) use ($noDisponibles) {
+                $q->whereNull('estado')
+                  ->orWhereIn('estado', ['En almacén','en almacén','Disponible','disponible'])
+                  ->orWhereNotIn('estado', $noDisponibles);
+            });
+        $stockDisponible = (clone $disponiblesQuery)->sum('stock');
+        if ((int)$stockDisponible === 0) {
+            $stockDisponible = (clone $disponiblesQuery)
+                ->get(['cantidad','entregado','deteriorado'])
+                ->reduce(function ($carry, $e) {
+                    $cant = (int)($e->cantidad ?? 0);
+                    $ent = (int)($e->entregado ?? 0);
+                    $det = (int)($e->deteriorado ?? 0);
+                    return $carry + max($cant - $ent - $det, 0);
+                }, 0);
+        }
+
+        // Asignaciones (entregados) - sumamos cantidad para reflejar unidades entregadas
+        $asignacionesBase = Asignacion::with(['personal.departamento', 'epp'])
+            ->when($depId, function ($q) use ($depId) {
+                $q->whereHas('epp', function ($qq) use ($depId) {
+                    $qq->where('departamento_id', $depId);
+                });
+            });
+        $eppEntregados = (clone $asignacionesBase)->sum('cantidad');
+
+        // Vencimientos
+        $proximosVencer = (clone $eppBase)
+            ->whereNotNull('fecha_vencimiento')
             ->whereBetween('fecha_vencimiento', [now(), now()->addDays(30)])
             ->count();
-        $vencidos = (clone $solicitudesAprobadasBase)
+
+        $vencidos = (clone $eppBase)
             ->whereNotNull('fecha_vencimiento')
             ->where('fecha_vencimiento', '<', now())
             ->count();
 
-        $alertasVencidos = (clone $solicitudesAprobadasBase)
+        // Deteriorados: suma de unidades deterioradas
+        $totalDeteriorado = (clone $eppBase)->sum('deteriorado') ?? 0;
+        $deteriorados = $totalDeteriorado;
+
+        // Alertas
+        $alertasVencidos = (clone $eppBase)
             ->whereNotNull('fecha_vencimiento')
             ->where('fecha_vencimiento', '<', now())
             ->orderBy('fecha_vencimiento')
             ->take(5)
-            ->get();
+            ->get(['id', 'nombre', 'fecha_vencimiento']);
 
-        $alertasStockCritico = Epp::whereBetween('stock', [1, 10])
+        $alertasStockCritico = (clone $eppBase)
+            ->whereBetween('stock', [1, 10])
             ->orderBy('stock')
             ->take(5)
-            ->get();
+            ->get(['id', 'nombre', 'stock']);
 
-        // Datos por Estado
+        // Datos por Estado para gráfica
         $estadisticasEstado = [
             'enAlmacen' => $stockDisponible,
             'entregados' => $eppEntregados,
@@ -51,48 +86,38 @@ class DashboardController extends Controller
             'deteriorados' => $totalDeteriorado,
         ];
 
-        // EPP por Departamento
-        $eppPorDepartamento = Departamento::with('epps')->get();
-        $departamentosData = $eppPorDepartamento->map(function($dept) {
-            return [
-                'nombre' => $dept->nombre,
-                'cantidad' => $dept->epps->count()
-            ];
-        })->toArray();
+        // EPP por Departamento (conteo de EPP asociados)
+        $departamentosData = Departamento::select('id', 'nombre')
+            ->withCount(['epps as cantidad'])
+            ->get()
+            ->map(fn($d) => ['nombre' => $d->nombre, 'cantidad' => $d->cantidad])
+            ->toArray();
 
-        // Si está vacío, usar datos ficticios
-        if(empty($departamentosData)) {
-            $departamentosData = [
-                ['nombre' => 'Mecánica', 'cantidad' => 0],
-                ['nombre' => 'Topografía', 'cantidad' => 0],
-                ['nombre' => 'Tecnología Digital', 'cantidad' => 0],
-                ['nombre' => 'Construcción', 'cantidad' => 0],
-            ];
-        }
-
-        // Últimas entregas
-        $ultimasEntregas = (clone $solicitudesAprobadasBase)
-            ->orderByDesc('fecha_aprobacion')
+        // Últimas entregas reales (Asignaciones)
+        $ultimasEntregas = (clone $asignacionesBase)
+            ->orderByDesc('fecha_entrega')
             ->take(5)
             ->get();
 
-        // EPP dados de baja (estado deteriorado o baja)
-        $eppBaja = Epp::whereIn('estado', ['deteriorado', 'baja'])
+        // EPP dados de baja/deteriorado/perdido
+        $eppBaja = (clone $eppBase)
+            ->whereIn('estado', ['deteriorado', 'baja', 'perdido', 'Deteriorado', 'Baja', 'Perdido'])
             ->latest()
             ->take(5)
             ->get();
 
-        // Renovaciones proyectadas por mes (próximos 6 meses)
+        // Vencimientos proyectados (próximos 6 meses)
         $renovacionesPorMes = [];
         for ($i = 0; $i < 6; $i++) {
             $mes = now()->addMonths($i);
-            $count = Epp::whereBetween('fecha_vencimiento', [
-                $mes->startOfMonth(),
-                $mes->endOfMonth()
-            ])->count();
+            $count = (clone $eppBase)
+                ->whereBetween('fecha_vencimiento', [
+                    $mes->copy()->startOfMonth(),
+                    $mes->copy()->endOfMonth(),
+                ])->count();
             $renovacionesPorMes[] = [
                 'mes' => $mes->format('M'),
-                'cantidad' => $count
+                'cantidad' => $count,
             ];
         }
 

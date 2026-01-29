@@ -158,7 +158,7 @@
                                     <div>
                                         <strong>⚡ Stock Crítico</strong>
                                         <br>
-                                        <small>{{ $alerta->nombre }} - {{ $alerta->cantidad }} unidades disponibles</small>
+                                        <small>{{ $alerta->nombre }} - {{ $alerta->stock }} unidades disponibles</small>
                                     </div>
                                     <button class="btn btn-sm btn-outline-warning">Ver detalle</button>
                                 </div>
@@ -215,12 +215,12 @@
                             <tbody>
                                 @forelse($ultimasEntregas as $entrega)
                                 <tr>
-                                    <td><strong>{{ $entrega->user->name ?? 'N/A' }}</strong></td>
+                                    <td><strong>{{ $entrega->personal->nombre_completo ?? 'N/A' }}</strong></td>
                                     <td>{{ $entrega->epp->nombre ?? 'N/A' }}</td>
-                                    <td>{{ optional($entrega->fecha_aprobacion ?? $entrega->created_at)->format('d/m/Y') }}</td>
+                                    <td>{{ optional($entrega->fecha_entrega ?? $entrega->created_at)->format('d/m/Y') }}</td>
                                     <td>
                                         <span class="badge bg-info">
-                                            {{ $entrega->epp->departamento->nombre ?? 'Sin área' }}
+                                            {{ $entrega->personal->departamento->nombre ?? $entrega->personal->carrera ?? 'Sin área' }}
                                         </span>
                                     </td>
                                 </tr>

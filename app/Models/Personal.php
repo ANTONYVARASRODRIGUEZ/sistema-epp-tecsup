@@ -39,4 +39,12 @@ class Personal extends Model
     {
         return $this->hasMany(Asignacion::class);
     }
+
+    /**
+     * Relación: Un Personal pertenece a muchos Talleres/Labs
+     */
+    public function talleres()
+    {
+        return $this->belongsToMany(Taller::class, 'personal_taller')->withTimestamps();
+    }
 }

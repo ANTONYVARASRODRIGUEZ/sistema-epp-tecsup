@@ -20,11 +20,6 @@ class ProfileController extends Controller
     {
         $usuario = auth()->user();
 
-        // Vista simplificada para docentes
-        if ($usuario->role === 'Docente' || str_contains($usuario->email, 'docente')) {
-            return view('docente.perfil', compact('usuario'));
-        }
-        
         if (Schema::hasTable('login_attempts')) {
             // Intentos de acceso recientes
             $accesosRecientes = LoginAttempt::where('user_id', $usuario->id)
