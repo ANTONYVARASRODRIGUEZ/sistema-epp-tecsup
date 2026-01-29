@@ -117,7 +117,7 @@
                                         <form action="{{ route('asignaciones.devolver', $asignacion->id) }}" method="POST" onsubmit="return confirm('Confirmar devolución y sumar al stock?');">
                                             @csrf
                                             @method('PUT')
-                                            <button class="btn btn-sm btn-outline-success" {{ $asignacion->estado !== 'Posee' ? 'disabled' : '' }} title="Marcar como Devuelto">
+                                            <button class="btn btn-sm btn-outline-success" {{ $asignacion->estado !== 'Entregado' ? 'disabled' : '' }} title="Marcar como Devuelto">
                                                 <i class="bi bi-arrow-counterclockwise"></i> Devuelto
                                             </button>
                                         </form>
@@ -126,7 +126,7 @@
                                             @csrf
                                             @method('PUT')
                                             <input type="hidden" name="estado" value="Dañado">
-                                            <button class="btn btn-sm btn-outline-warning" {{ $asignacion->estado !== 'Posee' ? 'disabled' : '' }} title="Marcar como Dañado">
+                                            <button class="btn btn-sm btn-outline-warning" {{ $asignacion->estado !== 'Entregado' ? 'disabled' : '' }} title="Marcar como Dañado">
                                                 <i class="bi bi-exclamation-triangle"></i> Dañado
                                             </button>
                                         </form>
@@ -135,7 +135,7 @@
                                             @csrf
                                             @method('PUT')
                                             <input type="hidden" name="estado" value="Perdido">
-                                            <button class="btn btn-sm btn-outline-danger" {{ $asignacion->estado !== 'Posee' ? 'disabled' : '' }} title="Marcar como Perdido">
+                                            <button class="btn btn-sm btn-outline-danger" {{ $asignacion->estado !== 'Entregado' ? 'disabled' : '' }} title="Marcar como Perdido">
                                                 <i class="bi bi-x-octagon"></i> Perdido
                                             </button>
                                         </form>

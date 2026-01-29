@@ -38,7 +38,7 @@ class AsignacionController extends Controller
             'epp_id' => $request->epp_id,
             'cantidad' => $request->cantidad,
             'fecha_entrega' => now(),
-            'estado' => 'Posee'
+            'estado' => 'Entregado'
         ]);
 
         $epp->decrement('stock', $request->cantidad);
@@ -53,7 +53,7 @@ class AsignacionController extends Controller
     {
         $asignacion = Asignacion::findOrFail($id);
         
-        if ($asignacion->estado == 'Posee') {
+        if ($asignacion->estado == 'Entregado') {
             $asignacion->update(['estado' => 'Devuelto']);
             
             // Opcional: Si es devuelto en buen estado, ¿regresa al stock?
@@ -73,7 +73,7 @@ class AsignacionController extends Controller
         $asignacion = Asignacion::findOrFail($id);
         
         // Si estaba en posesión, cambiamos estado pero NO sumamos al stock (se pierde)
-        if ($asignacion->estado == 'Posee') {
+        if ($asignacion->estado == 'Entregado') {
             $estado = $request->input('estado', 'Dañado'); // Dañado o Perdido
             $asignacion->update(['estado' => $estado]);
             
