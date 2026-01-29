@@ -43,7 +43,12 @@ class DepartamentoController extends Controller
      */
     public function show(string $id)
     {
-        $departamento = Departamento::with('personals')->findOrFail($id);
+        // Cargamos el departamento y sus docentes, pero ORDENADOS por Carrera y luego por Nombre
+        $departamento = Departamento::with(['personals' => function($query) {
+            $query->orderBy('carrera', 'asc')
+                  ->orderBy('nombre_completo', 'asc');
+        }, 'personals.asignaciones.epp'])->findOrFail($id);
+
         $epps = Epp::where('stock', '>', 0)->orderBy('nombre', 'asc')->get();
 
         return view('departamentos.show', compact('departamento', 'epps'));
@@ -79,5 +84,47 @@ class DepartamentoController extends Controller
         Departamento::whereIn('id', $request->ids)->delete();
 
         return back()->with('success', 'Departamentos eliminados correctamente.');
+    }
+
+    /**
+     * Asigna un EPP a todo el personal del departamento.
+     */
+    public function asignarMasivo(Request $request, $id)
+    {
+        $request->validate([
+            'epp_id' => 'required|exists:epps,id',
+            'cantidad' => 'required|integer|min:1',
+        ]);
+
+        $departamento = Departamento::with('personals')->findOrFail($id);
+        $epp = Epp::findOrFail($request->epp_id);
+        
+        $cantidadPorPersona = $request->cantidad;
+        $totalPersonas = $departamento->personals->count();
+        
+        if ($totalPersonas === 0) {
+            return back()->with('error', 'No hay personal en este departamento para asignar.');
+        }
+
+        $totalRequerido = $cantidadPorPersona * $totalPersonas;
+
+        if ($epp->stock < $totalRequerido) {
+            return back()->with('error', "Stock insuficiente. Se requieren {$totalRequerido} unidades para los {$totalPersonas} docentes (Stock actual: {$epp->stock}).");
+        }
+
+        // Crear asignación para cada docente
+        foreach ($departamento->personals as $personal) {
+            \App\Models\Asignacion::create([
+                'personal_id' => $personal->id,
+                'epp_id'      => $epp->id,
+                'cantidad'    => $cantidadPorPersona,
+                'fecha_entrega' => now(),
+            ]);
+        }
+
+        // Descontar stock total
+        $epp->decrement('stock', $totalRequerido);
+
+        return back()->with('success', "¡Éxito! Se asignaron {$totalRequerido} unidades de '{$epp->nombre}' a todo el departamento.");
     }
 }

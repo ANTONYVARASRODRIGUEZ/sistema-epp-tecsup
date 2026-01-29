@@ -5,7 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\LoginAttempt;
 use App\Models\AuditLog;
-use App\Models\Entrega;
+use App\Models\Epp;
+use App\Models\Asignacion;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
@@ -49,34 +50,19 @@ class ProfileController extends Controller
             $intentosFallidos = 0;
         }
         
-        // Actividad del admin (últimas acciones registradas en auditoría)
-        $actividadAdmin = AuditLog::where('user_id', $usuario->id)
-            ->latest()
-            ->take(20)
-            ->get();
-        
-        // Entregas registradas por este admin
-        $entregasRegistradas = Entrega::count();
-        $aprobacionesRealizadas = AuditLog::where('user_id', $usuario->id)
-            ->where('evento', 'aprobacion_solicitud')
-            ->count();
-        $bajaEpp = AuditLog::where('user_id', $usuario->id)
-            ->where('evento', 'epp_eliminado')
-            ->count();
-        $modificacionesInventario = AuditLog::where('user_id', $usuario->id)
-            ->where('evento', 'like', '%actualizado%')
-            ->count();
+        // INDICADORES PARA EL RESUMEN DE ACTIVIDAD
+        $totalEppRegistrados = Epp::count(); // Total de tipos de EPP en catálogo
+        $totalEppAsignados = Asignacion::count(); // Historial total de asignaciones
+        $totalEppBaja = Epp::sum('deteriorado'); // Total de unidades dadas de baja/deterioradas
+        $inventariadosRealizados = AuditLog::count(); // Total de movimientos registrados en el sistema
 
         return view('profile.show', compact(
             'usuario',
-            'accesosRecientes',
             'ultimoAcceso',
-            'intentosFallidos',
-            'actividadAdmin',
-            'entregasRegistradas',
-            'aprobacionesRealizadas',
-            'bajaEpp',
-            'modificacionesInventario'
+            'totalEppRegistrados',
+            'totalEppAsignados',
+            'totalEppBaja',
+            'inventariadosRealizados'
         ));
     }
 

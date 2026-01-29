@@ -45,4 +45,42 @@ class AsignacionController extends Controller
 
         return back()->with('success', 'EPP entregado correctamente.');
     }
+
+    /**
+     * Marcar como DEVUELTO (El docente entrega el EPP en buen estado)
+     */
+    public function devolver($id)
+    {
+        $asignacion = Asignacion::findOrFail($id);
+        
+        if ($asignacion->estado == 'Posee') {
+            $asignacion->update(['estado' => 'Devuelto']);
+            
+            // Opcional: Si es devuelto en buen estado, ¿regresa al stock?
+            // Para EPPs como cascos sí, para guantes usados quizás no.
+            // Por simplicidad y control, lo sumamos al stock.
+            $asignacion->epp->increment('stock', $asignacion->cantidad);
+        }
+
+        return back()->with('success', 'Equipo marcado como devuelto. Stock actualizado.');
+    }
+
+    /**
+     * Marcar como DAÑADO/PERDIDO (Baja)
+     */
+    public function reportarIncidencia($id, Request $request)
+    {
+        $asignacion = Asignacion::findOrFail($id);
+        
+        // Si estaba en posesión, cambiamos estado pero NO sumamos al stock (se pierde)
+        if ($asignacion->estado == 'Posee') {
+            $estado = $request->input('estado', 'Dañado'); // Dañado o Perdido
+            $asignacion->update(['estado' => $estado]);
+            
+            // Incrementamos el contador de deteriorados/bajas en el inventario global
+            $asignacion->epp->increment('deteriorado', $asignacion->cantidad);
+        }
+
+        return back()->with('warning', 'Equipo marcado como ' . $request->input('estado') . '.');
+    }
 }

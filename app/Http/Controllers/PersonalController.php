@@ -22,12 +22,16 @@ class PersonalController extends Controller
         $request->validate([
             'nombre_completo' => 'required|string|max:255',
             'dni' => 'nullable|string|unique:personals,dni',
+            'carrera' => 'nullable|string|max:255',
+            'tipo_contrato' => 'nullable|string',
         ]);
 
         Personal::create([
             'nombre_completo' => $request->nombre_completo,
             'dni' => $request->dni,
             'departamento_id' => null, 
+            'carrera' => $request->carrera ?? 'Sin carrera',
+            'tipo_contrato' => $request->tipo_contrato ?? 'Docente TC',
         ]);
 
         return back()->with('success', 'Docente registrado correctamente.');
@@ -38,6 +42,24 @@ class PersonalController extends Controller
         $departamento = Departamento::with('personals')->findOrFail($id);
         $epps = Epp::where('stock', '>', 0)->orderBy('nombre', 'asc')->get();
         return view('departamentos.show', compact('departamento', 'epps'));
+    }
+
+    /**
+     * Actualizar datos del personal (Carrera, DNI, Nombre)
+     */
+    public function update(Request $request, $id)
+    {
+        $personal = Personal::findOrFail($id);
+
+        $request->validate([
+            'nombre_completo' => 'required|string|max:255',
+            'dni' => 'nullable|string|max:20|unique:personals,dni,' . $id,
+            'carrera' => 'nullable|string|max:255',
+        ]);
+
+        $personal->update($request->all());
+
+        return back()->with('success', 'Datos del docente actualizados.');
     }
 
     // NUEVO: Para borrar personal de la lista maestra

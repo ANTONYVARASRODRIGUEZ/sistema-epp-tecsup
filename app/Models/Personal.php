@@ -31,4 +31,12 @@ class Personal extends Model
     {
         return $this->belongsTo(Departamento::class, 'departamento_id');
     }
+
+    /**
+     * Relación: Un Personal tiene muchas asignaciones de EPP
+     */
+    public function asignaciones()
+    {
+        return $this->hasMany(Asignacion::class);
+    }
 }

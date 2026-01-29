@@ -50,6 +50,7 @@ Route::middleware(['auth', 'isAdmin'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/perfil', [ProfileController::class, 'show'])->name('perfil.show');
     Route::post('/perfil/datos', [ProfileController::class, 'actualizarDatosPersonales'])->name('perfil.actualizar-datos');
+    Route::post('/perfil/email', [ProfileController::class, 'actualizarEmail'])->name('perfil.actualizar-email');
     Route::post('/perfil/contrasena', [ProfileController::class, 'cambiarContrasena'])->name('perfil.cambiar-contrasena');
 
     // --- MANTENEDORES (CATÁLOGO E INVENTARIO) ---
@@ -70,6 +71,7 @@ Route::middleware(['auth', 'isAdmin'])->group(function () {
     
     // Rutas de Departamentos
     Route::resource('departamentos', DepartamentoController::class);
+    Route::post('/departamentos/{id}/asignar-masivo', [DepartamentoController::class, 'asignarMasivo'])->name('departamentos.asignar_masivo');
     
     // Organizador Visual (Mover docentes a departamentos)
     Route::get('/organizador', [OrganizadorController::class, 'index'])->name('organizador.index');
@@ -79,6 +81,8 @@ Route::middleware(['auth', 'isAdmin'])->group(function () {
     Route::get('/asignaciones', [AsignacionController::class, 'index'])->name('asignaciones.index');
     Route::post('/asignaciones/entregar', [AsignacionController::class, 'store'])->name('asignaciones.store');
     Route::delete('/asignaciones/{id}', [AsignacionController::class, 'destroy'])->name('asignaciones.destroy');
+    Route::put('/asignaciones/{id}/devolver', [AsignacionController::class, 'devolver'])->name('asignaciones.devolver');
+    Route::put('/asignaciones/{id}/incidencia', [AsignacionController::class, 'reportarIncidencia'])->name('asignaciones.incidencia');
 
     // --- OTROS (ADMINISTRACIÓN DE USUARIOS DEL SISTEMA Y CONFIG) ---
     Route::resource('usuarios', UsuarioController::class); // Quién puede entrar al sistema

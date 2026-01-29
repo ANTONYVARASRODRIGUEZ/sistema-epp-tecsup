@@ -39,6 +39,7 @@ class EppController extends Controller
         $request->validate([
             'nombre' => 'required|string|max:255',
             'categoria_id' => 'required|exists:categorias,id', // Validamos la categoría
+            'subcategoria' => 'nullable|string|max:255',       // Validamos subcategoría
             'descripcion' => 'nullable|string',
             'vida_util_meses' => 'required|integer|min:1',
             'departamento_id' => 'nullable|exists:departamentos,id',

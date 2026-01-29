@@ -26,6 +26,7 @@ class Epp extends Model
         'deteriorado',
         'departamento_id',
         'categoria_id', // <--- Agregamos esto para que permita guardar la categoría
+        'subcategoria', // <--- NUEVO: Para cumplir con el punto 2A
         'estado',
         'fecha_vencimiento'
     ];
