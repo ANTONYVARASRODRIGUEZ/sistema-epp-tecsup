@@ -6,13 +6,14 @@ use App\Models\Asignacion;
 use App\Models\Epp;
 use App\Models\Personal;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class AsignacionController extends Controller
 {
     // ESTE ES EL MÉTODO QUE FALTA
     public function index()
 {
-    $asignaciones = Asignacion::with(['personal', 'epp'])->orderBy('fecha_entrega', 'desc')->get();
+    $asignaciones = Asignacion::with(['personal.talleres', 'epp'])->orderBy('fecha_entrega', 'desc')->get();
     
     // Cambiamos 'asignaciones.index' por la ruta donde lo guardaste:
     return view('epps.asignaciones', compact('asignaciones')); 
@@ -20,30 +21,55 @@ class AsignacionController extends Controller
 
     public function store(Request $request)
     {
-        // ... (aquí va el código de guardar que ya tenías) ...
         $request->validate([
             'personal_id' => 'required|exists:personals,id',
-            'epp_id' => 'required|exists:epps,id',
-            'cantidad' => 'required|integer|min:1'
+            'epps'        => 'required|array',
         ]);
 
-        $epp = Epp::findOrFail($request->epp_id);
+        $personal = Personal::findOrFail($request->personal_id);
 
-        if ($epp->stock < $request->cantidad) {
-            return back()->with('error', 'No hay stock suficiente.');
+        // Filtrar solo los seleccionados
+        $seleccionados = collect($request->epps)->filter(function($item) {
+            return isset($item['checked']);
+        });
+
+        if ($seleccionados->isEmpty()) {
+            return back()->with('error', 'Debes seleccionar al menos un equipo.');
         }
 
-        Asignacion::create([
-            'personal_id' => $request->personal_id,
-            'epp_id' => $request->epp_id,
-            'cantidad' => $request->cantidad,
-            'fecha_entrega' => now(),
-            'estado' => 'Entregado'
-        ]);
+        try {
+            DB::beginTransaction();
+            $nombresEntregados = [];
 
-        $epp->decrement('stock', $request->cantidad);
+            foreach ($seleccionados as $eppId => $data) {
+                $epp = Epp::lockForUpdate()->find($eppId);
+                if (!$epp) continue;
 
-        return back()->with('success', 'EPP entregado correctamente.');
+                $cantidad = max(1, intval($data['cantidad']));
+
+                if ($epp->stock < $cantidad) {
+                    throw new \Exception("Stock insuficiente para '{$epp->nombre}'. (Stock: {$epp->stock})");
+                }
+
+                Asignacion::create([
+                    'personal_id' => $personal->id,
+                    'epp_id'      => $epp->id,
+                    'cantidad'    => $cantidad,
+                    'fecha_entrega' => now(),
+                    'estado'      => 'Entregado'
+                ]);
+
+                $epp->decrement('stock', $cantidad);
+                $nombresEntregados[] = $epp->nombre;
+            }
+
+            DB::commit();
+            return back()->with('success', 'Entrega registrada: ' . implode(', ', $nombresEntregados));
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', $e->getMessage());
+        }
     }
 
     /**

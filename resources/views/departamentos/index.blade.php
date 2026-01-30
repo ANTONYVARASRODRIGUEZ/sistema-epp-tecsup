@@ -76,12 +76,9 @@
             <button class="btn btn-primary rounded-pill px-4 py-2 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#nuevoDeptoModal">
                 <i class="bi bi-plus-lg me-2"></i>Nuevo Departamento
             </button>
-            <form action="{{ route('departamentos.destroy_all') }}" method="POST" onsubmit="return confirm('¿Borrar todo?')">
-                @csrf @method('DELETE')
-                <button type="submit" class="btn btn-outline-danger rounded-circle p-2 shadow-sm" title="Limpiar todo">
-                    <i class="bi bi-trash3 px-1"></i>
-                </button>
-            </form>
+            <button class="btn btn-outline-danger rounded-circle p-2 shadow-sm" title="Limpiar todo" data-bs-toggle="modal" data-bs-target="#modalBorrarTodo">
+                <i class="bi bi-trash3 px-1"></i>
+            </button>
         </div>
     </div>
 
@@ -93,9 +90,10 @@
                     <div class="badge-docentes">
                         <i class="bi bi-people-fill me-1"></i> {{ $depto->personals_count ?? 0 }}
                     </div>
-                    <img src="https://source.unsplash.com/featured/?{{ Str::slug($depto->nombre) }},technology,industry" 
+                    <img src="{{ $depto->imagen_url ?? 'https://source.unsplash.com/featured/?' . Str::slug($depto->nombre) . ',technology,industry' }}" 
                          class="w-100 h-100 object-fit-cover" 
-                         alt="{{ $depto->nombre }}">
+                         alt="{{ $depto->nombre }}"
+                         onerror="this.onerror=null; this.src='https://source.unsplash.com/featured/?{{ Str::slug($depto->nombre) }},technology,industry';">
                     <div class="img-gradient"></div>
                     <h4 class="position-absolute bottom-0 start-0 m-3 text-white fw-bold z-2">{{ $depto->nombre }}</h4>
                 </div>
@@ -137,17 +135,59 @@
                     <p class="text-muted">Ingresa el nombre del departamento para comenzar la gestión de EPP.</p>
                 </div>
                 
-                <form action="{{ route('departamentos.store') }}" method="POST">
+                <form action="{{ route('departamentos.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <div class="mb-4">
+                        <label class="form-label fw-bold">Nombre del Departamento</label>
                         <input type="text" name="nombre" class="form-control form-control-lg border-0 bg-light px-4 py-3" 
                                placeholder="Nombre del Departamento..." required style="border-radius: 15px;">
                     </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Imagen de Portada (Opcional)</label>
+                        <ul class="nav nav-pills mb-2 gap-2" id="pills-tab" role="tablist">
+                            <li class="nav-item"><button class="nav-link active btn-sm rounded-pill" id="pills-file-tab" data-bs-toggle="pill" data-bs-target="#pills-file" type="button">Subir Archivo</button></li>
+                            <li class="nav-item"><button class="nav-link btn-sm rounded-pill" id="pills-url-tab" data-bs-toggle="pill" data-bs-target="#pills-url" type="button">Usar URL</button></li>
+                        </ul>
+                        <div class="tab-content" id="pills-tabContent">
+                            <div class="tab-pane fade show active" id="pills-file">
+                                <input type="file" name="imagen" class="form-control" accept="image/*">
+                            </div>
+                            <div class="tab-pane fade" id="pills-url">
+                                <input type="url" name="imagen_url_text" class="form-control" placeholder="https://ejemplo.com/imagen.jpg">
+                            </div>
+                        </div>
+                    </div>
+
                     <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill fw-bold py-3">
                         Crear Departamento
                     </button>
                     <button type="button" class="btn btn-link w-100 text-muted text-decoration-none mt-2" data-bs-dismiss="modal">Cancelar</button>
                 </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Confirmar Borrar Todo -->
+<div class="modal fade" id="modalBorrarTodo" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 20px; border: none;">
+            <div class="modal-body p-4 text-center">
+                <div class="bg-danger bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style="width: 70px; height: 70px;">
+                    <i class="bi bi-exclamation-octagon-fill text-danger fs-1"></i>
+                </div>
+                <h4 class="fw-bold mb-2">¿Estás seguro de borrar todo?</h4>
+                <p class="text-muted mb-4">Esta acción eliminará <strong>todos los departamentos</strong>. Los docentes volverán a la lista maestra "Sin Asignar".</p>
+                
+                <div class="d-flex justify-content-center gap-2">
+                    <button type="button" class="btn btn-light rounded-pill px-4 py-2" data-bs-dismiss="modal">Cancelar</button>
+                    
+                    <form action="{{ route('departamentos.destroy_all') }}" method="POST">
+                        @csrf @method('DELETE')
+                        <button type="submit" class="btn btn-danger rounded-pill px-4 py-2 fw-bold">Sí, Borrar Todo</button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>

@@ -40,8 +40,9 @@
                     <tr class="fila-personal" data-carrera="{{ $persona->carrera }}">
                         <td>
                             <div class="d-flex align-items-center">
+                                @php $tallerNombre = $persona->talleres->first()->nombre ?? ''; @endphp
                                 {{ $persona->nombre_completo }}
-                                <button class="btn btn-link btn-sm text-muted ms-2 p-0" onclick="editarPersonal({{ $persona->id }}, '{{ $persona->nombre_completo }}', '{{ $persona->dni }}', '{{ $persona->carrera }}', '{{ $persona->tipo_contrato }}')" title="Editar datos">
+                                <button class="btn btn-link btn-sm text-muted ms-2 p-0" onclick="editarPersonal({{ $persona->id }}, '{{ $persona->nombre_completo }}', '{{ $persona->dni }}', '{{ $persona->carrera }}', '{{ $persona->tipo_contrato }}', '{{ $tallerNombre }}')" title="Editar datos">
                                     <i class="bi bi-pencil-square"></i>
                                 </button>
                             </div>
@@ -51,12 +52,13 @@
                         <td>{{ $persona->dni }}</td>
                         <td>
                             @forelse($persona->asignaciones as $asignacion)
-                                @if($asignacion->estado == 'Posee')
-                                    <div class="d-flex align-items-center justify-content-between border rounded p-1 mb-1 bg-white">
-                                        <small class="text-dark">
-                                            {{ $asignacion->epp->nombre }} <span class="fw-bold">x{{ $asignacion->cantidad }}</span>
-                                        </small>
-                                        <div class="ms-2">
+                                <div class="d-flex align-items-center justify-content-between border rounded p-1 mb-1 bg-white">
+                                    <small class="text-dark">
+                                        {{ $asignacion->epp->nombre }} <span class="fw-bold">x{{ $asignacion->cantidad }}</span>
+                                    </small>
+                                    
+                                    <div class="ms-2">
+                                        @if($asignacion->estado == 'Entregado')
                                             <!-- Botón Devolver (OK) -->
                                             <button type="button" class="btn btn-success btn-sm p-0 px-1" title="Devolver (OK)" onclick="confirmarDevolucion('{{ route('asignaciones.devolver', $asignacion->id) }}')">
                                                 <i class="bi bi-check"></i>
@@ -84,7 +86,7 @@
                         </td>
                         <td class="text-end">
                             <button class="btn btn-primary btn-sm rounded-pill px-3" 
-                                    onclick="abrirModalEntrega({{ $persona->id }}, '{{ $persona->nombre_completo }}')">
+                                    onclick="abrirModalEntrega({{ $persona->id }}, '{{ $persona->nombre_completo }}', '{{ $tallerNombre }}', '{{ $persona->tipo_contrato ?? '' }}')">
                                 <i class="bi bi-hand-index-thumb me-1"></i> Entregar EPP
                             </button>
                         </td>
@@ -108,19 +110,48 @@
                 <div class="modal-body">
                     <input type="hidden" name="personal_id" id="personal_id">
                     
-                    <div class="mb-3">
-                        <label class="form-label">Seleccionar Equipo (EPP)</label>
-                        <select name="epp_id" class="form-select" required>
-                            <option value="">-- Buscar equipo --</option>
-                            @foreach($epps as $epp)
-                                <option value="{{ $epp->id }}">{{ $epp->nombre }} (Stock: {{ $epp->stock }})</option>
-                            @endforeach
-                        </select>
+                    <div class="alert alert-light border mb-3 py-2">
+                        <small class="text-muted"><i class="bi bi-check2-square me-1"></i> Marca los equipos que deseas entregar.</small>
                     </div>
 
+                    <!-- Buscador Individual -->
                     <div class="mb-3">
-                        <label class="form-label">Cantidad</label>
-                        <input type="number" name="cantidad" class="form-control" value="1" min="1" required>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                            <input type="text" id="buscadorIndividual" class="form-control border-start-0 ps-0" placeholder="Buscar EPP...">
+                        </div>
+                    </div>
+
+                    <div class="table-responsive" style="max-height: 350px; overflow-y: auto;">
+                        <table class="table table-hover align-middle table-sm">
+                            <thead class="table-light sticky-top">
+                                <tr>
+                                    <th style="width: 30px;"></th>
+                                    <th>Equipo</th>
+                                    <th style="width: 60px;" class="text-center">Stock</th>
+                                    <th style="width: 80px;">Cant.</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($epps as $epp)
+                                <tr>
+                                    <td>
+                                        <input class="form-check-input" type="checkbox" name="epps[{{ $epp->id }}][checked]" value="1" id="check_ind_{{ $epp->id }}">
+                                    </td>
+                                    <td>
+                                        <label class="form-check-label w-100 small" for="check_ind_{{ $epp->id }}" style="cursor: pointer;">
+                                            {{ $epp->nombre }}
+                                            <span id="badge_info_{{ $epp->id }}" class="badge ms-1" style="display: none; font-size: 0.7em;"></span>
+                                        </label>
+                                    </td>
+                                    <td class="text-center"><span class="badge bg-secondary">{{ $epp->stock }}</span></td>
+                                    <td>
+                                        <input type="number" name="epps[{{ $epp->id }}][cantidad]" class="form-control form-control-sm text-center" value="1" min="1">
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
                     </div>
                 </div>
                 <div class="modal-footer border-0">
@@ -149,19 +180,43 @@
                         </div>
                     </div>
 
+                    <!-- Buscador Masivo -->
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Seleccionar Equipo (EPP)</label>
-                        <select name="epp_id" class="form-select form-select-lg" required>
-                            <option value="">-- Seleccionar EPP --</option>
-                            @foreach($epps as $epp)
-                                <option value="{{ $epp->id }}">{{ $epp->nombre }} (Stock: {{ $epp->stock }})</option>
-                            @endforeach
-                        </select>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                            <input type="text" id="buscadorMasivo" class="form-control border-start-0 ps-0" placeholder="Buscar EPP para todos...">
+                        </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Cantidad por persona</label>
-                        <input type="number" name="cantidad" class="form-control form-control-lg" value="1" min="1" required>
+                    <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light sticky-top">
+                                <tr>
+                                    <th style="width: 40px;">#</th>
+                                    <th>Equipo (EPP)</th>
+                                    <th style="width: 80px;">Stock</th>
+                                    <th style="width: 100px;">Cant.</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($epps as $epp)
+                                <tr>
+                                    <td>
+                                        <input class="form-check-input" type="checkbox" name="epps[{{ $epp->id }}][checked]" value="1" id="check_epp_{{ $epp->id }}">
+                                    </td>
+                                    <td>
+                                        <label class="form-check-label w-100" for="check_epp_{{ $epp->id }}" style="cursor: pointer;">
+                                            {{ $epp->nombre }}
+                                        </label>
+                                    </td>
+                                    <td class="text-center"><span class="badge bg-secondary">{{ $epp->stock }}</span></td>
+                                    <td>
+                                        <input type="number" name="epps[{{ $epp->id }}][cantidad]" class="form-control form-control-sm text-center" value="1" min="1">
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
                     </div>
                 </div>
                 <div class="modal-footer border-0 pt-0 px-4 pb-4">
@@ -205,6 +260,15 @@
                             <option value="Administrativo">Administrativo</option>
                         </select>
                     </div>
+                    <div class="mb-3">
+                        <label class="form-label">Taller / Laboratorio</label>
+                        <input type="text" name="taller_nombre" id="edit_taller" class="form-control" list="listaTalleres" placeholder="Escribe o selecciona..." autocomplete="off">
+                        <datalist id="listaTalleres">
+                            @foreach($talleres as $taller)
+                                <option value="{{ $taller->nombre }}">
+                            @endforeach
+                        </datalist>
+                    </div>
                 </div>
                 <div class="modal-footer border-0">
                     <button type="submit" class="btn btn-primary rounded-pill w-100 fw-bold">Guardar Cambios</button>
@@ -241,19 +305,99 @@
 </div>
 
 <script>
-function abrirModalEntrega(id, nombre) {
+// Recibimos la matriz desde el controlador
+const matrizReglas = @json($matriz ?? []);
+
+// Función para normalizar texto (quitar tildes, minúsculas y espacios extra)
+const normalizar = (str) => str ? str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim() : "";
+
+function abrirModalEntrega(id, nombre, tallerDocente, puestoDocente) {
     document.getElementById('personal_id').value = id;
     document.getElementById('nombreDocente').innerText = nombre;
+    
+    // 0. Limpiar buscador y mostrar todas las filas
+    document.getElementById('buscadorIndividual').value = '';
+    document.querySelectorAll('#modalEntrega tbody tr').forEach(row => row.style.display = '');
+
+    // 1. Resetear checkboxes, cantidades y badges
+    document.querySelectorAll('#modalEntrega input[type="checkbox"]').forEach(chk => chk.checked = false);
+    document.querySelectorAll('#modalEntrega input[type="number"]').forEach(input => input.value = 1);
+    document.querySelectorAll('[id^="badge_info_"]').forEach(el => el.style.display = 'none');
+
+    // 2. Aplicar lógica de la Matriz de Homologación
+    matrizReglas.forEach(regla => {
+        let rTaller = normalizar(regla.taller);
+        let rPuesto = normalizar(regla.puesto);
+        let dTaller = normalizar(tallerDocente);
+        let dPuesto = normalizar(puestoDocente);
+
+        // Coincidencia flexible:
+        // - Taller: Si la regla no tiene taller (es general) O si coincide con el del docente
+        let coincideTaller = !rTaller || rTaller === dTaller || (dTaller && dTaller.includes(rTaller));
+        
+        // - Puesto: Si la regla no tiene puesto O si el puesto del docente contiene la palabra clave (ej: "Docente" en "Docente TC")
+        let coincidePuesto = !rPuesto || (dPuesto && dPuesto.includes(rPuesto));
+
+        // Si coincide el perfil, marcamos el EPP (sea obligatorio o específico para ese taller)
+        if (coincideTaller && coincidePuesto) {
+            // Buscar el checkbox de este EPP y marcarlo
+            let checkbox = document.getElementById('check_ind_' + regla.epp_id);
+            if (checkbox) {
+                checkbox.checked = true;
+                
+                // Mostrar etiqueta visual para que Jiancarlo sepa por qué se marcó
+                let badge = document.getElementById('badge_info_' + regla.epp_id);
+                if (badge) {
+                    let esObligatorio = regla.tipo_requerimiento === 'obligatorio';
+                    badge.innerText = esObligatorio ? 'Obligatorio' : 'Sugerido Taller';
+                    badge.className = esObligatorio ? 'badge bg-danger ms-1' : 'badge bg-info text-dark ms-1';
+                    badge.style.display = 'inline-block';
+                }
+            }
+        }
+    });
+
+    // 3. Ordenar la tabla: Los marcados primero para facilitar la vista
+    let tbody = document.querySelector('#modalEntrega tbody');
+    let rows = Array.from(tbody.querySelectorAll('tr'));
+    rows.sort((a, b) => {
+        let chkA = a.querySelector('input[type="checkbox"]').checked;
+        let chkB = b.querySelector('input[type="checkbox"]').checked;
+        return (chkA === chkB) ? 0 : (chkA ? -1 : 1);
+    });
+    rows.forEach(row => tbody.appendChild(row));
+
     var myModal = new bootstrap.Modal(document.getElementById('modalEntrega'));
     myModal.show();
 }
 
-function editarPersonal(id, nombre, dni, carrera, tipo) {
+// Lógica del Buscador Individual
+document.getElementById('buscadorIndividual').addEventListener('keyup', function() {
+    let filter = this.value.toLowerCase();
+    let rows = document.querySelectorAll('#modalEntrega tbody tr');
+    rows.forEach(row => {
+        let text = row.querySelector('label').textContent.toLowerCase();
+        row.style.display = text.includes(filter) ? '' : 'none';
+    });
+});
+
+// Lógica del Buscador Masivo
+document.getElementById('buscadorMasivo').addEventListener('keyup', function() {
+    let filter = this.value.toLowerCase();
+    let rows = document.querySelectorAll('#modalMasivo tbody tr');
+    rows.forEach(row => {
+        let text = row.querySelector('label').textContent.toLowerCase();
+        row.style.display = text.includes(filter) ? '' : 'none';
+    });
+});
+
+function editarPersonal(id, nombre, dni, carrera, tipo, tallerNombre) {
     document.getElementById('formEditarPersonal').action = '/personals/' + id;
     document.getElementById('edit_nombre').value = nombre;
     document.getElementById('edit_dni').value = dni;
     document.getElementById('edit_carrera').value = carrera;
     document.getElementById('edit_tipo').value = tipo;
+    document.getElementById('edit_taller').value = tallerNombre;
     
     var myModal = new bootstrap.Modal(document.getElementById('modalEditarPersonal'));
     myModal.show();

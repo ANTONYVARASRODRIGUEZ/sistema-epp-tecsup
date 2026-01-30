@@ -37,7 +37,7 @@
                             <th>Tipo</th>
                             <th>DNI / Código</th>
                             <th>Área Asignada</th>
-                            <th>Estado de EPP</th>
+                            <th>EPPs en Uso</th>
                             <th class="text-end">Acciones</th>
                         </tr>
                     </thead>
@@ -69,12 +69,16 @@
                                 @endif
                             </td>
                             <td>
-                                <div class="d-flex align-items-center">
-                                    <div class="progress w-100 me-2" style="height: 6px; border-radius: 10px;">
-                                        <div class="progress-bar bg-success" style="width: 85%"></div>
-                                    </div>
-                                    <small class="fw-bold text-success">85%</small>
-                                </div>
+                                @php $cantidad = $docente->asignaciones->count(); @endphp
+                                @if($cantidad > 0)
+                                    <span class="badge bg-success bg-opacity-10 text-success border border-success px-3 py-2 rounded-pill">
+                                        <i class="bi bi-shield-check me-1"></i> {{ $cantidad }} Asignados
+                                    </span>
+                                @else
+                                    <span class="badge bg-secondary bg-opacity-10 text-secondary border px-3 py-2 rounded-pill">
+                                        <i class="bi bi-dash-circle me-1"></i> Ninguno
+                                    </span>
+                                @endif
                             </td>
                             <td class="text-end">
                                 <button class="btn btn-light btn-sm rounded-circle shadow-sm me-1" 
