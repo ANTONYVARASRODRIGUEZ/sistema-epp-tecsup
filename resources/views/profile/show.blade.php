@@ -15,42 +15,69 @@
     </div>
     @endif
 
+    {{-- Agregamos bloque para mostrar errores de validación (ej: imagen muy pesada) --}}
+    @if ($errors->any())
+    <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm mb-4" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i> Hay errores en el formulario. Por favor revísalos.
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    @endif
+
     <div class="row">
         <!-- COLUMNA IZQUIERDA: Información y Seguridad -->
         <div class="col-lg-5 mb-4">
             
             <!-- 1️⃣ INFORMACIÓN DEL RESPONSABLE -->
             <div class="card border-0 shadow-sm p-4 mb-4" style="border-radius: 20px;">
-                <div class="d-flex align-items-center mb-4">
-                    <div class="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 60px; height: 60px;">
-                        <i class="bi bi-person-vcard text-primary fs-3"></i>
+                <form action="{{ route('perfil.actualizar-datos') }}" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3 overflow-hidden" style="width: 60px; height: 60px;">
+                            @if($usuario->imagen_url)
+                                <img src="{{ asset($usuario->imagen_url) }}" alt="Perfil" class="w-100 h-100 object-fit-cover">
+                            @else
+                                <i class="bi bi-person-vcard text-primary fs-3"></i>
+                            @endif
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-0">Información del Responsable</h5>
+                            <small class="text-muted">Datos de identificación</small>
+                        </div>
                     </div>
-                    <div>
-                        <h5 class="fw-bold mb-0">Información del Responsable</h5>
-                        <small class="text-muted">Datos de identificación</small>
-                    </div>
-                </div>
 
-                <div class="mb-3">
-                    <label class="text-muted small fw-bold text-uppercase">Nombre Completo</label>
-                    <p class="fw-bold fs-5 text-dark mb-0">{{ $usuario->name }}</p>
-                </div>
-
-                <div class="mb-3">
-                    <label class="text-muted small fw-bold text-uppercase">DNI</label>
-                    <p class="fw-bold text-dark mb-0">{{ $usuario->dni ?? '---' }}</p>
-                </div>
-
-                <div class="row mb-3">
-                    <div class="col-6">
-                        <label class="text-muted small fw-bold text-uppercase">Cargo</label>
-                        <p class="fw-bold text-dark mb-0">Responsable del Centro de Seguridad</p>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-uppercase text-muted">Foto de Perfil</label>
+                        <input type="file" name="imagen" class="form-control form-control-sm @error('imagen') is-invalid @enderror">
+                        @error('imagen')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
-                    <div class="col-6">
-                        <label class="text-muted small fw-bold text-uppercase">Sede</label>
-                        <p class="fw-bold text-dark mb-0">Tecsup Norte</p>
+
+                    <div class="mb-3">
+                        <label class="text-muted small fw-bold text-uppercase">Nombre Completo</label>
+                        <input type="text" name="name" class="form-control fw-bold text-dark" value="{{ old('name', $usuario->name) }}" required>
                     </div>
-                </div>
+
+                    <div class="mb-3">
+                        <label class="text-muted small fw-bold text-uppercase">DNI</label>
+                        <input type="text" name="dni" class="form-control fw-bold text-dark" value="{{ old('dni', $usuario->dni) }}">
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <label class="text-muted small fw-bold text-uppercase">Cargo</label>
+                            <p class="fw-bold text-dark mb-0">Responsable del Centro de Seguridad</p>
+                        </div>
+                        <div class="col-6">
+                            <label class="text-muted small fw-bold text-uppercase">Sede</label>
+                            <p class="fw-bold text-dark mb-0">Tecsup Norte</p>
+                        </div>
+                    </div>
+
+                    <div class="d-grid mb-3">
+                        <button type="submit" class="btn btn-primary btn-sm">Guardar Cambios</button>
+                    </div>
+                </form>
 
                 <hr class="my-3">
 
@@ -173,8 +200,10 @@
                 </div>
                 <div class="mt-3 pt-3 border-top border-white border-opacity-25">
                     <div class="d-flex justify-content-between align-items-center text-white">
-                        <small><i class="bi bi-envelope me-2"></i>soporte@tecsup.edu.pe</small>
-                        <button class="btn btn-sm btn-light rounded-pill fw-bold px-3">Ver Guía de Uso</button>
+                        <a href="mailto:soporte@tecsup.edu.pe" class="text-white text-decoration-none small">
+                            <i class="bi bi-envelope me-2"></i>soporte@tecsup.edu.pe
+                        </a>
+                        <a href="{{ asset('manual/guia_usuario.pdf') }}" target="_blank" class="btn btn-sm btn-light rounded-pill fw-bold px-3">Ver Guía de Uso</a>
                     </div>
                 </div>
             </div>

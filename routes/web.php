@@ -10,6 +10,7 @@ use App\Http\Controllers\ConfiguracionController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CategoriaController;
 use App\Http\Controllers\OrganizadorController;
+use App\Http\Controllers\ReporteController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -24,7 +25,10 @@ Route::post('/', function (Request $request) {
         'password' => ['required'],
     ]);
 
-    if (Auth::attempt($credentials)) {
+    // Capturamos si el usuario marcó "Recordarme"
+    $remember = $request->has('remember');
+
+    if (Auth::attempt($credentials, $remember)) {
         $request->session()->regenerate();
         return redirect()->route('dashboard'); 
     }
@@ -33,6 +37,12 @@ Route::post('/', function (Request $request) {
         'email' => 'Acceso denegado. Verifique sus credenciales.',
     ])->onlyInput('email');
 })->name('login.post');
+
+// --- RECUPERACIÓN DE CONTRASEÑA (Manual) ---
+Route::get('password/reset', [App\Http\Controllers\PasswordController::class, 'showLinkRequestForm'])->name('password.request');
+Route::post('password/email', [App\Http\Controllers\PasswordController::class, 'sendResetLinkEmail'])->name('password.email');
+Route::get('password/reset/{token}', [App\Http\Controllers\PasswordController::class, 'showResetForm'])->name('password.reset');
+Route::post('password/reset', [App\Http\Controllers\PasswordController::class, 'reset'])->name('password.update');
 
 
 // --- SECCIÓN PROTEGIDA (SOLO PARA ADMIN) ---
@@ -85,4 +95,10 @@ Route::middleware(['auth', 'isAdmin'])->group(function () {
 
     // --- OTROS (ADMINISTRACIÓN DE USUARIOS DEL SISTEMA Y CONFIG) ---
     Route::get('/configuracion', [ConfiguracionController::class, 'index'])->name('configuracion.index');
+
+    // --- REPORTES ---
+    Route::get('/reportes', [ReporteController::class, 'index'])->name('reportes.index');
+    Route::get('/reportes/stock', [ReporteController::class, 'stock'])->name('reportes.stock');
+    Route::get('/reportes/departamento', [ReporteController::class, 'porDepartamento'])->name('reportes.departamento');
+    Route::get('/reportes/incidencias', [ReporteController::class, 'incidencias'])->name('reportes.incidencias');
 });

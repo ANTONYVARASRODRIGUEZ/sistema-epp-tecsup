@@ -63,6 +63,10 @@
     <a class="nav-link {{ request()->routeIs('departamentos.index') ? 'active' : '' }}" href="{{ route('departamentos.index') }}">
         <i class="bi bi-building"></i> Departamentos
     </a>
+    <a href="{{ route('reportes.index') }}" class="nav-link">
+    <i class="bi bi-file-earmark-bar-graph"></i> Reportes
+</a>
+
 
     <hr class="mx-3 my-2 text-secondary opacity-25">
 

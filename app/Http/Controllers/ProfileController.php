@@ -73,9 +73,16 @@ class ProfileController extends Controller
             'dni' => 'nullable|string|max:20',
             'department' => 'nullable|string|max:255',
             'workshop' => 'nullable|string|max:255',
+            'imagen' => 'nullable|image|max:2048', // Máx 2MB
         ]);
 
-        $usuario->update($request->only(['name', 'dni', 'department', 'workshop']));
+        if ($request->hasFile('imagen')) {
+            $path = $request->file('imagen')->store('perfiles', 'public');
+            $usuario->imagen_url = '/storage/' . $path;
+        }
+
+        $usuario->fill($request->only(['name', 'dni', 'department', 'workshop']));
+        $usuario->save();
 
         AuditLog::registrar(
             'perfil_actualizado',
