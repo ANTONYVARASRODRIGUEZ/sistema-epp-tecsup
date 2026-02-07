@@ -86,11 +86,17 @@ class DashboardController extends Controller
             'deteriorados' => $totalDeteriorado,
         ];
 
-        // EPP por Departamento (conteo de EPP asociados)
-        $departamentosData = Departamento::select('id', 'nombre')
-            ->withCount(['epps as cantidad'])
+        // EPP por Departamento (cantidad de EPPs asignados/en uso)
+        $departamentosData = Departamento::with(['personals.asignaciones' => function($q) {
+                $q->where('estado', 'Entregado');
+            }])
             ->get()
-            ->map(fn($d) => ['nombre' => $d->nombre, 'cantidad' => $d->cantidad])
+            ->map(function($d) {
+                $cantidad = $d->personals->sum(function($p) {
+                    return $p->asignaciones->sum('cantidad');
+                });
+                return ['nombre' => $d->nombre, 'cantidad' => $cantidad];
+            })
             ->toArray();
 
         // Últimas entregas reales (Asignaciones)

@@ -114,28 +114,28 @@
                                 <td>
                                     <div class="d-flex gap-1">
                                         <!-- Devuelto -->
-                                        <form action="{{ route('asignaciones.devolver', $asignacion->id) }}" method="POST" onsubmit="return confirm('Confirmar devolución y sumar al stock?');">
+                                        <form action="{{ route('asignaciones.devolver', $asignacion->id) }}" method="POST">
                                             @csrf
                                             @method('PUT')
-                                            <button class="btn btn-sm btn-outline-success" {{ $asignacion->estado !== 'Entregado' ? 'disabled' : '' }} title="Marcar como Devuelto">
+                                            <button type="button" class="btn btn-sm btn-outline-success" {{ $asignacion->estado !== 'Entregado' ? 'disabled' : '' }} title="Marcar como Devuelto" data-bs-toggle="modal" data-bs-target="#modalConfirmacionAccion" data-mensaje="¿Confirmar devolución y sumar al stock?">
                                                 <i class="bi bi-arrow-counterclockwise"></i> Devuelto
                                             </button>
                                         </form>
                                         <!-- Dañado -->
-                                        <form action="{{ route('asignaciones.incidencia', $asignacion->id) }}" method="POST" onsubmit="return confirm('Confirmar EPP Dañado?');">
+                                        <form action="{{ route('asignaciones.incidencia', $asignacion->id) }}" method="POST">
                                             @csrf
                                             @method('PUT')
                                             <input type="hidden" name="estado" value="Dañado">
-                                            <button class="btn btn-sm btn-outline-warning" {{ $asignacion->estado !== 'Entregado' ? 'disabled' : '' }} title="Marcar como Dañado">
+                                            <button type="button" class="btn btn-sm btn-outline-warning" {{ $asignacion->estado !== 'Entregado' ? 'disabled' : '' }} title="Marcar como Dañado" data-bs-toggle="modal" data-bs-target="#modalConfirmacionAccion" data-mensaje="¿Confirmar EPP Dañado?">
                                                 <i class="bi bi-exclamation-triangle"></i> Dañado
                                             </button>
                                         </form>
                                         <!-- Perdido -->
-                                        <form action="{{ route('asignaciones.incidencia', $asignacion->id) }}" method="POST" onsubmit="return confirm('Confirmar EPP Perdido?');">
+                                        <form action="{{ route('asignaciones.incidencia', $asignacion->id) }}" method="POST">
                                             @csrf
                                             @method('PUT')
                                             <input type="hidden" name="estado" value="Perdido">
-                                            <button class="btn btn-sm btn-outline-danger" {{ $asignacion->estado !== 'Entregado' ? 'disabled' : '' }} title="Marcar como Perdido">
+                                            <button type="button" class="btn btn-sm btn-outline-danger" {{ $asignacion->estado !== 'Entregado' ? 'disabled' : '' }} title="Marcar como Perdido" data-bs-toggle="modal" data-bs-target="#modalConfirmacionAccion" data-mensaje="¿Confirmar EPP Perdido?">
                                                 <i class="bi bi-x-octagon"></i> Perdido
                                             </button>
                                         </form>
@@ -154,8 +154,48 @@
     </div>
 </div>
 
+<!-- Modal de Confirmación de Acciones -->
+<div class="modal fade" id="modalConfirmacionAccion" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-light border-0">
+                <h5 class="modal-title fw-bold text-dark">
+                    <i class="bi bi-exclamation-circle me-2"></i>Confirmación
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body py-4 text-center">
+                <p class="fs-5 mb-0" id="mensajeConfirmacion"></p>
+                <p class="text-muted small mt-2">¿Estás seguro de realizar esta acción?</p>
+            </div>
+            <div class="modal-footer border-0 justify-content-center">
+                <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">No, cancelar</button>
+                <button type="button" class="btn btn-primary px-4" id="btnConfirmarAccion">Sí, confirmar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     (function() {
+        // Lógica del Modal de Confirmación
+        let formPorEnviar = null;
+        const modalElement = document.getElementById('modalConfirmacionAccion');
+        const mensajeElement = document.getElementById('mensajeConfirmacion');
+        const btnConfirmar = document.getElementById('btnConfirmarAccion');
+
+        modalElement.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            const mensaje = button.getAttribute('data-mensaje');
+            formPorEnviar = button.closest('form');
+            mensajeElement.textContent = mensaje;
+        });
+
+        btnConfirmar.addEventListener('click', function() {
+            if (formPorEnviar) formPorEnviar.submit();
+        });
+
+        // Lógica de Filtros existente
         const input = document.getElementById('searchInput');
         const depSel = document.getElementById('depFilter');
         const carSel = document.getElementById('carFilter');

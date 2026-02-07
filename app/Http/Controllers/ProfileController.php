@@ -135,4 +135,23 @@ class ProfileController extends Controller
 
         return redirect()->route('perfil.show')->with('success', 'Contraseña actualizada correctamente');
     }
+
+    /**
+     * Actualizar contraseña obligatoria al primer inicio
+     */
+    public function actualizarPasswordInicial(Request $request)
+    {
+        $request->validate([
+            'password' => 'required|min:6|confirmed',
+        ]);
+
+        $usuario = auth()->user();
+        $usuario->password = Hash::make($request->password);
+        // Al guardar, updated_at cambiará automáticamente, liberando al usuario del bloqueo
+        $usuario->save(); 
+
+        AuditLog::registrar('primer_ingreso', 'User', $usuario->id, 'Usuario activó su cuenta y cambió contraseña inicial');
+
+        return redirect()->route('dashboard')->with('success', '¡Bienvenido! Tu cuenta ha sido activada.');
+    }
 }

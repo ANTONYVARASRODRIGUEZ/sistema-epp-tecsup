@@ -39,7 +39,7 @@ class DepartamentoController extends Controller
         // Lógica para determinar qué imagen usar
         if ($request->hasFile('imagen')) {
             $path = $request->file('imagen')->store('departamentos', 'public');
-            $imagenUrl = '/storage/' . $path;
+            $imagenUrl = 'storage/' . $path; // Se guarda la ruta relativa para usar con el helper asset()
         } elseif ($request->filled('imagen_url_text')) {
             $imagenUrl = $request->imagen_url_text;
         }
@@ -70,6 +70,20 @@ class DepartamentoController extends Controller
         $matriz = MatrizHomologacion::where('departamento_id', $id)->where('activo', true)->get();
 
         return view('departamentos.show', compact('departamento', 'epps', 'talleres', 'matriz'));
+    }
+
+    /**
+     * Elimina un departamento específico.
+     */
+    public function destroy(string $id)
+    {
+        // Desasignamos al personal de este departamento antes de borrar
+        Personal::where('departamento_id', $id)->update(['departamento_id' => null]);
+        
+        $departamento = Departamento::findOrFail($id);
+        $departamento->delete();
+
+        return back()->with('success', 'Departamento eliminado correctamente.');
     }
 
     /**

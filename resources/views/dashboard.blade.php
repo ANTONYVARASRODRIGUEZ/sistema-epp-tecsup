@@ -330,7 +330,7 @@
         data: {
             labels: departamentoLabels.length > 0 ? departamentoLabels : ['Mecánica', 'Topografía', 'Tecnología Digital', 'Construcción'],
             datasets: [{
-                label: 'Cantidad de EPP',
+                label: 'EPP en Uso (Asignados)',
                 data: departamentoCantidades.length > 0 ? departamentoCantidades : [450, 380, 290, 210],
                 backgroundColor: [
                     '#003366',

@@ -13,6 +13,7 @@ use App\Http\Controllers\OrganizadorController;
 use App\Http\Controllers\ReporteController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Middleware\CheckFirstLogin;
 
 // --- SECCIÓN PÚBLICA (LOGIN ÚNICO) ---
 Route::get('/', function () {
@@ -30,6 +31,13 @@ Route::post('/', function (Request $request) {
 
     if (Auth::attempt($credentials, $remember)) {
         $request->session()->regenerate();
+        
+        // VERIFICACIÓN DE PRIMER INGRESO
+        // Si el usuario nunca ha actualizado sus datos (created_at == updated_at)
+        if (Auth::user()->created_at->eq(Auth::user()->updated_at)) {
+            return redirect()->route('primer.ingreso');
+        }
+        
         return redirect()->route('dashboard'); 
     }
 
@@ -44,9 +52,20 @@ Route::post('password/email', [App\Http\Controllers\PasswordController::class, '
 Route::get('password/reset/{token}', [App\Http\Controllers\PasswordController::class, 'showResetForm'])->name('password.reset');
 Route::post('password/reset', [App\Http\Controllers\PasswordController::class, 'reset'])->name('password.update');
 
+// --- RUTA DE PRIMER INGRESO (OBLIGATORIO) ---
+Route::middleware(['auth'])->group(function () {
+    Route::get('/primer-ingreso', function () {
+        return view('auth.primer-ingreso');
+    })->name('primer.ingreso');
+
+    Route::post('/primer-ingreso', [ProfileController::class, 'actualizarPasswordInicial'])->name('primer.ingreso.update');
+});
 
 // --- SECCIÓN PROTEGIDA (SOLO PARA ADMIN) ---
 Route::middleware(['auth', 'isAdmin'])->group(function () {
+    
+    // Middleware Inline para proteger rutas si no ha cambiado la clave
+    Route::middleware(CheckFirstLogin::class)->group(function () {
 
     Route::post('/logout', function (Request $request) {
         Auth::logout();
@@ -101,4 +120,5 @@ Route::middleware(['auth', 'isAdmin'])->group(function () {
     Route::get('/reportes/stock', [ReporteController::class, 'stock'])->name('reportes.stock');
     Route::get('/reportes/departamento', [ReporteController::class, 'porDepartamento'])->name('reportes.departamento');
     Route::get('/reportes/incidencias', [ReporteController::class, 'incidencias'])->name('reportes.incidencias');
+    }); // Fin del middleware de primer ingreso
 });

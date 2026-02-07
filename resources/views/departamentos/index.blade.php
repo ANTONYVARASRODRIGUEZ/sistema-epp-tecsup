@@ -90,7 +90,21 @@
                     <div class="badge-docentes">
                         <i class="bi bi-people-fill me-1"></i> {{ $depto->personals_count ?? 0 }}
                     </div>
-                    <img src="{{ $depto->imagen_url ?? 'https://source.unsplash.com/featured/?' . Str::slug($depto->nombre) . ',technology,industry' }}" 
+                    <div class="position-absolute top-0 start-0 m-2 z-2">
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-light bg-opacity-75 rounded-circle" type="button" data-bs-toggle="dropdown" title="Opciones">
+                                <i class="bi bi-three-dots-vertical"></i>
+                            </button>
+                            <ul class="dropdown-menu shadow border-0">
+                                <li>
+                                    <button class="dropdown-item text-danger" onclick="abrirModalBorrarIndividual({{ $depto->id }}, '{{ e($depto->nombre) }}')">
+                                        <i class="bi bi-trash me-2"></i>Eliminar
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <img src="{{ $depto->imagen_url ? (Str::startsWith($depto->imagen_url, 'http') ? $depto->imagen_url : asset($depto->imagen_url)) : 'https://source.unsplash.com/featured/?' . Str::slug($depto->nombre) . ',technology,industry' }}"
                          class="w-100 h-100 object-fit-cover" 
                          alt="{{ $depto->nombre }}"
                          onerror="this.onerror=null; this.src='https://source.unsplash.com/featured/?{{ Str::slug($depto->nombre) }},technology,industry';">
@@ -192,4 +206,44 @@
         </div>
     </div>
 </div>
+
+<!-- Modal Confirmar Borrar Individual -->
+<div class="modal fade" id="modalBorrarIndividual" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 20px; border: none;">
+            <div class="modal-body p-4 text-center">
+                <div class="bg-danger bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style="width: 70px; height: 70px;">
+                    <i class="bi bi-trash text-danger fs-1"></i>
+                </div>
+                <h4 class="fw-bold mb-2">¿Eliminar Departamento?</h4>
+                <p class="text-muted mb-4" id="mensajeBorrarIndividual"></p>
+                
+                <div class="d-flex justify-content-center gap-2">
+                    <button type="button" class="btn btn-light rounded-pill px-4 py-2" data-bs-dismiss="modal">Cancelar</button>
+                    
+                    <form id="formBorrarIndividual" method="POST" action="">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-danger rounded-pill px-4 py-2 fw-bold">Sí, Eliminar</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function abrirModalBorrarIndividual(id, nombre) {
+    const form = document.getElementById('formBorrarIndividual');
+    const mensaje = document.getElementById('mensajeBorrarIndividual');
+    
+    // Construimos la URL dinámicamente.
+    form.action = `{{ url('departamentos') }}/${id}`;
+    
+    mensaje.innerHTML = `Estás a punto de eliminar <strong>${nombre}</strong>. El personal asignado volverá a la lista maestra "Sin Asignar".`;
+
+    const modal = new bootstrap.Modal(document.getElementById('modalBorrarIndividual'));
+    modal.show();
+}
+</script>
 @endsection

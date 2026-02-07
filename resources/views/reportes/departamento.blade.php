@@ -1,19 +1,22 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container py-4">
+<!-- Librería para generar PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<div class="container py-4" id="reporte-completo">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h2 class="fw-bold">Reporte de Asignaciones por Área</h2>
             <p class="text-muted mb-0">Consulte los equipos entregados al personal de cada departamento.</p>
         </div>
-        <a href="{{ route('reportes.index') }}" class="btn btn-outline-secondary rounded-pill">
+        <a href="{{ route('reportes.index') }}" class="btn btn-outline-secondary rounded-pill no-print" data-html2canvas-ignore="true">
             <i class="bi bi-arrow-left me-1"></i> Volver
         </a>
     </div>
 
     <!-- Filtro -->
-    <div class="card border-0 shadow-sm mb-4" style="border-radius: 15px;">
+    <div class="card border-0 shadow-sm mb-4 no-export" style="border-radius: 15px;" data-html2canvas-ignore="true">
         <div class="card-body p-4">
             <form action="{{ route('reportes.departamento') }}" method="GET" class="row align-items-end">
                 <div class="col-md-8">
@@ -27,10 +30,13 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="col-md-4 text-end">
+                <div class="col-md-4 text-end d-flex gap-2 justify-content-end">
                     @if(isset($departamentoSeleccionado))
-                        <button type="button" onclick="window.print()" class="btn btn-dark rounded-pill px-4">
-                            <i class="bi bi-printer me-2"></i> Imprimir Reporte
+                        <button id="btnDescargarPdf" type="button" class="btn btn-danger rounded-pill px-4 shadow-sm">
+                            <i class="bi bi-file-earmark-pdf me-2"></i> Descargar PDF
+                        </button>
+                        <button type="button" onclick="window.print()" class="btn btn-dark rounded-pill px-4 shadow-sm">
+                            <i class="bi bi-printer me-2"></i> Imprimir
                         </button>
                     @endif
                 </div>
@@ -95,4 +101,86 @@
         </div>
     @endif
 </div>
+
+<script>
+    const btnPdf = document.getElementById('btnDescargarPdf');
+    if (btnPdf) {
+        btnPdf.addEventListener('click', function() {
+            const element = document.getElementById('reporte-completo');
+            
+            // Añadimos clase para reducir tamaño de letra temporalmente
+            element.classList.add('modo-pdf');
+
+            const opt = {
+                margin:       0.5,
+                filename:     'Reporte_Asignaciones_{{ date("d-m-Y") }}.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2 },
+                jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save().then(() => {
+                element.classList.remove('modo-pdf');
+            });
+        });
+    }
+</script>
+
+<style>
+    /* Estilos específicos para reducir tamaño en PDF generado */
+    .modo-pdf {
+        font-size: 10px !important;
+        background: white;
+    }
+    .modo-pdf h2 {
+        font-size: 16px !important;
+        margin-bottom: 5px !important;
+    }
+    .modo-pdf p {
+        font-size: 11px !important;
+        margin-bottom: 10px !important;
+    }
+    .modo-pdf .table th, 
+    .modo-pdf .table td {
+        padding: 4px 6px !important;
+        font-size: 10px !important;
+    }
+    .modo-pdf .badge {
+        font-size: 9px !important;
+        padding: 3px 6px !important;
+    }
+    .modo-pdf .no-export {
+        display: none !important;
+    }
+
+    @media print {
+        body * {
+            visibility: hidden;
+        }
+        #reporte-completo, #reporte-completo * {
+            visibility: visible;
+        }
+        #reporte-completo {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            background: white;
+        }
+        .no-print, .no-export {
+            display: none !important;
+        }
+        
+        /* Ajustes de tamaño para Impresión física (Ctrl+P) */
+        body {
+            font-size: 10pt;
+        }
+        h2 {
+            font-size: 14pt !important;
+        }
+        .table th, .table td {
+            padding: 4px !important;
+            font-size: 9pt !important;
+        }
+    }
+</style>
 @endsection
