@@ -63,4 +63,23 @@ class ReporteController extends Controller
 
         return view('reportes.incidencias', compact('incidencias'));
     }
+
+
+    /**
+     * Genera el reporte de planificación de vida útil a largo plazo.
+     */
+    public function vidaUtil()
+    {
+        // 1. Obtenemos solo los EPP que tienen fecha de vencimiento calculada
+        $eppsPorAnio = Epp::whereNotNull('fecha_vencimiento')
+            ->orderBy('fecha_vencimiento', 'asc')
+            ->get()
+            ->groupBy(function($epp) {
+                // 2. Agrupamos por el AÑO de vencimiento (ej: "2026", "2027")
+                return \Carbon\Carbon::parse($epp->fecha_vencimiento)->format('Y');
+            });
+
+        // 3. Enviamos los datos a la vista
+        return view('reportes.vida_util', compact('eppsPorAnio'));
+    }
 }

@@ -4,21 +4,35 @@
 <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2 class="fw-bold">Historial de Asignaciones</h2>
+            <h2 class="fw-bold text-dark">Historial de Asignaciones</h2>
             <p class="text-muted">Control y auditoría por Departamento > Carrera > Taller/Lab</p>
         </div>
     </div>
 
-    <!-- Barra de búsqueda y filtros (cliente) -->
     <div class="card border-0 shadow-sm mb-3" style="border-radius: 12px;">
         <div class="card-body p-3">
             <div class="row g-2 align-items-center">
-                <div class="col-lg-4 col-md-6 mb-2 mb-lg-0">
+                <div class="col-lg-4 col-md-12">
                     <div class="input-group">
-                        <span class="input-group-text bg-light"><i class="bi bi-search"></i></span>
-                        <input id="searchInput" type="text" class="form-control" placeholder="Buscar por docente, DNI, EPP, departamento, carrera o taller/lab...">
+                        <span class="input-group-text bg-light border-0"><i class="bi bi-search"></i></span>
+                        <input id="searchInput" type="text" class="form-control border-0 bg-light" placeholder="Buscar por docente, DNI, EPP...">
                     </div>
                 </div>
+
+                <div class="col-lg-2 col-md-6">
+                    <div class="input-group input-group-sm border rounded">
+                        <span class="input-group-text bg-white border-0 text-muted small">Desde:</span>
+                        <input type="date" id="dateFrom" class="form-control border-0 ps-0">
+                    </div>
+                </div>
+
+                <div class="col-lg-2 col-md-6">
+                    <div class="input-group input-group-sm border rounded">
+                        <span class="input-group-text bg-white border-0 text-muted small">Hasta:</span>
+                        <input type="date" id="dateTo" class="form-control border-0 ps-0">
+                    </div>
+                </div>
+
                 @php
                     $deps = collect($asignaciones)->map(fn($a) => optional(optional($a->personal)->departamento)->nombre)->filter()->unique()->sort()->values();
                     $cars = collect($asignaciones)->map(fn($a) => optional($a->personal)->carrera)->filter()->unique()->sort()->values();
@@ -30,29 +44,23 @@
                     }
                     $talls = $talls->filter()->unique()->sort()->values();
                 @endphp
-                <div class="col-lg-2 col-md-6">
-                    <select id="depFilter" class="form-select">
-                        <option value="">Todos los departamentos</option>
-                        @foreach($deps as $d)
-                            <option value="{{ $d }}">{{ $d }}</option>
-                        @endforeach
+
+                <div class="col-lg-4 col-md-12 d-flex gap-1">
+                    <select id="depFilter" class="form-select form-select-sm">
+                        <option value="">Departamentos</option>
+                        @foreach($deps as $d) <option value="{{ $d }}">{{ $d }}</option> @endforeach
                     </select>
-                </div>
-                <div class="col-lg-3 col-md-6">
-                    <select id="carFilter" class="form-select">
-                        <option value="">Todas las carreras</option>
-                        @foreach($cars as $c)
-                            <option value="{{ $c }}">{{ $c }}</option>
-                        @endforeach
+                    <select id="carFilter" class="form-select form-select-sm">
+                        <option value="">Carreras</option>
+                        @foreach($cars as $c) <option value="{{ $c }}">{{ $c }}</option> @endforeach
                     </select>
-                </div>
-                <div class="col-lg-3 col-md-6">
-                    <select id="tallerFilter" class="form-select">
-                        <option value="">Todos los talleres/labs</option>
-                        @foreach($talls as $t)
-                            <option value="{{ $t }}">{{ $t }}</option>
-                        @endforeach
+                    <select id="tallerFilter" class="form-select form-select-sm">
+                        <option value="">Talleres</option>
+                        @foreach($talls as $t) <option value="{{ $t }}">{{ $t }}</option> @endforeach
                     </select>
+                    <button type="button" id="btnReset" class="btn btn-sm btn-outline-secondary" title="Limpiar Filtros">
+                        <i class="bi bi-eraser"></i>
+                    </button>
                 </div>
             </div>
         </div>
@@ -83,27 +91,30 @@
                                 $car = optional($personal)->carrera;
                                 $talleres = method_exists($personal, 'talleres') && $personal->talleres ? $personal->talleres->pluck('nombre')->join(', ') : '';
                                 $buscarText = strtolower(trim(
-                                    (string)($personal->nombre_completo ?? '') . ' ' .
-                                    (string)($personal->dni ?? '') . ' ' .
-                                    (string)($asignacion->epp->nombre ?? '') . ' ' .
-                                    (string)($dep ?? '') . ' ' .
-                                    (string)($car ?? '') . ' ' .
-                                    (string)$talleres
+                                    ($personal->nombre_completo ?? '') . ' ' .
+                                    ($personal->dni ?? '') . ' ' .
+                                    ($asignacion->epp->nombre ?? '') . ' ' .
+                                    ($dep ?? '') . ' ' .
+                                    ($car ?? '') . ' ' .
+                                    $talleres
                                 ));
                             @endphp
-                            <tr data-search="{{ $buscarText }}" data-dep="{{ strtolower($dep ?? '') }}" data-car="{{ strtolower($car ?? '') }}" data-taller="{{ strtolower($talleres ?? '') }}">
+                            <tr data-search="{{ $buscarText }}" 
+                                data-dep="{{ strtolower($dep ?? '') }}" 
+                                data-car="{{ strtolower($car ?? '') }}" 
+                                data-taller="{{ strtolower($talleres ?? '') }}"
+                                data-fecha="{{ \Carbon\Carbon::parse($asignacion->fecha_entrega)->format('Y-m-d') }}">
+                                
                                 <td>{{ \Carbon\Carbon::parse($asignacion->fecha_entrega)->format('d/m/Y') }}</td>
-                                <td>
-                                    <span class="badge bg-info text-dark">{{ $dep ?? '—' }}</span>
-                                </td>
+                                <td><span class="badge bg-info text-dark opacity-75">{{ $dep ?? '—' }}</span></td>
                                 <td><span class="badge bg-light text-dark border">{{ $car ?? '—' }}</span></td>
-                                <td>{{ $talleres ?: '—' }}</td>
+                                <td><small class="text-muted">{{ $talleres ?: '—' }}</small></td>
                                 <td>
-                                    <div class="fw-bold">{{ $personal->nombre_completo }}</div>
-                                    <small class="text-muted">{{ $personal->dni }}</small>
+                                    <div class="fw-bold">{{ $personal->nombre_completo ?? 'No asignado' }}</div>
+                                    <small class="text-muted">{{ $personal->dni ?? '' }}</small>
                                 </td>
                                 <td>{{ $asignacion->epp->nombre }}</td>
-                                <td class="text-center"><span class="badge bg-info text-dark">{{ $asignacion->cantidad }}</span></td>
+                                <td class="text-center"><span class="badge bg-secondary">{{ $asignacion->cantidad }}</span></td>
                                 <td>
                                     @php
                                         $estado = (string)$asignacion->estado;
@@ -113,39 +124,31 @@
                                 </td>
                                 <td>
                                     <div class="d-flex gap-1">
-                                        <!-- Devuelto -->
                                         <form action="{{ route('asignaciones.devolver', $asignacion->id) }}" method="POST">
-                                            @csrf
-                                            @method('PUT')
-                                            <button type="button" class="btn btn-sm btn-outline-success" {{ $asignacion->estado !== 'Entregado' ? 'disabled' : '' }} title="Marcar como Devuelto" data-bs-toggle="modal" data-bs-target="#modalConfirmacionAccion" data-mensaje="¿Confirmar devolución y sumar al stock?">
-                                                <i class="bi bi-arrow-counterclockwise"></i> Devuelto
+                                            @csrf @method('PUT')
+                                            <button type="button" class="btn btn-sm btn-outline-success" {{ $asignacion->estado !== 'Entregado' ? 'disabled' : '' }} data-bs-toggle="modal" data-bs-target="#modalConfirmacionAccion" data-mensaje="¿Confirmar devolución?">
+                                                <i class="bi bi-arrow-counterclockwise"></i>
                                             </button>
                                         </form>
-                                        <!-- Dañado -->
                                         <form action="{{ route('asignaciones.incidencia', $asignacion->id) }}" method="POST">
-                                            @csrf
-                                            @method('PUT')
+                                            @csrf @method('PUT')
                                             <input type="hidden" name="estado" value="Dañado">
-                                            <button type="button" class="btn btn-sm btn-outline-warning" {{ $asignacion->estado !== 'Entregado' ? 'disabled' : '' }} title="Marcar como Dañado" data-bs-toggle="modal" data-bs-target="#modalConfirmacionAccion" data-mensaje="¿Confirmar EPP Dañado?">
-                                                <i class="bi bi-exclamation-triangle"></i> Dañado
+                                            <button type="button" class="btn btn-sm btn-outline-warning" {{ $asignacion->estado !== 'Entregado' ? 'disabled' : '' }} data-bs-toggle="modal" data-bs-target="#modalConfirmacionAccion" data-mensaje="¿Confirmar EPP Dañado?">
+                                                <i class="bi bi-exclamation-triangle"></i>
                                             </button>
                                         </form>
-                                        <!-- Perdido -->
                                         <form action="{{ route('asignaciones.incidencia', $asignacion->id) }}" method="POST">
-                                            @csrf
-                                            @method('PUT')
+                                            @csrf @method('PUT')
                                             <input type="hidden" name="estado" value="Perdido">
-                                            <button type="button" class="btn btn-sm btn-outline-danger" {{ $asignacion->estado !== 'Entregado' ? 'disabled' : '' }} title="Marcar como Perdido" data-bs-toggle="modal" data-bs-target="#modalConfirmacionAccion" data-mensaje="¿Confirmar EPP Perdido?">
-                                                <i class="bi bi-x-octagon"></i> Perdido
+                                            <button type="button" class="btn btn-sm btn-outline-danger" {{ $asignacion->estado !== 'Entregado' ? 'disabled' : '' }} data-bs-toggle="modal" data-bs-target="#modalConfirmacionAccion" data-mensaje="¿Confirmar EPP Perdido?">
+                                                <i class="bi bi-x-octagon"></i>
                                             </button>
                                         </form>
                                     </div>
                                 </td>
                             </tr>
                         @empty
-                            <tr>
-                                <td colspan="9" class="text-center py-4 text-muted">No hay asignaciones registradas todavía.</td>
-                            </tr>
+                            <tr><td colspan="9" class="text-center py-4 text-muted">No hay registros.</td></tr>
                         @endforelse
                     </tbody>
                 </table>
@@ -154,23 +157,20 @@
     </div>
 </div>
 
-<!-- Modal de Confirmación de Acciones -->
 <div class="modal fade" id="modalConfirmacionAccion" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
             <div class="modal-header bg-light border-0">
-                <h5 class="modal-title fw-bold text-dark">
-                    <i class="bi bi-exclamation-circle me-2"></i>Confirmación
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title fw-bold"><i class="bi bi-exclamation-circle me-2"></i>Confirmación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body py-4 text-center">
                 <p class="fs-5 mb-0" id="mensajeConfirmacion"></p>
-                <p class="text-muted small mt-2">¿Estás seguro de realizar esta acción?</p>
+                <p class="text-muted small mt-2">Esta acción actualizará el stock y el historial.</p>
             </div>
             <div class="modal-footer border-0 justify-content-center">
-                <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">No, cancelar</button>
-                <button type="button" class="btn btn-primary px-4" id="btnConfirmarAccion">Sí, confirmar</button>
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="btnConfirmarAccion">Confirmar</button>
             </div>
         </div>
     </div>
@@ -178,7 +178,7 @@
 
 <script>
     (function() {
-        // Lógica del Modal de Confirmación
+        // Modal logic
         let formPorEnviar = null;
         const modalElement = document.getElementById('modalConfirmacionAccion');
         const mensajeElement = document.getElementById('mensajeConfirmacion');
@@ -186,52 +186,63 @@
 
         modalElement.addEventListener('show.bs.modal', function(event) {
             const button = event.relatedTarget;
-            const mensaje = button.getAttribute('data-mensaje');
             formPorEnviar = button.closest('form');
-            mensajeElement.textContent = mensaje;
+            mensajeElement.textContent = button.getAttribute('data-mensaje');
         });
 
-        btnConfirmar.addEventListener('click', function() {
-            if (formPorEnviar) formPorEnviar.submit();
-        });
+        btnConfirmar.addEventListener('click', () => { if (formPorEnviar) formPorEnviar.submit(); });
 
-        // Lógica de Filtros existente
+        // Filter logic
         const input = document.getElementById('searchInput');
         const depSel = document.getElementById('depFilter');
         const carSel = document.getElementById('carFilter');
         const talSel = document.getElementById('tallerFilter');
-        const table = document.getElementById('asignacionesTable');
-        if (!table) return;
-        const tbody = table.querySelector('tbody');
+        const dFrom = document.getElementById('dateFrom');
+        const dTo = document.getElementById('dateTo');
+        const tbody = document.querySelector('#asignacionesTable tbody');
 
         function applyFilters() {
-            const q = (input?.value || '').trim().toLowerCase();
-            const dep = (depSel?.value || '').trim().toLowerCase();
-            const car = (carSel?.value || '').trim().toLowerCase();
-            const tal = (talSel?.value || '').trim().toLowerCase();
-            const rows = tbody.querySelectorAll('tr');
-            rows.forEach(row => {
-                const hay = (row.getAttribute('data-search') || '');
-                const rdep = (row.getAttribute('data-dep') || '');
-                const rcar = (row.getAttribute('data-car') || '');
-                const rtal = (row.getAttribute('data-taller') || '');
-                const matchText = q === '' || hay.indexOf(q) !== -1;
-                const matchDep = dep === '' || rdep === dep;
-                const matchCar = car === '' || rcar === car;
-                const matchTal = tal === '' || (rtal.split(',').map(s=>s.trim()).includes(tal));
-                row.style.display = (matchText && matchDep && matchCar && matchTal) ? '' : 'none';
+            const q = input.value.trim().toLowerCase();
+            const dep = depSel.value.trim().toLowerCase();
+            const car = carSel.value.trim().toLowerCase();
+            const tal = talSel.value.trim().toLowerCase();
+            const from = dFrom.value;
+            const to = dTo.value;
+
+            tbody.querySelectorAll('tr').forEach(row => {
+                if(row.cells.length === 1) return; // Skip "No hay registros"
+
+                const matchText = q === '' || row.getAttribute('data-search').includes(q);
+                const matchDep = dep === '' || row.getAttribute('data-dep') === dep;
+                const matchCar = car === '' || row.getAttribute('data-car') === car;
+                const matchTal = tal === '' || row.getAttribute('data-taller').split(',').map(s=>s.trim()).includes(tal);
+                
+                const rfecha = row.getAttribute('data-fecha');
+                let matchFecha = true;
+                if (from && rfecha < from) matchFecha = false;
+                if (to && rfecha > to) matchFecha = false;
+
+                row.style.display = (matchText && matchDep && matchCar && matchTal && matchFecha) ? '' : 'none';
             });
         }
 
-        input?.addEventListener('input', applyFilters);
-        depSel?.addEventListener('change', applyFilters);
-        carSel?.addEventListener('change', applyFilters);
-        talSel?.addEventListener('change', applyFilters);
+        // Reset logic
+        document.getElementById('btnReset').addEventListener('click', () => {
+            input.value = ''; depSel.value = ''; carSel.value = ''; talSel.value = '';
+            dFrom.value = ''; dTo.value = '';
+            applyFilters();
+        });
+
+        [input, depSel, carSel, talSel, dFrom, dTo].forEach(el => {
+            el.addEventListener('input', applyFilters);
+            el.addEventListener('change', applyFilters);
+        });
     })();
 </script>
 
 <style>
     .table-hover tbody tr:hover { background-color: #f8fafc; }
-    .btn:disabled { pointer-events: none; opacity: 0.5; }
+    .badge { font-weight: 600; }
+    .bg-info { background-color: #e0f2fe !important; }
 </style>
 @endsection

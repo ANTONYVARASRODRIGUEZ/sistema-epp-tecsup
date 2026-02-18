@@ -82,7 +82,7 @@ Route::middleware(['auth', 'isAdmin'])->group(function () {
     Route::post('/perfil/contrasena', [ProfileController::class, 'cambiarContrasena'])->name('perfil.cambiar-contrasena');
 
     // --- MANTENEDORES (CATÁLOGO E INVENTARIO) ---
-    Route::post('/epps/importar', [EppController::class, 'import'])->name('epps.import');
+    Route::post('/epps/proceso-importacion', [EppController::class, 'import'])->name('epps.import_excel');
     Route::delete('/epps-truncate', [EppController::class, 'clearAll'])->name('epps.clearAll');
     Route::resource('epps', EppController::class);
     Route::resource('categorias', CategoriaController::class);
@@ -121,4 +121,7 @@ Route::middleware(['auth', 'isAdmin'])->group(function () {
     Route::get('/reportes/departamento', [ReporteController::class, 'porDepartamento'])->name('reportes.departamento');
     Route::get('/reportes/incidencias', [ReporteController::class, 'incidencias'])->name('reportes.incidencias');
     }); // Fin del middleware de primer ingreso
+
+
+    Route::get('/reportes/vida-util', [ReporteController::class, 'vidaUtil'])->name('reportes.vida_util');
 });

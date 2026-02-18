@@ -17,18 +17,34 @@ class EppImport implements ToModel, WithStartRow, SkipsEmptyRows
 
     public function model(array $row)
     {
-        // 1. Validación básica: Si no hay nombre de EPP (Columna B / Índice 1)
         if (!isset($row[1]) || empty(trim($row[1]))) {
             return null;
         }
 
         $nombreEpp = trim($row[1]);
-
-        // 2. Lógica de Categoría Inteligente (MODIFICADO)
         $categoriaId = $this->obtenerCategoriaPorNombre($nombreEpp);
-
-        // 3. Cantidad y Stock
         $cantidadInicial = is_numeric($row[11]) ? (int)$row[11] : 0;
+
+        // --- LÓGICA INTELIGENTE DE FECHA DE VENCIMIENTO ---
+        $frecuenciaTexto = strtolower($row[4] ?? ''); 
+        $vidaUtilMeses = 12; // Valor por defecto si no encuentra nada
+
+        // 1. Buscamos el número
+        if (preg_match('/\d+/', $frecuenciaTexto, $matches)) {
+            $numero = (int)$matches[0];
+
+            // 2. Si el texto contiene "año" o "año", multiplicamos por 12
+            if (str_contains($frecuenciaTexto, 'año') || str_contains($frecuenciaTexto, 'ano')) {
+                $vidaUtilMeses = $numero * 12;
+            } else {
+                // Si no, asumimos que el número ya son meses
+                $vidaUtilMeses = $numero;
+            }
+        }
+
+        // 3. Calculamos la fecha real (ej: si son 3 años, sumará 36 meses)
+        $fechaVencimiento = now()->addMonths($vidaUtilMeses);
+        // --------------------------------------------------
 
         return new Epp([
             'nombre'             => $nombreEpp,
@@ -41,9 +57,11 @@ class EppImport implements ToModel, WithStartRow, SkipsEmptyRows
             'stock'              => $cantidadInicial, 
             'entregado'          => 0,
             'deteriorado'        => 0,
-            'tipo'               => 'Homologado',
-            'vida_util_meses'    => 12,
+            'tipo'               => 'Protección de seguridad',
+            'vida_util_meses'    => $vidaUtilMeses, 
+            'fecha_vencimiento'  => $fechaVencimiento, 
             'categoria_id'       => $categoriaId, 
+            'estado'             => 'disponible',
         ]);
     }
 
