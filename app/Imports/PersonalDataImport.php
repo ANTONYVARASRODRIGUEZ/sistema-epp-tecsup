@@ -72,7 +72,8 @@ class PersonalDataImport implements ToCollection, WithStartRow
 
                 // Process PERSONAL ROWS
                 if ($this->isHeaderRow && !empty($col1)) {
-                    if (Str::contains($normalized, ['TOTAL', 'SUBTOTAL', 'MATRIZ', 'RESUMEN'])) {
+                    if (Str::contains($normalized, ['TOTAL', 'SUBTOTAL', 'MATRIZ', 'RESUMEN', 'DOCENTE NUEVO'])) {
+                        \Log::info("⏭️  [Fila " . ($idx + 1) . "] Fila ignorada (placeholder): $col1");
                         continue;
                     }
 

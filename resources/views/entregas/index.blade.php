@@ -226,6 +226,7 @@
             </div>
             <form action="{{ route('entregas.asignar_masivo') }}" method="POST">
                 @csrf
+                <input type="hidden" name="departamento_id" value="{{ $departamentoIdFiltro ?? '' }}">
                 <div class="modal-body p-4">
                     <div class="alert alert-info border-0 d-flex align-items-center" role="alert">
                         <i class="bi bi-info-circle-fill me-2 fs-4"></i>

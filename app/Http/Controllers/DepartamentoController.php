@@ -80,6 +80,9 @@ class DepartamentoController extends Controller
         // Desasignamos al personal de este departamento antes de borrar
         Personal::where('departamento_id', $id)->update(['departamento_id' => null]);
         
+        // Desasignamos los talleres de este departamento antes de borrar
+        Taller::where('departamento_id', $id)->update(['departamento_id' => null]);
+        
         $departamento = Departamento::findOrFail($id);
         $departamento->delete();
 
@@ -94,6 +97,9 @@ class DepartamentoController extends Controller
         // Primero dejamos a todos los docentes sin departamento (en lugar de borrarlos)
         // Así Jiancarlo no pierde su "Lista Maestra"
         Personal::query()->update(['departamento_id' => null]);
+        
+        // Desasignamos todos los talleres
+        Taller::query()->update(['departamento_id' => null]);
         
         // Luego borramos los departamentos
         Departamento::query()->delete();
@@ -110,6 +116,9 @@ class DepartamentoController extends Controller
             return back()->with('error', 'No has seleccionado nada.');
         }
 
+        // Desasignamos los talleres de esos departamentos antes de borrar
+        Taller::whereIn('departamento_id', $request->ids)->update(['departamento_id' => null]);
+        
         // Desasignamos al personal de esos departamentos antes de borrar
         Personal::whereIn('departamento_id', $request->ids)->update(['departamento_id' => null]);
         
