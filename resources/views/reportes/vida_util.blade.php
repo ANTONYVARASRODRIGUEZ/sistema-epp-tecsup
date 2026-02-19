@@ -75,7 +75,7 @@
         </div>
     </div>
 
-    @if($eppsPorAnio->isEmpty())
+    @if($proyeccionPorAnio->isEmpty())
         <div class="card p-5 text-center border-0 shadow-sm rounded-4">
             <div class="py-4">
                 <i class="bi bi-calendar-x display-1 text-light"></i>
@@ -84,7 +84,7 @@
             </div>
         </div>
     @else
-        @foreach($eppsPorAnio as $anio => $epps)
+        @foreach($proyeccionPorAnio as $anio => $epps)
             <div class="year-marker mb-5">
                 <div class="d-flex align-items-baseline mb-4">
                     <span class="display-year">{{ $anio }}</span>
@@ -118,13 +118,13 @@
                                         <td>
                                             <div class="fw-bold text-dark fs-5 mb-0">{{ $epp->nombre }}</div>
                                             <div class="d-flex align-items-center mt-1">
-                                                <span class="badge bg-soft-primary text-primary border-0 rounded-1 me-2" style="font-size: 0.65rem; background: #e0e7ff;">{{ $epp->codigo_logistica }}</span>
-                                                <span class="text-muted small">{{ $epp->marca_modelo }}</span>
+                                                <span class="badge bg-soft-primary text-primary border-0 rounded-1 me-2" style="font-size: 0.65rem; background: #e0e7ff;">{{ $epp->codigo_logistica ?? '---' }}</span>
+                                                <span class="text-muted small">{{ $epp->marca_modelo ?? '---' }}</span>
                                             </div>
                                         </td>
                                         <td>
                                             <div class="text-muted small mb-1">Frecuencia</div>
-                                            <div class="fw-bold text-secondary small">{{ $epp->frecuencia_entrega }}</div>
+                                            <div class="fw-bold text-secondary small">{{ $epp->frecuencia_entrega ?? 'Cada uso' }}</div>
                                         </td>
                                         <td class="text-center">
                                             @if($fecha->isPast())

@@ -54,7 +54,7 @@
                         <div>
                             <p class="text-muted mb-2 small">Próximos a Vencer</p>
                             <h3 class="fw-bold" style="color: #ffc107;">{{ number_format($proximosVencer) }}</h3>
-                            <small class="text-muted">En los próximos 30 días</small>
+                            <small class="text-muted">Renovaciones pendientes</small>
                         </div>
                         <div style="font-size: 2rem; color: #ffc107; opacity: 0.3;">
                             <i class="bi bi-exclamation-circle"></i>
@@ -70,9 +70,9 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
-                            <p class="text-muted mb-2 small">Deteriorados/Baja</p>
-                            <h3 class="fw-bold" style="color: #dc3545;">{{ number_format($deteriorados) }}</h3>
-                            <small class="text-muted">Fuera de uso</small>
+                            <p class="text-muted mb-2 small">Atención Requerida</p>
+                            <h3 class="fw-bold" style="color: #dc3545;">{{ number_format($vencidos + $deteriorados) }}</h3>
+                            <small class="text-muted">Vencidos (Asig.) + Baja</small>
                         </div>
                         <div style="font-size: 2rem; color: #dc3545; opacity: 0.3;">
                             <i class="bi bi-exclamation-triangle"></i>
@@ -113,7 +113,7 @@
         <div class="col-12 mb-4">
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-light border-bottom">
-                    <h5 class="mb-0 fw-bold">📊 Vencimientos Proyectados (Próximos 6 Meses)</h5>
+                    <h5 class="mb-0 fw-bold">📊 Proyección de Renovaciones (Próximos 6 Meses)</h5>
                 </div>
                 <div class="card-body">
                     <canvas id="chartRenovaciones" style="max-height: 300px;"></canvas>
@@ -172,7 +172,7 @@
                             <div class="alert alert-warning border-0 mb-0" role="alert">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div>
-                                        <strong>📅 {{ number_format($proximosVencer) }} EPP Vencerán en 30 días</strong>
+                                        <strong>📅 {{ number_format($proximosVencer) }} Renovaciones en 30 días</strong>
                                         <br>
                                         <small>Requieren renovación próximamente</small>
                                     </div>
@@ -258,7 +258,13 @@
                                 <tr>
                                     <td><strong>{{ $epp->nombre }}</strong></td>
                                     <td><span class="badge bg-danger">{{ $epp->deteriorado ?? $epp->cantidad }}</span></td>
-                                    <td><span class="badge bg-warning text-dark">{{ ucfirst($epp->estado) }}</span></td>
+                                    <td>
+                                        @if($epp->deteriorado > 0)
+                                            <span class="badge bg-warning text-dark">Deteriorado</span>
+                                        @else
+                                            <span class="badge bg-secondary">{{ ucfirst($epp->estado) }}</span>
+                                        @endif
+                                    </td>
                                     <td>{{ $epp->updated_at->format('d/m/Y') ?? 'N/A' }}</td>
                                 </tr>
                                 @empty
@@ -289,7 +295,7 @@
     new Chart(ctxEstado, {
         type: 'doughnut',
         data: {
-            labels: ['En Almacén', 'Entregados', 'Por Vencer', 'Vencidos', 'Deteriorados'],
+            labels: ['En Almacén', 'Entregados (Vigentes)', 'Por Vencer (Asignados)', 'Vencidos (Asignados)', 'Baja / Deteriorados'],
             datasets: [{
                 data: [
                     estadisticas.enAlmacen,
@@ -330,7 +336,7 @@
         data: {
             labels: departamentoLabels.length > 0 ? departamentoLabels : ['Mecánica', 'Topografía', 'Tecnología Digital', 'Construcción'],
             datasets: [{
-                label: 'EPP en Uso (Asignados)',
+                label: 'Total EPP Asignados',
                 data: departamentoCantidades.length > 0 ? departamentoCantidades : [450, 380, 290, 210],
                 backgroundColor: [
                     '#003366',
@@ -368,7 +374,7 @@
         data: {
             labels: meses,
             datasets: [{
-                label: 'EPP que Vencerán',
+                label: 'Renovaciones Necesarias',
                 data: cantidades,
                 borderColor: '#ffc107',
                 backgroundColor: 'rgba(255, 193, 7, 0.1)',

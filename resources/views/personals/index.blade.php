@@ -11,6 +11,22 @@
 </style>
 
 <div class="container py-4">
+    @if($message = session('success'))
+    <div class="alert alert-success alert-dismissible fade show mb-4" role="alert" style="border-radius: 15px; border: none; padding: 16px 20px;">
+        <i class="bi bi-check-circle me-2"></i>
+        <strong>¡Éxito!</strong> {{ $message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    @endif
+
+    @if($message = session('error'))
+    <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert" style="border-radius: 15px; border: none; padding: 16px 20px;">
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        <strong>Error:</strong> {{ $message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    @endif
+
     <div class="d-flex justify-content-between align-items-center mb-4 px-3">
         <div>
             <h2 class="fw-bold mb-0">Base de Datos de Docentes</h2>
@@ -20,8 +36,17 @@
             <a href="{{ route('organizador.index') }}" class="btn btn-outline-primary rounded-pill px-4 fw-bold">
                 <i class="bi bi-grid-3x3-gap me-2"></i>Ir al Organizador
             </a>
+            <button class="btn btn-success rounded-pill px-4 shadow-sm fw-bold" data-bs-toggle="modal" data-bs-target="#modalImportarPersonal">
+                <i class="bi bi-file-earmark-excel me-2"></i>Importar Excel
+            </button>
             <button class="btn btn-dark rounded-pill px-4 shadow-sm fw-bold" data-bs-toggle="modal" data-bs-target="#modalNuevoDocente">
                 <i class="bi bi-person-plus-fill me-2"></i>Registrar Docente
+            </button>
+            <button class="btn btn-warning rounded-pill px-4 shadow-sm fw-bold d-none" id="btnEliminarSeleccionados" data-bs-toggle="modal" data-bs-target="#modalConfirmarDelete" onclick="prepararEliminacionMultiple()">
+                <i class="bi bi-trash me-2"></i>Eliminar Seleccionados
+            </button>
+            <button class="btn btn-danger rounded-pill px-4 shadow-sm fw-bold" onclick="confirmarVaciarTodo()">
+                <i class="bi bi-exclamation-triangle me-2"></i>Vaciar Todo
             </button>
         </div>
     </div>
@@ -32,6 +57,9 @@
                 <table class="table table-modern mb-0">
                     <thead>
                         <tr>
+                            <th style="width: 40px;">
+                                <input type="checkbox" id="selectAll" class="form-check-input" onchange="seleccionarTodos(this)">
+                            </th>
                             <th>Docente</th>
                             <th>Carrera</th>
                             <th>Tipo</th>
@@ -44,6 +72,9 @@
                     <tbody>
                         @forelse($personals as $docente)
                         <tr>
+                            <td>
+                                <input type="checkbox" class="form-check-input chkDocente" value="{{ $docente->id }}" onchange="actualizarBotonEliminar()">
+                            </td>
                             <td>
                                 <div class="d-flex align-items-center">
                                     <div class="avatar-circle me-3">
@@ -81,14 +112,16 @@
                                 @endif
                             </td>
                             <td class="text-end">
-                                <button class="btn btn-light btn-sm rounded-circle shadow-sm me-1" 
-                                        onclick="editarDocente({{ $docente->id }}, '{{ $docente->nombre_completo }}', '{{ $docente->dni }}', '{{ $docente->carrera }}', '{{ $docente->tipo_contrato }}')" 
-                                        title="Editar">
-                                    <i class="bi bi-pencil"></i>
-                                </button>
-                                <button class="btn btn-light btn-sm rounded-circle shadow-sm text-danger" title="Eliminar" onclick="confirmarEliminacion('{{ route('personals.destroy', $docente->id) }}')">
-                                    <i class="bi bi-trash"></i>
-                                </button>
+                                <div class="d-flex justify-content-end gap-2">
+                                    <button class="btn btn-light btn-sm rounded-circle shadow-sm" 
+                                            onclick="editarDocente({{ $docente->id }}, '{{ $docente->nombre_completo }}', '{{ $docente->dni }}', '{{ $docente->carrera }}', '{{ $docente->tipo_contrato }}')" 
+                                            title="Editar">
+                                        <i class="bi bi-pencil text-primary"></i>
+                                    </button>
+                                    <button class="btn btn-light btn-sm rounded-circle shadow-sm text-danger" title="Eliminar" onclick="confirmarEliminacion('{{ route('personals.destroy', $docente->id) }}')">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                         @empty
@@ -214,6 +247,101 @@
     </div>
 </div>
 
+<!-- MODAL: Confirmar eliminación de seleccionados -->
+<div class="modal fade" id="modalConfirmarDelete" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 20px; border: none;">
+            <div class="modal-body p-4 text-center">
+                <div class="bg-danger bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style="width: 60px; height: 60px;">
+                    <i class="bi bi-exclamation-triangle-fill text-danger fs-3"></i>
+                </div>
+                <h5 class="fw-bold mb-2">¿Eliminar Seleccionados?</h5>
+                <p class="text-muted mb-4" id="textConfirmDelete">Vas a eliminar <strong id="countSeleccionados">0</strong> docente(s). Esta acción no se puede deshacer.</p>
+                <div class="d-flex justify-content-center gap-2">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                    <form id="formEliminarSeleccionados" method="POST" action="{{ route('personals.delete_multiple') }}">
+                        @csrf
+                        <input type="hidden" id="inputIds" name="ids" value="">
+                        <button type="submit" class="btn btn-danger rounded-pill px-4 fw-bold">Sí, Eliminar</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: Confirmar vaciar todo -->
+<div class="modal fade" id="modalConfirmarVaciar" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 20px; border: none;">
+            <div class="modal-body p-4 text-center">
+                <div class="bg-danger bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style="width: 60px; height: 60px;">
+                    <i class="bi bi-exclamation-lg text-danger fs-3"></i>
+                </div>
+                <h5 class="fw-bold mb-2">⚠️ ¡Cuidado!</h5>
+                <p class="text-muted mb-2"><strong>Estás a punto de eliminar TODOS los docentes</strong></p>
+                <p class="text-muted mb-4 small">Total: <strong id="countTotalDocentes">0</strong> docente(s). Esta acción <strong>no se puede deshacer</strong>.</p>
+                <div class="d-flex justify-content-center gap-2">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                    <form method="POST" action="{{ route('personals.delete_all') }}" style="display: inline;">
+                        @csrf @method('DELETE')
+                        <button type="submit" class="btn btn-danger rounded-pill px-4 fw-bold">Sí, Vaciar Todo</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- MODAL IMPORTAR PERSONAL --}}
+<div class="modal fade" id="modalImportarPersonal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title fw-bold"><i class="bi bi-file-earmark-excel me-2"></i>Importar Docentes desde Excel</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ route('personals.import_excel') }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                <div class="modal-body p-4">
+                    <div class="mb-3 text-center">
+                        <i class="bi bi-cloud-arrow-up display-1 text-success opacity-50"></i>
+                    </div>
+                    <p class="mb-4 text-center">Selecciona el archivo Excel que contiene la matriz de docentes.</p>
+                    <input type="file" name="file" class="form-control border-2" accept=".xlsx, .xls, .csv" required>
+                    
+                    <div class="mt-4 bg-light p-3 rounded-3 small">
+                        <p class="fw-bold mb-2"><i class="bi bi-info-circle me-2"></i>Formato esperado del archivo:</p>
+                        <ul class="ps-3 mb-2">
+                            <li><strong>Hoja:</strong> "Matriz x docente" (segunda hoja)</li>
+                            <li><strong>Estructura:</strong>
+                                <ul>
+                                    <li>Filas de Departamento: "DEPARTAMENTO DE [NOMBRE]"</li>
+                                    <li>Encabezado de datos: "Puesto de Trabajo" (o similares)</li>
+                                    <li><strong>Columnas después del encabezado (en orden):</strong>
+                                        <ol>
+                                            <li><strong>Docente:</strong> Nombre completo del docente</li>
+                                            <li><strong>TC/TP:</strong> Tipo de contrato (TC, TP, Docente TC, Docente TP)</li>
+                                            <li><strong>Taller/Lab:</strong> Nombre del taller o laboratorio</li>
+                                            <li><strong>DNI:</strong> Documento de identidad (opcional)</li>
+                                            <li><strong>Carrera:</strong> Especialidad o carrera (opcional)</li>
+                                        </ol>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                        <p class="mb-0 text-muted small">✓ Los datos se mostrarán automáticamente en la tabla de arriba después de importar.</p>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success px-4"><i class="bi bi-download me-2"></i>Subir e Importar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
 function editarDocente(id, nombre, dni, carrera, tipo) {
     document.getElementById('formEditarDocente').action = '/personals/' + id;
@@ -231,5 +359,49 @@ function confirmarEliminacion(url) {
     var myModal = new bootstrap.Modal(document.getElementById('modalConfirmarEliminar'));
     myModal.show();
 }
+
+function seleccionarTodos(checkbox) {
+    const checkboxes = document.querySelectorAll('.chkDocente');
+    checkboxes.forEach(cb => cb.checked = checkbox.checked);
+    actualizarBotonEliminar();
+}
+
+function actualizarBotonEliminar() {
+    const checkboxes = document.querySelectorAll('.chkDocente:checked');
+    const btnEliminar = document.getElementById('btnEliminarSeleccionados');
+    const countSeleccionados = document.getElementById('countSeleccionados');
+    
+    if (checkboxes.length > 0) {
+        btnEliminar.classList.remove('d-none');
+        countSeleccionados.textContent = checkboxes.length;
+    } else {
+        btnEliminar.classList.add('d-none');
+    }
+}
+
+function confirmarVaciarTodo() {
+    const totalDocentes = document.querySelectorAll('.chkDocente').length;
+    document.getElementById('countTotalDocentes').textContent = totalDocentes;
+    
+    var myModal = new bootstrap.Modal(document.getElementById('modalConfirmarVaciar'));
+    myModal.show();
+}
+
+function prepararEliminacionMultiple() {
+    const checkboxes = document.querySelectorAll('.chkDocente:checked');
+    const ids = Array.from(checkboxes).map(cb => cb.value).join(',');
+    document.getElementById('inputIds').value = ids;
+}
+
+// Cerrar modal de importación si hay un mensaje de éxito
+document.addEventListener('DOMContentLoaded', function() {
+    const successAlert = document.querySelector('.alert-success');
+    if (successAlert) {
+        const modal = bootstrap.Modal.getInstance(document.getElementById('modalImportarPersonal'));
+        if (modal) {
+            modal.hide();
+        }
+    }
+});
 </script>
 @endsection

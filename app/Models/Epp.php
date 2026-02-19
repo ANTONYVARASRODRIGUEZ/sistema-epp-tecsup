@@ -14,7 +14,7 @@ class Epp extends Model
         'nombre', 'tipo', 'descripcion', 'vida_util_meses', 'ficha_tecnica',
         'imagen', 'frecuencia_entrega', 'codigo_logistica', 'marca_modelo',
         'precio', 'cantidad', 'stock', 'entregado', 'deteriorado',
-        'departamento_id', 'categoria_id', 'subcategoria_id', 'estado', 'fecha_vencimiento',
+        'departamento_id', 'categoria_id', 'subcategoria_id', 'estado', 'fecha_vencimiento', 'activo',
     ];
 
     protected $casts = [

@@ -6,9 +6,11 @@ use App\Models\Personal;
 use App\Models\Departamento;
 use App\Models\Epp;
 use App\Models\Taller;
+use App\Models\Asignacion;
 use Illuminate\Http\Request;
 use App\Imports\PersonalImport;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\DB;
 
 class PersonalController extends Controller
 {
@@ -17,6 +19,7 @@ class PersonalController extends Controller
         $personals = Personal::with(['departamento', 'asignaciones' => function($query) {
             $query->where('estado', 'Entregado');
         }])->orderBy('nombre_completo', 'asc')->get();
+        
         return view('personals.index', compact('personals'));
     }
 
@@ -89,14 +92,90 @@ class PersonalController extends Controller
         return back()->with('success', 'Docente eliminado de la base de datos.');
     }
 
-    public function import(Request $request)
+    /**
+     * Eliminar docentes seleccionados
+     */
+    public function deleteMultiple(Request $request)
     {
-        $request->validate(['excel_file' => 'required|mimes:xlsx,xls']);
+        $idsString = $request->input('ids', '');
+        $ids = array_filter(explode(',', $idsString)); // Convertir string a array
+        
+        if (empty($ids)) {
+            return back()->with('error', 'Selecciona al menos un docente para eliminar.');
+        }
+
         try {
-            Excel::import(new PersonalImport, $request->file('excel_file'));
-            return back()->with('success', '¡Personal importado correctamente!');
+            // Desactivar restricciones de clave foránea temporalmente
+            DB::statement('SET FOREIGN_KEY_CHECKS=0');
+            
+            // Primero eliminar todas las asignaciones de estos docentes
+            Asignacion::whereIn('personal_id', $ids)->delete();
+            
+            // Luego eliminar los docentes
+            Personal::whereIn('id', $ids)->delete();
+            
+            // Reactivar restricciones de clave foránea
+            DB::statement('SET FOREIGN_KEY_CHECKS=1');
+            
+            return back()->with('success', '✅ ' . count($ids) . ' docente(s) y sus asignaciones de EPP eliminado(s) correctamente.');
         } catch (\Exception $e) {
-            return back()->with('error', 'Error al importar: ' . $e->getMessage());
+            return back()->with('error', 'Error al eliminar: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Eliminar todos los docentes
+     */
+    public function deleteAll(Request $request)
+    {
+        try {
+            $count = Personal::count();
+            
+            // Desactivar restricciones de clave foránea temporalmente
+            DB::statement('SET FOREIGN_KEY_CHECKS=0');
+            
+            // Primero eliminar todas las asignaciones
+            Asignacion::truncate();
+            
+            // Luego truncate la tabla de personales
+            Personal::truncate();
+            
+            // Reactivar restricciones de clave foránea
+            DB::statement('SET FOREIGN_KEY_CHECKS=1');
+            
+            return back()->with('success', '✅ Se han eliminado ' . $count . ' docente(s) y todas sus asignaciones de EPP. Total actual: 0');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Error al vaciar: ' . $e->getMessage());
+        }
+    }
+
+    public function importExcel(Request $request)
+    {
+        $request->validate(['file' => 'required|mimes:xlsx,xls,csv']);
+        try {
+            \Log::info("═══════════════════════════════════════════");
+            \Log::info("INICIANDO IMPORTACIÓN DE EXCEL");
+            \Log::info("Archivo: " . $request->file('file')->getClientOriginalName());
+            \Log::info("═══════════════════════════════════════════");
+            
+            Excel::import(new PersonalImport, $request->file('file'));
+            
+            $personalsCount = Personal::count();
+            
+            \Log::info("═══════════════════════════════════════════");
+            \Log::info("✅ IMPORTACIÓN COMPLETADA");
+            \Log::info("Total de personals en BD: " . $personalsCount);
+            \Log::info("═══════════════════════════════════════════");
+            
+            return redirect()->route('personals.index')->with('success', '✅ ¡Personal importado correctamente! Total en BD: ' . $personalsCount);
+        } catch (\Exception $e) {
+            \Log::error("═══════════════════════════════════════════");
+            \Log::error("❌ ERROR EN IMPORTACIÓN");
+            \Log::error($e->getMessage());
+            \Log::error($e->getTraceAsString());
+            \Log::error("═══════════════════════════════════════════");
+            
+            return redirect()->route('personals.index')->with('error', '❌ Error al importar: ' . $e->getMessage());
         }
     }
 }

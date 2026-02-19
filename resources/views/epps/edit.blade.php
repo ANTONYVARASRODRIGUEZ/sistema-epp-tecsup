@@ -7,7 +7,7 @@
             <h2 class="fw-bold mb-0">Editar EPP</h2>
             <p class="text-muted">Modifica los datos del equipo de protección personal.</p>
         </div>
-        <a href="{{ route('epps.catalogo') }}" class="btn btn-outline-secondary shadow-sm">
+        <a href="{{ route('epps.index') }}" class="btn btn-outline-secondary shadow-sm">
             <i class="bi bi-arrow-left"></i> Volver al catálogo
         </a>
     </div>
@@ -40,11 +40,19 @@
                             </div>
 
                             <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Tipo / Categoría</label>
+                                <label class="form-label fw-bold">Categoría</label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-tag"></i></span>
-                                    <input type="text" name="tipo" class="form-control bg-light border-start-0" value="{{ old('tipo', $epp->tipo) }}" required>
+                                    <select name="categoria_id" class="form-select bg-light border-start-0" required>
+                                        <option value="">-- Selecciona una categoría --</option>
+                                        @foreach($categorias as $cat)
+                                            <option value="{{ $cat->id }}" {{ old('categoria_id', $epp->categoria_id) == $cat->id ? 'selected' : '' }}>
+                                                {{ $cat->nombre }}
+                                            </option>
+                                        @endforeach
+                                    </select>
                                 </div>
+                                <input type="hidden" name="tipo" value="{{ old('tipo', $epp->tipo) }}">
                             </div>
                         </div>
 
@@ -168,7 +176,7 @@
                         @endif
 
                         <div class="mt-4 text-end">
-                            <a href="{{ route('epps.catalogo') }}" class="btn btn-light me-2">Cancelar</a>
+                            <a href="{{ route('epps.index') }}" class="btn btn-light me-2">Cancelar</a>
                             <button type="submit" class="btn btn-primary px-4" style="background-color: #003366; border: none;">
                                 <i class="bi bi-save me-1"></i> Guardar Cambios
                             </button>

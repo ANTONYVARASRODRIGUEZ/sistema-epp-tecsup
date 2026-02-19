@@ -4,8 +4,8 @@
 <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2 class="fw-bold text-dark">Historial de Asignaciones</h2>
-            <p class="text-muted">Control y auditoría por Departamento > Carrera > Taller/Lab</p>
+            <h2 class="fw-bold text-dark">Historial de Entregas de EPP</h2>
+            <p class="text-muted">Consulta por Departamento > Carrera > Taller/Lab</p>
         </div>
     </div>
 
@@ -38,7 +38,7 @@
                     $cars = collect($asignaciones)->map(fn($a) => optional($a->personal)->carrera)->filter()->unique()->sort()->values();
                     $talls = collect();
                     foreach ($asignaciones as $a) {
-                        if (method_exists($a->personal, 'talleres') && $a->personal->talleres) {
+                        if ($a->personal && method_exists($a->personal, 'talleres') && $a->personal->talleres) {
                             $talls = $talls->merge($a->personal->talleres->pluck('nombre'));
                         }
                     }
@@ -80,7 +80,6 @@
                             <th style="min-width: 240px;">Equipo (EPP)</th>
                             <th class="text-center">Cant.</th>
                             <th style="min-width: 120px;">Estado</th>
-                            <th style="min-width: 220px;">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -89,7 +88,7 @@
                                 $personal = $asignacion->personal;
                                 $dep = optional(optional($personal)->departamento)->nombre;
                                 $car = optional($personal)->carrera;
-                                $talleres = method_exists($personal, 'talleres') && $personal->talleres ? $personal->talleres->pluck('nombre')->join(', ') : '';
+                                $talleres = $personal && method_exists($personal, 'talleres') && $personal->talleres ? $personal->talleres->pluck('nombre')->join(', ') : '';
                                 $buscarText = strtolower(trim(
                                     ($personal->nombre_completo ?? '') . ' ' .
                                     ($personal->dni ?? '') . ' ' .
@@ -99,12 +98,12 @@
                                     $talleres
                                 ));
                             @endphp
-                            <tr data-search="{{ $buscarText }}" 
-                                data-dep="{{ strtolower($dep ?? '') }}" 
-                                data-car="{{ strtolower($car ?? '') }}" 
+                            <tr data-search="{{ $buscarText }}"
+                                data-dep="{{ strtolower($dep ?? '') }}"
+                                data-car="{{ strtolower($car ?? '') }}"
                                 data-taller="{{ strtolower($talleres ?? '') }}"
                                 data-fecha="{{ \Carbon\Carbon::parse($asignacion->fecha_entrega)->format('Y-m-d') }}">
-                                
+
                                 <td>{{ \Carbon\Carbon::parse($asignacion->fecha_entrega)->format('d/m/Y') }}</td>
                                 <td><span class="badge bg-info text-dark opacity-75">{{ $dep ?? '—' }}</span></td>
                                 <td><span class="badge bg-light text-dark border">{{ $car ?? '—' }}</span></td>
@@ -122,33 +121,9 @@
                                     @endphp
                                     <span class="badge rounded-pill {{ $cls }}">{{ $estado }}</span>
                                 </td>
-                                <td>
-                                    <div class="d-flex gap-1">
-                                        <form action="{{ route('asignaciones.devolver', $asignacion->id) }}" method="POST">
-                                            @csrf @method('PUT')
-                                            <button type="button" class="btn btn-sm btn-outline-success" {{ $asignacion->estado !== 'Entregado' ? 'disabled' : '' }} data-bs-toggle="modal" data-bs-target="#modalConfirmacionAccion" data-mensaje="¿Confirmar devolución?">
-                                                <i class="bi bi-arrow-counterclockwise"></i>
-                                            </button>
-                                        </form>
-                                        <form action="{{ route('asignaciones.incidencia', $asignacion->id) }}" method="POST">
-                                            @csrf @method('PUT')
-                                            <input type="hidden" name="estado" value="Dañado">
-                                            <button type="button" class="btn btn-sm btn-outline-warning" {{ $asignacion->estado !== 'Entregado' ? 'disabled' : '' }} data-bs-toggle="modal" data-bs-target="#modalConfirmacionAccion" data-mensaje="¿Confirmar EPP Dañado?">
-                                                <i class="bi bi-exclamation-triangle"></i>
-                                            </button>
-                                        </form>
-                                        <form action="{{ route('asignaciones.incidencia', $asignacion->id) }}" method="POST">
-                                            @csrf @method('PUT')
-                                            <input type="hidden" name="estado" value="Perdido">
-                                            <button type="button" class="btn btn-sm btn-outline-danger" {{ $asignacion->estado !== 'Entregado' ? 'disabled' : '' }} data-bs-toggle="modal" data-bs-target="#modalConfirmacionAccion" data-mensaje="¿Confirmar EPP Perdido?">
-                                                <i class="bi bi-x-octagon"></i>
-                                            </button>
-                                        </form>
-                                    </div>
-                                </td>
                             </tr>
                         @empty
-                            <tr><td colspan="9" class="text-center py-4 text-muted">No hay registros.</td></tr>
+                            <tr><td colspan="8" class="text-center py-4 text-muted">No hay registros.</td></tr>
                         @endforelse
                     </tbody>
                 </table>
@@ -157,42 +132,8 @@
     </div>
 </div>
 
-<div class="modal fade" id="modalConfirmacionAccion" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow">
-            <div class="modal-header bg-light border-0">
-                <h5 class="modal-title fw-bold"><i class="bi bi-exclamation-circle me-2"></i>Confirmación</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body py-4 text-center">
-                <p class="fs-5 mb-0" id="mensajeConfirmacion"></p>
-                <p class="text-muted small mt-2">Esta acción actualizará el stock y el historial.</p>
-            </div>
-            <div class="modal-footer border-0 justify-content-center">
-                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary" id="btnConfirmarAccion">Confirmar</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 <script>
     (function() {
-        // Modal logic
-        let formPorEnviar = null;
-        const modalElement = document.getElementById('modalConfirmacionAccion');
-        const mensajeElement = document.getElementById('mensajeConfirmacion');
-        const btnConfirmar = document.getElementById('btnConfirmarAccion');
-
-        modalElement.addEventListener('show.bs.modal', function(event) {
-            const button = event.relatedTarget;
-            formPorEnviar = button.closest('form');
-            mensajeElement.textContent = button.getAttribute('data-mensaje');
-        });
-
-        btnConfirmar.addEventListener('click', () => { if (formPorEnviar) formPorEnviar.submit(); });
-
-        // Filter logic
         const input = document.getElementById('searchInput');
         const depSel = document.getElementById('depFilter');
         const carSel = document.getElementById('carFilter');
@@ -210,13 +151,13 @@
             const to = dTo.value;
 
             tbody.querySelectorAll('tr').forEach(row => {
-                if(row.cells.length === 1) return; // Skip "No hay registros"
+                if (row.cells.length === 1) return;
 
                 const matchText = q === '' || row.getAttribute('data-search').includes(q);
                 const matchDep = dep === '' || row.getAttribute('data-dep') === dep;
                 const matchCar = car === '' || row.getAttribute('data-car') === car;
-                const matchTal = tal === '' || row.getAttribute('data-taller').split(',').map(s=>s.trim()).includes(tal);
-                
+                const matchTal = tal === '' || row.getAttribute('data-taller').split(',').map(s => s.trim()).includes(tal);
+
                 const rfecha = row.getAttribute('data-fecha');
                 let matchFecha = true;
                 if (from && rfecha < from) matchFecha = false;
@@ -226,7 +167,6 @@
             });
         }
 
-        // Reset logic
         document.getElementById('btnReset').addEventListener('click', () => {
             input.value = ''; depSel.value = ''; carSel.value = ''; talSel.value = '';
             dFrom.value = ''; dTo.value = '';

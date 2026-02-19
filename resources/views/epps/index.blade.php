@@ -156,18 +156,18 @@
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
                                 <li>
-                                    <a class="dropdown-item btn-edit-inventario" href="javascript:void(0)" 
-                                       data-epp-id="{{ $epp->id }}" 
-                                       data-cantidad="{{ $epp->cantidad }}"
-                                       data-stock="{{ $epp->stock }}"
-                                       data-entregado="{{ $epp->entregado }}"
-                                       data-deteriorado="{{ $epp->deteriorado }}">
-                                         <i class="bi bi-pencil me-2 text-primary"></i> Editar Stock
+                                    <a class="dropdown-item" href="{{ route('epps.show', $epp->id) }}">
+                                        <i class="bi bi-eye me-2 text-info"></i> Ver Detalles
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{{ route('epps.edit', $epp->id) }}">
+                                         <i class="bi bi-pencil me-2 text-primary"></i> Editar EPP
                                     </a>
                                 </li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
-                                    <button class="dropdown-item text-danger btn-delete-epp" data-epp-id="{{ $epp->id }}" data-epp-url="{{ route('epps.destroy', $epp) }}">
+                                    <button type="button" class="dropdown-item text-danger" data-bs-toggle="modal" data-bs-target="#modalEliminarEpp" data-epp-nombre="{{ $epp->nombre }}" data-epp-url="{{ route('epps.destroy', $epp->id) }}">
                                         <i class="bi bi-trash me-2"></i> Eliminar
                                     </button>
                                 </li>
@@ -215,6 +215,30 @@
     </div>
 </div>
 
+{{-- MODAL ELIMINAR EPP --}}
+<div class="modal fade" id="modalEliminarEpp" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="bi bi-exclamation-triangle-fill me-2"></i>Confirmar Eliminación</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p>¿Estás seguro de que deseas eliminar el EPP <strong id="eppNameToDelete"></strong>?</p>
+                <p class="text-muted small">Esta acción es irreversible y eliminará el equipo del inventario.</p>
+            </div>
+            <div class="modal-footer border-0">
+                <form id="deleteEppForm" action="" method="POST">
+                    @csrf
+                    @method('DELETE')
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger">Sí, Eliminar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 {{-- MODAL NUEVO EPP --}}
 <div class="modal fade" id="modalNuevoEpp" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -239,7 +263,7 @@
                             <label class="form-label fw-bold small">Descripción / Notas</label>
                             <textarea name="descripcion" class="form-control" rows="2" placeholder="Detalles del material, talla o uso específico..."></textarea>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label class="form-label fw-bold small">Categoría</label>
                             <select name="categoria_id" class="form-select" required>
                                 <option value="">Seleccione...</option>
@@ -248,13 +272,17 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label class="form-label fw-bold small">Código Logística</label>
                             <input type="text" name="codigo_logistica" class="form-control">
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label class="form-label fw-bold small">Stock Inicial</label>
                             <input type="number" name="cantidad" class="form-control" value="0">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold small">Vida Útil (Meses)</label>
+                            <input type="number" name="vida_util_meses" class="form-control" value="12" min="1">
                         </div>
                         <div class="col-12">
                             <label class="form-label fw-bold small">Imagen del producto</label>
@@ -298,6 +326,18 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Lógica para el modal de eliminación
+        const modalEliminar = document.getElementById('modalEliminarEpp');
+        if (modalEliminar) {
+            modalEliminar.addEventListener('show.bs.modal', function (event) {
+                const button = event.relatedTarget;
+                const eppNombre = button.getAttribute('data-epp-nombre');
+                const eppUrl = button.getAttribute('data-epp-url');
+                document.getElementById('eppNameToDelete').textContent = `"${eppNombre}"`;
+                document.getElementById('deleteEppForm').action = eppUrl;
+            });
+        }
+
         const filterBtns = document.querySelectorAll('.filter-btn');
         const subtipoFilter = document.getElementById('subtipoFilter');
         const vencimientoFilter = document.getElementById('vencimientoFilter');

@@ -14,6 +14,7 @@ class EppController extends Controller
     public function index()
     {
         $epps = Epp::with('categoria')->get();
+        // La vista de filtros y el modal de creación necesitan las categorías
         $categorias = Categoria::all();
         return view('epps.index', compact('epps', 'categorias'));
     }
@@ -24,6 +25,7 @@ class EppController extends Controller
             'nombre' => 'required|string|max:255',
             'categoria_id' => 'required|exists:categorias,id',
             'cantidad' => 'nullable|integer|min:0',
+            'vida_util_meses' => 'nullable|integer|min:1',
         ]);
 
         $data = $request->all();
@@ -33,6 +35,7 @@ class EppController extends Controller
         $data['stock'] = $request->cantidad ?? 0;
         $data['entregado'] = 0;
         $data['deteriorado'] = 0;
+        $data['vida_util_meses'] = $request->vida_util_meses ?? 12; // Valor por defecto: 1 año
 
         if ($request->hasFile('imagen')) {
             $data['imagen'] = $request->file('imagen')->store('epps', 'public');
@@ -43,17 +46,48 @@ class EppController extends Controller
         return redirect()->route('epps.index')->with('success', 'EPP registrado correctamente');
     }
 
+    public function show($id)
+    {
+        $epp = Epp::with('departamento')->findOrFail($id);
+        return view('epps.show', compact('epp'));
+    }
+
+    public function edit($id)
+    {
+        $epp = Epp::findOrFail($id);
+        $categorias = Categoria::all();
+        $departamentos = Departamento::all(); 
+        return view('epps.edit', compact('epp', 'categorias', 'departamentos'));
+    }
+
     public function update(Request $request, $id)
     {
         $epp = Epp::findOrFail($id);
+
+        $request->validate([
+            'nombre' => 'required|string|max:255',
+            'categoria_id' => 'required|exists:categorias,id',
+            'cantidad' => 'nullable|integer|min:0',
+            'vida_util_meses' => 'nullable|integer|min:1',
+            'codigo_logistica' => 'nullable|string|unique:epps,codigo_logistica,' . $epp->id,
+        ]);
+
         $data = $request->all();
 
         if ($request->hasFile('imagen')) {
             $data['imagen'] = $request->file('imagen')->store('epps', 'public');
         }
 
+        // Si se actualiza la cantidad total, recalcular el stock disponible
+        if ($request->has('cantidad')) {
+            $entregado = $epp->entregado ?? 0;
+            $deteriorado = $epp->deteriorado ?? 0;
+            // El nuevo stock es la nueva cantidad total menos lo que ya no está en almacén
+            $data['stock'] = $request->cantidad - $entregado - $deteriorado;
+        }
+
         $epp->update($data);
-        return redirect()->route('epps.index')->with('success', 'EPP actualizado');
+        return redirect()->route('epps.index')->with('success', 'EPP actualizado correctamente');
     }
 
     public function destroy($id)

@@ -12,12 +12,14 @@ class AsignacionController extends Controller
 {
     // ESTE ES EL MÉTODO QUE FALTA
     public function index()
-{
-    $asignaciones = Asignacion::with(['personal.talleres', 'epp'])->orderBy('fecha_entrega', 'desc')->get();
-    
-    // Cambiamos 'asignaciones.index' por la ruta donde lo guardaste:
-    return view('epps.asignaciones', compact('asignaciones')); 
-}
+    {
+        $asignaciones = Asignacion::with(['personal.talleres', 'epp'])
+            ->whereNotNull('personal_id') // Solo asignaciones con personal asociado
+            ->orderBy('fecha_entrega', 'desc')
+            ->get();
+        
+        return view('epps.asignaciones', compact('asignaciones')); 
+    }
 
     public function store(Request $request)
     {

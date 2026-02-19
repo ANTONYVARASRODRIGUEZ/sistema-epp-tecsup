@@ -38,34 +38,57 @@
         </div>
 
         <nav class="nav flex-column mt-3">
-    <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">
+
+    {{-- 1. Dashboard --}}
+    <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" 
+       href="{{ route('dashboard') }}">
         <i class="bi bi-bar-chart-line"></i> Dashboard
     </a>
 
-    <a class="nav-link {{ request()->is('asignaciones*') ? 'active' : '' }}" href="{{ route('asignaciones.index') }}">
-        <i class="bi bi-file-earmark-check"></i> Asignaciones de EPP
-    </a>
-
-    <a class="nav-link {{ request()->routeIs('personals.index') ? 'active' : '' }}" href="{{ route('personals.index') }}">
-        <i class="bi bi-person-badge"></i> Base de Datos Personal
-    </a>
-
-    <hr class="mx-3 my-2 text-secondary opacity-25">
-
-    <a class="nav-link {{ request()->is('epps*') ? 'active' : '' }}" href="{{ route('epps.index') }}">
+    {{-- 2. Inventario / Catálogo --}}
+    <a class="nav-link {{ request()->is('epps*') ? 'active' : '' }}" 
+       href="{{ route('epps.index') }}">
         <i class="bi bi-box-seam"></i> Inventario / Catálogo
     </a>
 
-    <a class="nav-link {{ request()->is('categorias*') ? 'active' : '' }}" href="{{ route('categorias.index') }}">
+    {{-- 3. Categorías --}}
+    <a class="nav-link {{ request()->is('categorias*') ? 'active' : '' }}" 
+       href="{{ route('categorias.index') }}">
         <i class="bi bi-tags"></i> Categorías
     </a>
 
-    <a class="nav-link {{ request()->routeIs('departamentos.index') ? 'active' : '' }}" href="{{ route('departamentos.index') }}">
+    {{-- 4. Base de Datos Personal --}}
+    <a class="nav-link {{ request()->routeIs('personals.index') ? 'active' : '' }}" 
+       href="{{ route('personals.index') }}">
+        <i class="bi bi-person-badge"></i> Base de Datos Personal
+    </a>
+
+    {{-- 5. Departamentos --}}
+    <a class="nav-link {{ request()->routeIs('departamentos.index') ? 'active' : '' }}" 
+       href="{{ route('departamentos.index') }}">
         <i class="bi bi-building"></i> Departamentos
     </a>
-    <a href="{{ route('reportes.index') }}" class="nav-link">
-    <i class="bi bi-file-earmark-bar-graph"></i> Reportes
-</a>
+
+    {{-- 6. Entrega de EPP (NUEVA SECCIÓN) --}}
+    <a class="nav-link {{ request()->is('entregas*') ? 'active' : '' }}" 
+       href="{{ route('entregas.index') }}">
+        <i class="bi bi-box-arrow-in-down"></i> Entrega de EPPS
+    </a>
+
+    {{-- 7. Historial (antes Asignaciones de EPP) --}}
+    <a class="nav-link {{ request()->is('asignaciones*') ? 'active' : '' }}" 
+       href="{{ route('asignaciones.index') }}">
+        <i class="bi bi-clock-history"></i> Historial de Entregas
+    </a>
+
+    {{-- 8. Reportes --}}
+    <a class="nav-link {{ request()->routeIs('reportes.index') ? 'active' : '' }}" 
+       href="{{ route('reportes.index') }}">
+        <i class="bi bi-file-earmark-bar-graph"></i> Reportes
+    </a>
+
+</nav>
+
 
 
     <hr class="mx-3 my-2 text-secondary opacity-25">

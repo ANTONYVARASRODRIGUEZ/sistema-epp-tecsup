@@ -127,7 +127,7 @@
                         </div>
                     </div>
 
-                    <a href="{{ route('departamentos.show', $depto->id) }}" class="btn btn-manage w-100 rounded-pill text-white">
+                    <a href="{{ route('entregas.index', ['departamento_id' => $depto->id]) }}" class="btn btn-manage w-100 rounded-pill text-white">
                         Gestionar Personal <i class="bi bi-arrow-right ms-2"></i>
                     </a>
                 </div>

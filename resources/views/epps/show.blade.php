@@ -7,7 +7,7 @@
             <h2 class="fw-bold mb-0">Detalles del EPP</h2>
             <p class="text-muted">Información completa de {{ $epp->nombre }}</p>
         </div>
-        <a href="{{ route('epps.catalogo') }}" class="btn btn-outline-secondary shadow-sm">
+        <a href="{{ route('epps.index') }}" class="btn btn-outline-secondary shadow-sm">
             <i class="bi bi-arrow-left"></i> Volver al catálogo
         </a>
     </div>

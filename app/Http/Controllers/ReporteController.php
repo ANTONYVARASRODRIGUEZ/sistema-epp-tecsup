@@ -7,6 +7,7 @@ use App\Models\Epp;
 use App\Models\Departamento;
 use App\Models\Personal;
 use App\Models\Asignacion;
+use Carbon\Carbon;
 
 class ReporteController extends Controller
 {
@@ -64,22 +65,31 @@ class ReporteController extends Controller
         return view('reportes.incidencias', compact('incidencias'));
     }
 
-
     /**
-     * Genera el reporte de planificación de vida útil a largo plazo.
+     * Genera la proyección de vencimientos basada en la vida útil.
+     * Muestra todos los EPPs del catálogo, no solo los asignados.
      */
     public function vidaUtil()
     {
-        // 1. Obtenemos solo los EPP que tienen fecha de vencimiento calculada
-        $eppsPorAnio = Epp::whereNotNull('fecha_vencimiento')
-            ->orderBy('fecha_vencimiento', 'asc')
+        // Obtenemos TODOS los EPPs del catálogo
+        $epps = Epp::orderBy('created_at', 'desc')
             ->get()
-            ->groupBy(function($epp) {
-                // 2. Agrupamos por el AÑO de vencimiento (ej: "2026", "2027")
-                return \Carbon\Carbon::parse($epp->fecha_vencimiento)->format('Y');
+            ->map(function ($epp) {
+                // Calculamos fecha de vencimiento real basada en created_at + vida_util_meses
+                $vidaUtil = $epp->vida_util_meses ?? 12;
+                $fechaCreacion = Carbon::parse($epp->created_at);
+                $fechaVencimiento = $fechaCreacion->copy()->addMonths($vidaUtil);
+                
+                $epp->fecha_vencimiento = $fechaVencimiento;
+                $epp->anio_vencimiento = $fechaVencimiento->year;
+                $epp->dias_restantes = now()->diffInDays($fechaVencimiento, false);
+                
+                return $epp;
             });
 
-        // 3. Enviamos los datos a la vista
-        return view('reportes.vida_util', compact('eppsPorAnio'));
+        // Agrupamos por año y ordenamos los años
+        $proyeccionPorAnio = $epps->groupBy('anio_vencimiento')->sortKeys();
+
+        return view('reportes.vida_util', compact('proyeccionPorAnio'));
     }
 }
