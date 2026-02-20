@@ -40,7 +40,7 @@ class EntregaController extends Controller
     }
 
     /**
-     * Asigna un EPP a todo el personal.
+     * Asigna un EPP a todo el personal o al personal de un departamento específico.
      */
     public function asignarMasivo(Request $request)
     {
@@ -48,7 +48,14 @@ class EntregaController extends Controller
             'epps' => 'required|array',
         ]);
 
-        $personals = Personal::all();
+        $departamentoIdFiltro = $request->input('departamento_id');
+        
+        $query = Personal::query();
+        if ($departamentoIdFiltro) {
+            $query->where('departamento_id', $departamentoIdFiltro);
+        }
+        
+        $personals = $query->get();
         $totalPersonas = $personals->count();
         
         if ($totalPersonas === 0) {
