@@ -55,9 +55,9 @@ class DocentesImport implements ToModel, WithHeadingRow
         }
 
         // 3. Si el interruptor está encendido, validamos que sea un nombre real
-        // (Mínimo 2 palabras y que no sea basura como "TOTAL")
+        // (Mínimo 2 palabras y que no sea basura como "TOTAL" o placeholders como "Docente Nuevo")
         $palabras = explode(' ', trim($valorCelda));
-        if (count($palabras) < 2 || str_contains($textoLimpio, 'TOTAL')) {
+        if (count($palabras) < 2 || str_contains($textoLimpio, ['TOTAL', 'DOCENTE NUEVO'])) {
             return null;
         }
 
