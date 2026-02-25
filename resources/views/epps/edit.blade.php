@@ -130,6 +130,14 @@
                                     <input type="number" name="cantidad" class="form-control bg-light border-start-0" value="{{ old('cantidad', $epp->cantidad) }}">
                                 </div>
                             </div>
+
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label fw-bold">Fecha de Registro</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-calendar-check"></i></span>
+                                    <input type="date" name="fecha_registro" class="form-control bg-light border-start-0" value="{{ old('fecha_registro', $epp->created_at ? $epp->created_at->format('Y-m-d') : '') }}">
+                                </div>
+                            </div>
                         </div>
 
                         <div class="row">

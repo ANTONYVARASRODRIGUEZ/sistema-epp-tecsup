@@ -20,7 +20,7 @@
         <div class="card-body p-4">
             <form action="{{ route('reportes.departamento') }}" method="GET" class="row align-items-end">
                 <div class="col-md-8">
-                    <label class="form-label fw-bold">Seleccione Departamento</label>
+                    <label for="departamento_id" class="form-label fw-bold">Seleccione Departamento</label>
                     <select name="departamento_id" class="form-select form-select-lg bg-light border-0" onchange="this.form.submit()">
                         <option value="">-- Seleccionar --</option>
                         @foreach($departamentos as $depto)
@@ -30,6 +30,16 @@
                         @endforeach
                     </select>
                 </div>
+                <div class="col-md-4">
+                    <label for="fecha_inicio" class="form-label fw-bold">Fecha de Inicio</label>
+                    <input type="date" name="fecha_inicio" id="fecha_inicio" class="form-control form-select-lg bg-light border-0" value="{{ request('fecha_inicio') }}" onchange="this.form.submit()">
+                </div>
+
+                <div class="col-md-4">
+                    <label for="fecha_fin" class="form-label fw-bold">Fecha de Fin</label>
+                    <input type="date" name="fecha_fin" id="fecha_fin" class="form-control form-select-lg bg-light border-0" value="{{ request('fecha_fin') }}" onchange="this.form.submit()">
+                </div>
+
                 <div class="col-md-4 text-end d-flex gap-2 justify-content-end">
                     @if(isset($departamentoSeleccionado))
                         <button id="btnDescargarPdf" type="button" class="btn btn-danger rounded-pill px-4 shadow-sm">
@@ -104,7 +114,7 @@
 
 <script>
     const btnPdf = document.getElementById('btnDescargarPdf');
-    if (btnPdf) {
+        if (btnPdf) {
         btnPdf.addEventListener('click', function() {
             const element = document.getElementById('reporte-completo');
             

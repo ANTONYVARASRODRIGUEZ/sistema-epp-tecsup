@@ -334,10 +334,10 @@
     new Chart(ctxDepartamento, {
         type: 'bar',
         data: {
-            labels: departamentoLabels.length > 0 ? departamentoLabels : ['Mecánica', 'Topografía', 'Tecnología Digital', 'Construcción'],
+            labels: departamentoLabels,
             datasets: [{
                 label: 'Total EPP Asignados',
-                data: departamentoCantidades.length > 0 ? departamentoCantidades : [450, 380, 290, 210],
+                data: departamentoCantidades,
                 backgroundColor: [
                     '#003366',
                     '#0056b3',

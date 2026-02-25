@@ -6,6 +6,7 @@ use App\Models\Epp;
 use App\Models\Departamento;
 use App\Models\Categoria;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 use App\Imports\EppImport;
 use App\Services\ExcelImageExtractor;
 use Maatwebsite\Excel\Facades\Excel;
@@ -28,6 +29,7 @@ class EppController extends Controller
             'cantidad' => 'nullable|integer|min:0',
             'vida_util_meses' => 'nullable|integer|min:1',
         ]);
+        $request->validate(['fecha_registro' => 'nullable|date']);
 
         $data = $request->all();
 
@@ -38,11 +40,17 @@ class EppController extends Controller
         $data['deteriorado'] = 0;
         $data['vida_util_meses'] = $request->vida_util_meses ?? 12; // Valor por defecto: 1 año
 
+        // Determine the base date for calculation
+        $baseDate = $request->filled('fecha_registro') ? Carbon::parse($request->fecha_registro) : now();
+
         if ($request->hasFile('imagen')) {
             $data['imagen'] = $request->file('imagen')->store('epps', 'public');
         }
 
-        Epp::create($data);
+        $epp = Epp::create($data);
+
+        // Override created_at with fecha_registro if provided
+        $epp->update(['created_at' => $baseDate]);
 
         return redirect()->route('epps.index')->with('success', 'EPP registrado correctamente');
     }
@@ -71,6 +79,7 @@ class EppController extends Controller
             'cantidad' => 'nullable|integer|min:0',
             'vida_util_meses' => 'nullable|integer|min:1',
             'codigo_logistica' => 'nullable|string|unique:epps,codigo_logistica,' . $epp->id,
+            'fecha_registro' => 'nullable|date',
         ]);
 
         $data = $request->all();
@@ -87,7 +96,13 @@ class EppController extends Controller
             $data['stock'] = $request->cantidad - $entregado - $deteriorado;
         }
 
-        $epp->update($data);
+        $epp->fill($data);
+
+        if ($request->filled('fecha_registro')) {
+            $epp->created_at = Carbon::parse($request->fecha_registro);
+        }
+
+        $epp->save();
         return redirect()->route('epps.index')->with('success', 'EPP actualizado correctamente');
     }
 
@@ -100,15 +115,16 @@ class EppController extends Controller
     public function import(Request $request) 
     {
         $request->validate(['file' => 'required|mimes:xlsx,xls,csv']);
+        $request->validate(['fecha_registro' => 'nullable|date']);
         try {
+            $fechaRegistro = $request->input('fecha_registro');
             // Paso 1: Extraer imágenes del Excel por nombre de EPP
             $archivoPath = $request->file('file')->getRealPath();
             $imagenesPorNombre = ExcelImageExtractor::extraerImagenesConNombres($archivoPath);
             
             \Log::info('Imágenes extraídas: ' . count($imagenesPorNombre));
-            
             // Paso 2: Importar datos con el mapeo de imágenes por nombre
-            Excel::import(new EppImport($imagenesPorNombre), $request->file('file'));
+            Excel::import(new EppImport($imagenesPorNombre, $fechaRegistro), $request->file('file'));
             
             return back()->with('success', '¡Matriz importada correctamente con imágenes!');
         } catch (\Exception $e) {

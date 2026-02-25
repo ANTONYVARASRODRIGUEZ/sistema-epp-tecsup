@@ -120,13 +120,17 @@
                     </div>
                     @endif
 
-                    <!-- Fecha de Vencimiento -->
-                    @if($epp->fecha_vencimiento)
-                    <div class="mb-4">
-                        <h6 class="fw-bold text-uppercase text-muted mb-2" style="font-size: 0.85rem;">Fecha de Vencimiento</h6>
-                        <p class="fw-bold">{{ $epp->fecha_vencimiento->format('d/m/Y') }}</p>
+                    <!-- Fechas -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6 class="fw-bold text-uppercase text-muted mb-2" style="font-size: 0.85rem;">Fecha de Registro</h6>
+                            <p class="fw-bold">{{ $epp->created_at ? $epp->created_at->format('d/m/Y') : '—' }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="fw-bold text-uppercase text-muted mb-2" style="font-size: 0.85rem;">Fecha de Vencimiento</h6>
+                            <p class="fw-bold">{{ $epp->fecha_vencimiento ? $epp->fecha_vencimiento->format('d/m/Y') : '—' }}</p>
+                        </div>
                     </div>
-                    @endif
 
                     <hr class="my-4">
 

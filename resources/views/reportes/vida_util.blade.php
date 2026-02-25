@@ -58,19 +58,33 @@
 
 <div class="container py-5">
     <div class="row mb-5">
-        <div class="col-lg-8">
+        <div class="col-lg-6">
             <h6 class="text-primary fw-bold text-uppercase mb-2" style="letter-spacing: 2px;">Gestión de Activos</h6>
             <h1 class="display-5 fw-black text-dark mb-3">Master Plan de Vida Útil</h1>
-            <p class="text-muted w-75">Proyección estratégica anual para el reemplazo y mantenimiento de Equipos de Protección Personal (EPP).</p>
+            <p class="text-muted w-75">Proyección de renovaciones basada en las asignaciones actuales al personal docente y administrativo.</p>
         </div>
-        <div class="col-lg-4 text-lg-end d-flex align-items-end justify-content-lg-end">
-            <div class="btn-group shadow-sm">
-                <a href="{{ route('reportes.index') }}" class="btn btn-white border px-4 fw-bold rounded-start">
-                    <i class="bi bi-grid-3x3-gap me-2"></i>Menú
-                </a>
-                <button onclick="window.print()" class="btn btn-dark px-4 fw-bold rounded-end">
-                    <i class="bi bi-printer me-2"></i>Exportar
-                </button>
+        <div class="col-lg-6">
+            <div class="d-flex flex-column align-items-end gap-3">
+                <!-- Buscador -->
+                <form action="{{ route('reportes.vida_util') }}" method="GET" class="w-100" style="max-width: 400px;">
+                    <div class="input-group shadow-sm">
+                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                        <input type="text" name="search" class="form-control border-start-0 ps-0" placeholder="Buscar docente o DNI..." value="{{ $search ?? '' }}">
+                        @if(request('search'))
+                            <a href="{{ route('reportes.vida_util') }}" class="btn btn-light border-start-0" title="Limpiar filtro"><i class="bi bi-x-lg"></i></a>
+                        @endif
+                        <button class="btn btn-primary" type="submit">Buscar</button>
+                    </div>
+                </form>
+                
+                <div class="btn-group shadow-sm">
+                    <a href="{{ route('reportes.index') }}" class="btn btn-white border px-4 fw-bold rounded-start">
+                        <i class="bi bi-grid-3x3-gap me-2"></i>Menú
+                    </a>
+                    <button onclick="window.print()" class="btn btn-dark px-4 fw-bold rounded-end">
+                        <i class="bi bi-printer me-2"></i>Exportar
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -80,15 +94,19 @@
             <div class="py-4">
                 <i class="bi bi-calendar-x display-1 text-light"></i>
                 <h3 class="mt-4 fw-bold">Sin datos para proyectar</h3>
-                <p class="text-muted">No se detectaron fechas de vencimiento en la base de datos.</p>
+                @if(request('search'))
+                    <p class="text-muted">No se encontraron asignaciones para "<strong>{{ request('search') }}</strong>".</p>
+                @else
+                    <p class="text-muted">No hay asignaciones activas ('Entregado') para calcular renovaciones.</p>
+                @endif
             </div>
         </div>
     @else
-        @foreach($proyeccionPorAnio as $anio => $epps)
+        @foreach($proyeccionPorAnio as $anio => $asignaciones)
             <div class="year-marker mb-5">
                 <div class="d-flex align-items-baseline mb-4">
                     <span class="display-year">{{ $anio }}</span>
-                    <span class="ms-3 text-muted fw-medium small">Ciclo de Renovación Anual</span>
+                    <span class="ms-3 text-muted fw-medium small">Renovaciones Programadas</span>
                 </div>
 
                 <div class="card timeline-card shadow-sm overflow-hidden">
@@ -96,16 +114,18 @@
                         <table class="table table-borderless align-middle mb-0">
                             <thead class="bg-light">
                                 <tr class="text-muted small text-uppercase fw-bold">
-                                    <th class="ps-4 py-3">Calendario</th>
-                                    <th>Detalle Técnico</th>
-                                    <th>Especificación</th>
-                                    <th class="text-center">Estado de Vida Útil</th>
+                                    <th class="ps-4 py-3">Mes Vencimiento</th>
+                                    <th>Personal / Área</th>
+                                    <th>EPP a Renovar</th>
+                                    <th>Fecha Entrega</th>
+                                    <th>Vida Útil</th>
+                                    <th class="text-center">Estado Actual</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($epps as $epp)
+                                @foreach($asignaciones as $item)
                                     @php
-                                        $fecha = \Carbon\Carbon::parse($epp->fecha_vencimiento);
+                                        $fecha = \Carbon\Carbon::parse($item->fecha_vencimiento);
                                         $hoy = now();
                                         $dias = (int) $hoy->diffInDays($fecha, false);
                                         $meses = (int) $hoy->diffInMonths($fecha, false);
@@ -116,16 +136,15 @@
                                             <div class="text-center small text-muted fw-semibold">{{ $fecha->format('d/m/Y') }}</div>
                                         </td>
                                         <td>
-                                            <div class="fw-bold text-dark fs-5 mb-0">{{ $epp->nombre }}</div>
-                                            <div class="d-flex align-items-center mt-1">
-                                                <span class="badge bg-soft-primary text-primary border-0 rounded-1 me-2" style="font-size: 0.65rem; background: #e0e7ff;">{{ $epp->codigo_logistica ?? '---' }}</span>
-                                                <span class="text-muted small">{{ $epp->marca_modelo ?? '---' }}</span>
-                                            </div>
+                                            <div class="fw-bold text-dark">{{ $item->personal->nombre_completo ?? 'N/A' }}</div>
+                                            <span class="badge bg-light text-secondary border mt-1">{{ $item->personal->departamento->nombre ?? 'Sin Área' }}</span>
                                         </td>
                                         <td>
-                                            <div class="text-muted small mb-1">Frecuencia</div>
-                                            <div class="fw-bold text-secondary small">{{ $epp->frecuencia_entrega ?? 'Cada uso' }}</div>
+                                            <div class="fw-bold text-primary">{{ $item->epp->nombre ?? 'N/A' }}</div>
+                                            <small class="text-muted">{{ $item->epp->codigo_logistica ?? '' }}</small>
                                         </td>
+                                        <td>{{ \Carbon\Carbon::parse($item->fecha_entrega)->format('d/m/Y') }}</td>
+                                        <td>{{ $item->epp->vida_util_meses ?? 12 }} meses</td>
                                         <td class="text-center">
                                             @if($fecha->isPast())
                                                 <div class="px-3 py-2 bg-danger bg-opacity-10 text-danger rounded-3 d-inline-block">

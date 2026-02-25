@@ -288,6 +288,12 @@
                             <label class="form-label fw-bold small">Imagen del producto</label>
                             <input type="file" name="imagen" class="form-control" accept="image/*">
                         </div>
+                        {{-- NEW: Date input for registration date --}}
+                        <div class="col-12">
+                            <label for="fecha_registro_manual" class="form-label fw-bold small">Fecha de Registro (opcional)</label>
+                            <input type="date" name="fecha_registro" id="fecha_registro_manual" class="form-control">
+                            <small class="form-text text-muted">Si no se especifica, se usará la fecha actual.</small>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer border-0">
@@ -416,6 +422,12 @@
                     </div>
                     <p class="mb-3">Selecciona el archivo Excel (.xlsx o .csv) que contiene la matriz de EPPs.</p>
                     <input type="file" name="file" class="form-control" accept=".xlsx, .xls, .csv" required>
+                    <div class="mt-3 small text-muted text-start">
+                        {{-- NEW: Date input for registration date --}}
+                        <label for="fecha_registro_excel" class="form-label fw-bold small text-start d-block">Fecha de Registro (opcional)</label>
+                        <input type="date" name="fecha_registro" id="fecha_registro_excel" class="form-control">
+                        <small class="form-text text-muted text-start d-block">Si no se especifica, se usará la fecha actual.</small>
+                    </div>
                     <div class="mt-3 small text-muted text-start">
                         <p class="mb-1 fw-bold">Requisitos del archivo:</p>
                         <ul class="ps-3">

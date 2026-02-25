@@ -35,15 +35,28 @@ class ReporteController extends Controller
     {
         $departamentos = Departamento::orderBy('nombre')->get();
         $departamentoId = $request->input('departamento_id');
+        $fechaInicio = $request->input('fecha_inicio');
+        $fechaFin = $request->input('fecha_fin');
         $departamentoSeleccionado = null;
         $personal = [];
 
         if ($departamentoId) {
             $departamentoSeleccionado = Departamento::find($departamentoId);
             if ($departamentoSeleccionado) {
-                // Obtenemos el personal del departamento con sus asignaciones y los datos del EPP
+                // Obtenemos el personal del departamento con sus asignaciones y los datos del EPP,
+                // aplicando también el filtro de fecha si está presente.
                 $personal = Personal::with(['asignaciones.epp'])
                     ->where('departamento_id', $departamentoId)
+                    ->when($fechaInicio, function ($query, $fechaInicio) {
+                        return $query->whereHas('asignaciones', function ($q) use ($fechaInicio) {
+                            $q->where('fecha_entrega', '>=', $fechaInicio);
+                        });
+                    })
+                    ->when($fechaFin, function ($query, $fechaFin) {
+                        return $query->whereHas('asignaciones', function ($q) use ($fechaFin) {
+                            $q->where('fecha_entrega', '<=', $fechaFin);
+                        });
+                    })
                     ->orderBy('nombre_completo')
                     ->get();
             }
@@ -69,27 +82,36 @@ class ReporteController extends Controller
      * Genera la proyección de vencimientos basada en la vida útil.
      * Muestra todos los EPPs del catálogo, no solo los asignados.
      */
-    public function vidaUtil()
+    public function vidaUtil(Request $request)
     {
-        // Obtenemos TODOS los EPPs del catálogo
-        $epps = Epp::orderBy('created_at', 'desc')
+        $search = $request->input('search');
+
+        // Obtenemos las ASIGNACIONES activas (Entregadas) para proyectar su renovación
+        $query = Asignacion::with(['epp', 'personal.departamento'])
+            ->where('estado', 'Entregado');
+
+        if ($search) {
+            $query->whereHas('personal', fn($q) => $q->where('nombre_completo', 'like', "%$search%")->orWhere('dni', 'like', "%$search%"));
+        }
+
+        $asignaciones = $query
             ->get()
-            ->map(function ($epp) {
-                // Calculamos fecha de vencimiento real basada en created_at + vida_util_meses
-                $vidaUtil = $epp->vida_util_meses ?? 12;
-                $fechaCreacion = Carbon::parse($epp->created_at);
-                $fechaVencimiento = $fechaCreacion->copy()->addMonths($vidaUtil);
+            ->map(function ($asignacion) {
+                // Calculamos fecha de vencimiento real: Fecha Entrega + Vida Útil del EPP
+                $vidaUtil = $asignacion->epp->vida_util_meses ?? 12;
+                $fechaEntrega = Carbon::parse($asignacion->fecha_entrega);
+                $fechaVencimiento = $fechaEntrega->copy()->addMonths($vidaUtil);
                 
-                $epp->fecha_vencimiento = $fechaVencimiento;
-                $epp->anio_vencimiento = $fechaVencimiento->year;
-                $epp->dias_restantes = now()->diffInDays($fechaVencimiento, false);
+                $asignacion->fecha_vencimiento = $fechaVencimiento;
+                $asignacion->anio_vencimiento = $fechaVencimiento->year;
+                $asignacion->dias_restantes = now()->diffInDays($fechaVencimiento, false);
                 
-                return $epp;
+                return $asignacion;
             });
 
         // Agrupamos por año y ordenamos los años
-        $proyeccionPorAnio = $epps->groupBy('anio_vencimiento')->sortKeys();
+        $proyeccionPorAnio = $asignaciones->groupBy('anio_vencimiento')->sortKeys();
 
-        return view('reportes.vida_util', compact('proyeccionPorAnio'));
+        return view('reportes.vida_util', compact('proyeccionPorAnio', 'search'));
     }
 }
