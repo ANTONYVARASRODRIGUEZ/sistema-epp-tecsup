@@ -7,6 +7,7 @@ use App\Models\Departamento;
 use App\Models\Categoria;
 use Illuminate\Http\Request;
 use App\Imports\EppImport;
+use App\Services\ExcelImageExtractor;
 use Maatwebsite\Excel\Facades\Excel;
 
 class EppController extends Controller
@@ -100,9 +101,18 @@ class EppController extends Controller
     {
         $request->validate(['file' => 'required|mimes:xlsx,xls,csv']);
         try {
-            Excel::import(new EppImport, $request->file('file'));
-            return back()->with('success', '¡Matriz importada!');
+            // Paso 1: Extraer imágenes del Excel por nombre de EPP
+            $archivoPath = $request->file('file')->getRealPath();
+            $imagenesPorNombre = ExcelImageExtractor::extraerImagenesConNombres($archivoPath);
+            
+            \Log::info('Imágenes extraídas: ' . count($imagenesPorNombre));
+            
+            // Paso 2: Importar datos con el mapeo de imágenes por nombre
+            Excel::import(new EppImport($imagenesPorNombre), $request->file('file'));
+            
+            return back()->with('success', '¡Matriz importada correctamente con imágenes!');
         } catch (\Exception $e) {
+            \Log::error('Error en importación de EPP: ' . $e->getMessage());
             return back()->with('error', 'Error: ' . $e->getMessage());
         }
     }

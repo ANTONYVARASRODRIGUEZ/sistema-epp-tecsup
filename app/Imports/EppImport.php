@@ -7,9 +7,21 @@ use App\Models\Categoria;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithStartRow;
 use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
+use Illuminate\Support\Facades\Log;
 
 class EppImport implements ToModel, WithStartRow, SkipsEmptyRows
 {
+    private $imagenesPorNombre = [];
+
+    public function __construct($imagenesPorNombre = [])
+    {
+        $this->imagenesPorNombre = $imagenesPorNombre;
+        Log::info('EppImport inicializado con ' . count($imagenesPorNombre) . ' imágenes');
+        if (count($imagenesPorNombre) > 0) {
+            Log::info('EPPs con imagen: ' . implode(', ', array_slice(array_keys($imagenesPorNombre), 0, 5)));
+        }
+    }
+
     public function startRow(): int
     {
         return 3; // Salta título y encabezados
@@ -23,23 +35,19 @@ class EppImport implements ToModel, WithStartRow, SkipsEmptyRows
 
         $nombreEpp = trim($row[1]);
 
-
-
-        // Limpiamos el nombre para la búsqueda (quitamos espacios extra y caracteres raros)
-    // Agregamos "safety" o "industrial" para que la búsqueda sea más precisa
-    $terminoBusqueda = urlencode($nombreEpp . ' safety equipment');
-
-
-    // Usaremos un servicio de imágenes aleatorias que busque por palabra clave
-    // Source Unsplash permite buscar por términos
-    $urlImagenAutomatica = "https://source.unsplash.com/featured/400x400?{$terminoBusqueda}";
-
-
         // --- NUEVO FILTRO: IGNORAR EL ENCABEZADO ESPECÍFICO ---
-    // Si el nombre contiene el título del reporte, lo saltamos
-    if (str_contains(strtoupper($nombreEpp), 'EQUIPOS DE PROTECCIÓN COLECTIVO')) {
-        return null;
-    }
+        if (str_contains(strtoupper($nombreEpp), 'EQUIPOS DE PROTECCIÓN COLECTIVO')) {
+            return null;
+        }
+
+        // Obtener imagen por nombre exacto del EPP
+        $imagenPath = $this->imagenesPorNombre[$nombreEpp] ?? null;
+        
+        if ($imagenPath) {
+            Log::info("✓ Imagen encontrada para: {$nombreEpp} -> {$imagenPath}");
+        } else {
+            Log::info("✗ Sin imagen en mapeo para: {$nombreEpp}");
+        }
 
 
         $categoriaId = $this->obtenerCategoriaPorNombre($nombreEpp);
@@ -66,9 +74,12 @@ class EppImport implements ToModel, WithStartRow, SkipsEmptyRows
         $fechaVencimiento = now()->addMonths($vidaUtilMeses);
         // --------------------------------------------------
 
+        // Usar imagen extraída del Excel o generar URL de Unsplash si no existe
+        $imagenFinal = $imagenPath ?? $this->generarImagenAutomatica($nombreEpp);
+
         return new Epp([
             'nombre'             => $nombreEpp,
-            'imagen'            => $urlImagenAutomatica, // Guardamos la URL externa
+            'imagen'            => $imagenFinal,
             'descripcion'        => $row[2] ?? null,
             'frecuencia_entrega' => $row[4] ?? null,
             'codigo_logistica'   => $row[5] ?? null,
@@ -84,6 +95,13 @@ class EppImport implements ToModel, WithStartRow, SkipsEmptyRows
             'categoria_id'       => $categoriaId, 
             'estado'             => 'disponible',
         ]);
+    }
+
+    private function generarImagenAutomatica($nombreEpp)
+    {
+        // Fallback: generar URL de Unsplash si no hay imagen en el Excel
+        $terminoBusqueda = urlencode($nombreEpp . ' safety equipment');
+        return "https://source.unsplash.com/featured/400x400?{$terminoBusqueda}";
     }
 
     /**
