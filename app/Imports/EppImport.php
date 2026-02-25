@@ -22,6 +22,26 @@ class EppImport implements ToModel, WithStartRow, SkipsEmptyRows
         }
 
         $nombreEpp = trim($row[1]);
+
+
+
+        // Limpiamos el nombre para la búsqueda (quitamos espacios extra y caracteres raros)
+    // Agregamos "safety" o "industrial" para que la búsqueda sea más precisa
+    $terminoBusqueda = urlencode($nombreEpp . ' safety equipment');
+
+
+    // Usaremos un servicio de imágenes aleatorias que busque por palabra clave
+    // Source Unsplash permite buscar por términos
+    $urlImagenAutomatica = "https://source.unsplash.com/featured/400x400?{$terminoBusqueda}";
+
+
+        // --- NUEVO FILTRO: IGNORAR EL ENCABEZADO ESPECÍFICO ---
+    // Si el nombre contiene el título del reporte, lo saltamos
+    if (str_contains(strtoupper($nombreEpp), 'EQUIPOS DE PROTECCIÓN COLECTIVO')) {
+        return null;
+    }
+
+
         $categoriaId = $this->obtenerCategoriaPorNombre($nombreEpp);
         $cantidadInicial = is_numeric($row[11]) ? (int)$row[11] : 0;
 
@@ -48,6 +68,7 @@ class EppImport implements ToModel, WithStartRow, SkipsEmptyRows
 
         return new Epp([
             'nombre'             => $nombreEpp,
+            'imagen'            => $urlImagenAutomatica, // Guardamos la URL externa
             'descripcion'        => $row[2] ?? null,
             'frecuencia_entrega' => $row[4] ?? null,
             'codigo_logistica'   => $row[5] ?? null,
