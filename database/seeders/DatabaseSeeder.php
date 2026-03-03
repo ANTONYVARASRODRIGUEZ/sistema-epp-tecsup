@@ -48,5 +48,15 @@ class DatabaseSeeder extends Seeder
     foreach ($areas as $area) {
         \App\Models\Departamento::create($area);
     }
+
+
+    // 3. LLAMAR A LOS OTROS SEEDERS EN ORDEN
+        $this->call([
+            // EppSeeder::class, // SI TIENES UNO QUE LLENA CASCOS/GUANTES, PONLO AQUÍ
+            MatrizDinamicaSeeder::class,
+        ]);
 }
+
+
+
 }
