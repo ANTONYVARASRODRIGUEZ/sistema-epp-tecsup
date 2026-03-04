@@ -13,7 +13,7 @@ class AsignacionController extends Controller
     // ESTE ES EL MÉTODO QUE FALTA
     public function index()
     {
-        $asignaciones = Asignacion::with(['personal.talleres', 'epp'])
+        $asignaciones = Asignacion::with(['personal.departamento', 'personal.talleres', 'epp'])
             ->whereNotNull('personal_id') // Solo asignaciones con personal asociado
             ->orderBy('fecha_entrega', 'desc')
             ->get();
