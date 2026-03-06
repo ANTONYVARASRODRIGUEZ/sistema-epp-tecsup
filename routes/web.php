@@ -17,6 +17,17 @@ use App\Http\Controllers\ReporteController;
 use App\Http\Controllers\EntregaController;
 use App\Http\Middleware\CheckFirstLogin;
 
+Route::get('/debug-hola', function () {
+    return "Si ves este mensaje, Laravel y las rutas funcionan. El problema es el Dashboard.";
+});
+
+Route::get('/debug-vista', function () {
+    if (view()->exists('dashboard')) {
+        return "La vista 'dashboard' SI existe para el servidor.";
+    }
+    return "ERROR: La vista 'dashboard' NO existe o tiene mayúsculas en el nombre.";
+});
+
 
 Route::get('/', function () {
     return view('auth.login');
