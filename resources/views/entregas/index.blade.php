@@ -36,7 +36,21 @@
     .page-title { font-size: clamp(1.25rem, 4vw, 1.75rem); }
 
     /* ── MODAL ── */
-    .modal-content { border-radius: 20px !important; border: none !important; }
+    .modal-content { 
+        border-radius: 20px !important; 
+        border: none !important;
+        max-height: 90vh; /* Que no mida más del 90% de la pantalla */
+        display: flex;
+        flex-direction: column; }
+
+        .modal-footer {
+        flex-shrink: 0; /* Que el botón no se encoja ni se oculte */
+        background: white;
+        z-index: 10;
+        border-top: 1px solid #dee2e6 !important;
+        position: sticky; /* Lo mantiene siempre visible al final del contenedor */
+        bottom: 0;
+    }
 </style>
 
 <div class="container-fluid py-3 py-md-4">
