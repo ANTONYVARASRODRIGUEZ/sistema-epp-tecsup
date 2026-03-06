@@ -11,17 +11,14 @@ RUN composer install --no-dev --optimize-autoloader
 
 EXPOSE 80
 
-# 1. Asegurar permisos de dueño y de escritura para el servidor web (www-data)
+# 1. Permisos de carpetas
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache && \
     chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# 2. Comando maestro: 
-#    - Configura Nginx para apuntar a /public
-#    - Limpia cachés de vistas previas para evitar el error de "Permission denied"
-#    - Ejecuta migraciones
-#    - Inicia el servidor
+# 2. Comando Maestro: Incluye el SEEDER con --force
 CMD sh -c "sed -i 's|root /var/www/html|root /var/www/html/public|g' /etc/nginx/sites-available/default.conf && \
     php artisan view:clear && \
     php artisan config:clear && \
     php artisan migrate --force && \
+    php artisan db:seed --force && \
     supervisord -n"
