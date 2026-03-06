@@ -15,8 +15,9 @@ EXPOSE 80
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache && \
     chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-CMD sh -c "sed -i 's|root /var/www/html|root /var/www/html/public|g' /etc/nginx/sites-available/default && \
-    sed -i 's|try_files \$uri \$uri/ =404;|try_files \$uri \$uri/ /index.php?\$query_string;|g' /etc/nginx/sites-available/default && \
+CMD sh -c "FILE_CONF=$( [ -f /etc/nginx/sites-available/default ] && echo /etc/nginx/sites-available/default || echo /etc/nginx/conf.d/default.conf ) && \
+    sed -i 's|root /var/www/html|root /var/www/html/public|g' \$FILE_CONF && \
+    sed -i 's|try_files \$uri \$uri/ =404;|try_files \$uri \$uri/ /index.php?\$query_string;|g' \$FILE_CONF && \
     php artisan config:clear && \
     php artisan route:clear && \
     php artisan view:clear && \
