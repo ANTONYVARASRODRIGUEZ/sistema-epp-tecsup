@@ -15,4 +15,4 @@ EXPOSE 80
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
 # 2. Comando para ejecutar migraciones y encender el servidor
-CMD php artisan migrate --force && supervisord -n
+CMD sh -c "sed -i 's|root /var/www/html|root /var/www/html/public|g' /etc/nginx/sites-available/default.conf && php artisan migrate --force && supervisord -n"
