@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Personal;
 use App\Models\Departamento;
 use App\Models\Epp;
-use App\Models\Taller;
 use App\Models\Asignacion;
 use Illuminate\Http\Request;
 use App\Imports\PersonalImport;
@@ -15,58 +14,53 @@ use Illuminate\Support\Facades\DB;
 class PersonalController extends Controller
 {
     public function index()
-{
-    // 1. Cargamos el personal con sus relaciones
-    $personals = Personal::with(['departamento', 'asignaciones' => function($query) {
-        $query->where('estado', 'Entregado');
-    }])->orderBy('nombre_completo', 'asc')->get();
+    {
+        $personals = Personal::with([
+            'departamento',
+            'asignaciones' => fn($q) => $q->where('estado', 'Entregado')
+        ])->orderBy('nombre_completo')->get();
 
-    // 2. Cargamos TODOS los EPPs para que estén disponibles en el HTML del modal
-    $epps = \App\Models\Epp::orderBy('nombre', 'asc')->get();
+        // Mapa de EPPs vinculados por departamento (para el organizador / asignaciones)
+        $epps = Epp::orderBy('nombre')->get();
 
-    // 3. CREAMOS EL MAPA DINÁMICO (La clave del éxito)
-    // Esto consulta la tabla puente y agrupa los IDs de EPP por cada Departamento
-    $eppsVinculados = \Illuminate\Support\Facades\DB::table('departamento_epp')
-        ->select('departamento_id', 'epp_id')
-        ->get()
-        ->groupBy('departamento_id')
-        ->map(function ($items) {
-            return $items->pluck('epp_id');
-        });
+        $eppsVinculados = DB::table('departamento_epp')
+            ->select('departamento_id', 'epp_id')
+            ->get()
+            ->groupBy('departamento_id')
+            ->map(fn($items) => $items->pluck('epp_id'));
 
-    // 4. Enviamos todo a la vista
-    return view('personals.index', compact('personals', 'epps', 'eppsVinculados'));
-}
+        return view('personals.index', compact('personals', 'epps', 'eppsVinculados'));
+    }
 
+    /**
+     * Crear personal manualmente — solo nombre y tipo
+     */
     public function store(Request $request)
     {
         $request->validate([
             'nombre_completo' => 'required|string|max:255',
-            'dni' => 'nullable|string|unique:personals,dni',
-            'carrera' => 'nullable|string|max:255',
-            'tipo_contrato' => 'nullable|string',
+            'tipo_contrato'   => 'required|string|in:Docente TC,Docente TP,Administrativo',
         ]);
 
         Personal::create([
-            'nombre_completo' => $request->nombre_completo,
-            'dni' => $request->dni,
-            'departamento_id' => null, 
-            'carrera' => $request->carrera ?? 'Sin carrera',
-            'tipo_contrato' => $request->tipo_contrato ?? 'Docente TC',
+            'nombre_completo' => trim($request->nombre_completo),
+            'tipo_contrato'   => $request->tipo_contrato,
+            'departamento_id' => null,
+            // dni y carrera pueden quedar null — vienen del Excel si aplica
         ]);
 
-        return back()->with('success', 'Docente registrado correctamente.');
+        return back()->with('success', 'Personal registrado correctamente.');
     }
 
     public function show($id)
     {
         $departamento = Departamento::with('personals')->findOrFail($id);
-        $epps = Epp::where('stock', '>', 0)->orderBy('nombre', 'asc')->get();
+        $epps = Epp::where('stock', '>', 0)->orderBy('nombre')->get();
         return view('departamentos.show', compact('departamento', 'epps'));
     }
 
     /**
-     * Actualizar datos del personal (Carrera, DNI, Nombre)
+     * Actualizar — solo nombre y tipo (sin dni ni carrera)
      */
     public function update(Request $request, $id)
     {
@@ -74,140 +68,97 @@ class PersonalController extends Controller
 
         $request->validate([
             'nombre_completo' => 'required|string|max:255',
-            'dni' => 'nullable|string|max:20|unique:personals,dni,' . $id,
-            'carrera' => 'nullable|string|max:255',
-            'tipo_contrato' => 'nullable|string',
+            'tipo_contrato'   => 'nullable|string|in:Docente TC,Docente TP,Administrativo',
         ]);
 
-        $personal->update($request->only([
-            'nombre_completo',
-            'dni',
-            'carrera',
-            'tipo_contrato'
-        ]));
+        $personal->update([
+            'nombre_completo' => trim($request->nombre_completo),
+            'tipo_contrato'   => $request->tipo_contrato,
+        ]);
 
-        return back()->with('success', 'Datos del docente actualizados.');
+        return back()->with('success', 'Datos actualizados correctamente.');
     }
 
-    // NUEVO: Para borrar personal de la lista maestra
     public function destroy($id)
     {
-        $personal = Personal::findOrFail($id);
-        $personal->delete();
-        return back()->with('success', 'Docente eliminado de la base de datos.');
+        Personal::findOrFail($id)->delete();
+        return back()->with('success', 'Personal eliminado de la base de datos.');
     }
 
     /**
-     * Eliminar docentes seleccionados
+     * Eliminar seleccionados (IDs separados por coma)
      */
     public function deleteMultiple(Request $request)
     {
-        $idsString = $request->input('ids', '');
-        $ids = array_filter(explode(',', $idsString)); // Convertir string a array
-        
+        $ids = array_filter(explode(',', $request->input('ids', '')));
+
         if (empty($ids)) {
-            return back()->with('error', 'Selecciona al menos un docente para eliminar.');
+            return back()->with('error', 'Selecciona al menos un registro para eliminar.');
         }
 
         try {
-            // Desactivar restricciones de clave foránea temporalmente
             DB::statement('SET FOREIGN_KEY_CHECKS=0');
-            
-            // Primero eliminar todas las asignaciones de estos docentes
             Asignacion::whereIn('personal_id', $ids)->delete();
-            
-            // Luego eliminar los docentes
             Personal::whereIn('id', $ids)->delete();
-            
-            // Reactivar restricciones de clave foránea
             DB::statement('SET FOREIGN_KEY_CHECKS=1');
-            
-            return back()->with('success', '✅ ' . count($ids) . ' docente(s) y sus asignaciones de EPP eliminado(s) correctamente.');
+
+            return back()->with('success', count($ids) . ' registro(s) y sus asignaciones eliminados correctamente.');
         } catch (\Exception $e) {
             return back()->with('error', 'Error al eliminar: ' . $e->getMessage());
         }
     }
 
     /**
-     * Eliminar todos los docentes
+     * Vaciar toda la base de personal
      */
-    public function deleteAll(Request $request)
+    public function deleteAll()
     {
         try {
             $count = Personal::count();
-            
-            // Desactivar restricciones de clave foránea temporalmente
             DB::statement('SET FOREIGN_KEY_CHECKS=0');
-            
-            // Primero eliminar todas las asignaciones
             Asignacion::truncate();
-            
-            // Luego truncate la tabla de personales
             Personal::truncate();
-            
-            // Reactivar restricciones de clave foránea
             DB::statement('SET FOREIGN_KEY_CHECKS=1');
-            
-            return back()->with('success', '✅ Se han eliminado ' . $count . ' docente(s) y todas sus asignaciones de EPP. Total actual: 0');
+
+            return back()->with('success', "Se eliminaron {$count} registro(s) y todas sus asignaciones.");
         } catch (\Exception $e) {
             return back()->with('error', 'Error al vaciar: ' . $e->getMessage());
         }
     }
 
+    /**
+     * Importar desde Excel (sin cambios — sigue funcionando igual)
+     */
     public function importExcel(Request $request)
     {
         $request->validate(['file' => 'required|mimes:xlsx,xls,csv']);
+
         try {
-            \Log::info("═══════════════════════════════════════════");
-            \Log::info("INICIANDO IMPORTACIÓN DE EXCEL");
-            \Log::info("Archivo: " . $request->file('file')->getClientOriginalName());
-            \Log::info("═══════════════════════════════════════════");
-            
+            \Log::info('INICIANDO IMPORTACIÓN: ' . $request->file('file')->getClientOriginalName());
+
             Excel::import(new PersonalImport, $request->file('file'));
 
-            // 2. --- NUEVO: VINCULACIÓN AUTOMÁTICA DE EPPS ---
-            // Buscamos todos los EPPs que tienen texto pero no ID de departamento
-            $departamentosOficiales = \App\Models\Departamento::all();
-            $eppsSinAsociar = \App\Models\Epp::whereNotNull('departamento_texto')->get();
-
-            foreach ($eppsSinAsociar as $epp) {
-                $idsParaVincular = [];
-                foreach ($departamentosOficiales as $depto) {
-                    // Si el nombre del depto recién creado está en el texto del EPP
-                    if (str_contains(strtolower($epp->departamento_texto), strtolower($depto->nombre))) {
-                        $idsParaVincular[] = $depto->id;
+            // Vinculación automática EPPs ↔ Departamentos
+            $departamentos = Departamento::all();
+            foreach (Epp::whereNotNull('departamento_texto')->get() as $epp) {
+                $ids = [];
+                foreach ($departamentos as $d) {
+                    if (str_contains(strtolower($epp->departamento_texto), strtolower($d->nombre))) {
+                        $ids[] = $d->id;
                     }
                 }
-                // Sincronizamos la tabla puente
-                $epp->departamentos()->sync($idsParaVincular);
+                $epp->departamentos()->sync($ids);
             }
-            \Log::info("🔗 EPPs vinculados automáticamente a los nuevos departamentos.");
-            // -----------------------------------------------
-            
-            $personalsCount = Personal::count();
 
-            // --- INICIO CÓDIGO INVISIBLE PARA LA MATRIZ ---
-            // Una vez importado el personal y creados los departamentos,
-            // ejecutamos el seeder de la matriz automáticamente.
-          
+            $total = Personal::count();
+            \Log::info("IMPORTACIÓN COMPLETADA — Total en BD: {$total}");
 
-
-
-            
-            \Log::info("═══════════════════════════════════════════");
-            \Log::info("✅ IMPORTACIÓN COMPLETADA");
-            \Log::info("Total de personals en BD: " . $personalsCount);
-            \Log::info("═══════════════════════════════════════════");
-            
-            return redirect()->route('personals.index')->with('success', '✅ ¡Personal importado correctamente! Total en BD: ' . $personalsCount);
+            return redirect()->route('personals.index')
+                ->with('success', "Personal importado correctamente. Total en BD: {$total}");
         } catch (\Exception $e) {
-            \Log::error("═══════════════════════════════════════════");
-            \Log::error("❌ ERROR EN IMPORTACIÓN");
-            \Log::error($e->getMessage());
-            \Log::error($e->getTraceAsString());
-            \Log::error("═══════════════════════════════════════════");
-            
-            return redirect()->route('personals.index')->with('error', '❌ Error al importar: ' . $e->getMessage());
+            \Log::error('ERROR IMPORTACIÓN: ' . $e->getMessage());
+            return redirect()->route('personals.index')
+                ->with('error', 'Error al importar: ' . $e->getMessage());
         }
     }
 }

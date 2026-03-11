@@ -16,42 +16,134 @@
     }
     .specs-box { border: 1px solid #e9ecef !important; }
 
-    /* ── CATEGORY FILTER STRIP ── */
+    /* ── SIN IMAGEN PLACEHOLDER ── */
+    .no-image-placeholder {
+        width: 100%; height: 100%;
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf0 100%);
+        color: #aab0b8;
+    }
+    .no-image-placeholder i  { font-size: 2.2rem; margin-bottom: 6px; opacity: 0.5; }
+    .no-image-placeholder span {
+        font-size: 0.62rem; font-weight: 700;
+        letter-spacing: 1.5px; text-transform: uppercase; opacity: 0.6;
+    }
+
+    /* ── FILTER STRIP ── */
     .filter-strip {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        overflow-x: auto;
-        padding-bottom: 4px;
+        display: flex; align-items: center; gap: 6px;
+        overflow-x: auto; padding-bottom: 4px;
         -webkit-overflow-scrolling: touch;
     }
     .filter-strip::-webkit-scrollbar { display: none; }
     .filter-btn { transition: all 0.2s; white-space: nowrap; }
 
-    /* ── HEADER ── */
     .page-title { font-size: clamp(1.2rem, 4vw, 1.6rem); }
-
-    /* ── MODAL ── */
     .modal-content { border-radius: 15px !important; border: none !important; }
 
-    /* ── ANIMATIONS ── */
-    @keyframes pulse-yellow {
-        0%   { transform: scale(1); }
-        50%  { transform: scale(1.05); }
-        100% { transform: scale(1); }
+    /* ── SECTION LABEL in modal ── */
+    .section-label {
+        font-size: .68rem; font-weight: 700; letter-spacing: .08em;
+        text-transform: uppercase; color: #6c757d;
+        display: flex; align-items: center; gap: 6px;
+        padding: 6px 10px; background: #f8f9fa;
+        border-radius: 6px; margin-bottom: 14px;
+        border-left: 3px solid #003366;
     }
-    .pulse-alert { animation: pulse-yellow 2s infinite; }
+
+    /* ── DEPTO CHIPS ── */
+    .depto-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+        gap: 8px;
+    }
+    .depto-chip {
+        display: flex; align-items: center; gap: 8px;
+        padding: 8px 12px; border-radius: 8px; cursor: pointer;
+        border: 1.5px solid #dee2e6; background: #fff;
+        transition: all .15s; font-size: .82rem; user-select: none;
+        line-height: 1.3;
+    }
+    .depto-chip:hover { border-color: #003366; background: #f0f4ff; }
+    .depto-chip:has(input:checked) {
+        border-color: #003366; background: #e8efff;
+        color: #003366; font-weight: 600;
+    }
+    .depto-chip input { display: none; }
+    .depto-chip .chip-icon { font-size: .9rem; flex-shrink: 0; opacity: .6; }
+    .depto-chip:has(input:checked) .chip-icon { opacity: 1; }
+
+    /* ── VENCIMIENTO BADGES ── */
+    .badge-vencido { background-color:#dc3545; color:#fff; font-size:.6rem; padding:2px 6px; border-radius:20px; }
+    .badge-proximo { background-color:#fd7e14; color:#fff; font-size:.6rem; padding:2px 6px; border-radius:20px; }
+
+    /* ── RESPONSIVE ── */
+
+    /* Header: botones apilados en xs */
+    @media (max-width: 575.98px) {
+        .header-actions {
+            width: 100%;
+        }
+        .header-actions .btn {
+            flex: 1 1 auto;
+            justify-content: center;
+            font-size: .82rem;
+            padding: 6px 10px;
+        }
+    }
+
+    /* Filter bar: selects full width en xs */
+    @media (max-width: 575.98px) {
+        .filter-bar-selects .col-12 { width: 100%; }
+    }
+
+    /* Cards: 2 columnas en xs (< 576px) */
+    @media (max-width: 575.98px) {
+        .epp-item { width: 50%; }
+        .card-epp .card-body { padding: 0.6rem !important; }
+
+        /* Imagen un poco más pequeña */
+        .epp-img-container { height: 130px !important; }
+
+        /* Specs box: fuente más pequeña */
+        .specs-box span { font-size: 0.6rem !important; }
+
+        /* Título EPP */
+        .card-epp h6 { font-size: .82rem !important; }
+        .card-epp .text-primary { font-size: .68rem !important; }
+
+        /* Descripción */
+        .card-epp p.text-muted { font-size: .72rem !important; min-height: 1.8rem !important; }
+
+        /* Botón ver detalles */
+        .card-epp .btn { font-size: .72rem; padding: 3px 6px; }
+
+        /* Dropdown menú */
+        .card-epp .btn-light { padding: 2px 6px; }
+    }
+
+    /* Cards: imagen en sm */
+    @media (min-width: 576px) and (max-width: 767.98px) {
+        .epp-img-container { height: 150px !important; }
+    }
+
+    /* Filter strip scroll suave en todos los móviles */
+    @media (max-width: 767.98px) {
+        .filter-strip { padding-bottom: 6px; }
+        .filter-strip .btn { font-size: .78rem; padding: 4px 12px; }
+    }
 </style>
 
-<div class="container-fluid py-2">
+<div class="container-fluid py-2 px-3 px-md-4">
 
     {{-- ── HEADER ── --}}
     <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-4">
         <div>
-            <h2 class="page-title fw-bold mb-0">Panel de Gestión EPP</h2>
-            <p class="text-muted small mb-0">Control de inventario y asignaciones de EPPS</p>
+            <h2 class="page-title fw-bold mb-0">Catálogo de Equipos de Protección Personal</h2>
+            <p class="text-muted small mb-0">Registro y administración de EPP mediante carga de Excel o ingreso manual</p>
         </div>
-        <div class="d-flex flex-wrap gap-2 justify-content-start justify-content-sm-end">
+        <div class="header-actions d-flex flex-wrap gap-2 justify-content-start justify-content-sm-end">
             <button type="button" class="btn btn-outline-danger shadow-sm d-flex align-items-center"
                     data-bs-toggle="modal" data-bs-target="#modalVaciarEpps">
                 <i class="bi bi-trash3 me-1"></i>Vaciar Todo
@@ -60,49 +152,52 @@
                     data-bs-toggle="modal" data-bs-target="#modalImportarEpp">
                 <i class="bi bi-file-earmark-excel me-1"></i>Importar
             </button>
-            <button type="button" class="btn btn-primary shadow-sm d-flex align-items-center"
-                    style="background-color:#003366; border:none;"
-                    data-bs-toggle="modal" data-bs-target="#modalNuevoEpp">
+            <a href="{{ route('epps.create') }}" class="btn btn-primary shadow-sm d-flex align-items-center"
+               style="background-color:#003366; border:none;">
                 <i class="bi bi-plus fs-5 me-1"></i>Nuevo EPP
-            </button>
+            </a>
         </div>
     </div>
 
     {{-- ── FILTER BAR ── --}}
     <div class="card border-0 shadow-sm p-3 mb-4">
-        <div class="row g-3 align-items-center">
+        <div class="row g-3 align-items-center filter-bar-selects">
 
-            {{-- Category pills --}}
             <div class="col-12">
                 <div class="filter-strip">
                     <span class="fw-bold text-muted small text-nowrap"><i class="bi bi-tag me-1"></i>Categoría:</span>
                     <button class="btn btn-sm btn-primary rounded-pill filter-btn px-3" data-filter="all">Todas</button>
                     @foreach($categorias as $cat)
                         <button class="btn btn-sm btn-outline-primary rounded-pill filter-btn px-3"
-                                data-filter="cat-{{ $cat->id }}">
-                            {{ $cat->nombre }}
-                        </button>
+                                data-filter="cat-{{ $cat->id }}">{{ $cat->nombre }}</button>
                     @endforeach
                 </div>
             </div>
 
-            {{-- Search --}}
-            <div class="col-12 col-md-7">
+            <div class="col-12 col-md-4">
                 <div class="input-group">
                     <span class="input-group-text bg-light border-0"><i class="bi bi-search"></i></span>
-                    <input type="text" id="searchEpp"
-                           class="form-control bg-light border-0"
+                    <input type="text" id="searchEpp" class="form-control bg-light border-0"
                            placeholder="Buscar por código, nombre o detalles...">
                 </div>
             </div>
 
-            {{-- Subtipo filter --}}
-            <div class="col-12 col-md-5">
-                <select id="subtipoFilter" class="form-select">
-                    <option value="all">— Filtrar por tipo de EPP —</option>
-                    @foreach($epps->pluck('nombre')->unique()->sort() as $nombreUnico)
-                        <option value="{{ strtolower($nombreUnico) }}">{{ $nombreUnico }}</option>
+            <div class="col-12 col-sm-6 col-md-4">
+                <select id="deptoFilter" class="form-select">
+                    <option value="all">— Filtrar por departamento —</option>
+                    @foreach($departamentos as $depto)
+                        <option value="{{ $depto->id }}">{{ $depto->nombre }}</option>
                     @endforeach
+                </select>
+            </div>
+
+            <div class="col-12 col-sm-6 col-md-4">
+                <select id="vencimientoFilter" class="form-select">
+                    <option value="all">— Filtrar por estado de vencimiento —</option>
+                    <option value="vencido">⛔ Vencidos</option>
+                    <option value="proximo">⚠️ Próximos a vencer (30 días)</option>
+                    <option value="vigente">✅ Vigentes</option>
+                    <option value="sin_fecha">— Sin fecha de vencimiento —</option>
                 </select>
             </div>
 
@@ -110,103 +205,149 @@
     </div>
 
     {{-- ── EPP GRID ── --}}
-<div class="row g-3" id="eppGrid">
-    @forelse($epps as $epp)
-    <div class="col-12 col-sm-6 col-lg-4 col-xl-3 epp-item cat-{{ $epp->categoria_id }}"
-         data-subtipo="{{ strtolower($epp->nombre) }}"
-         data-nombre="{{ strtolower($epp->nombre) }}"
-         data-descripcion="{{ strtolower($epp->descripcion) }}"
-         data-codigo="{{ strtolower($epp->codigo_logistica ?? '') }}">
+    <div class="row g-3" id="eppGrid">
+        @forelse($epps as $epp)
+        @php
+            $vencimientoReal   = null;
+            $estadoVencimiento = 'sin_fecha';
+            if ($epp->created_at && $epp->vida_util_meses) {
+                $vencimientoReal = \Carbon\Carbon::parse($epp->created_at)->addMonths($epp->vida_util_meses);
+                $hoy = \Carbon\Carbon::today();
+                if ($vencimientoReal->lt($hoy)) {
+                    $estadoVencimiento = 'vencido';
+                } elseif ($hoy->diffInDays($vencimientoReal) <= 30) {
+                    $estadoVencimiento = 'proximo';
+                } else {
+                    $estadoVencimiento = 'vigente';
+                }
+            }
+            $deptoIds = $epp->departamentos && $epp->departamentos->count()
+                ? ',' . $epp->departamentos->pluck('id')->implode(',') . ','
+                : ',';
+        @endphp
 
-        <div class="card border-0 shadow-sm h-100 card-epp">
+        <div class="col-6 col-sm-6 col-lg-4 col-xl-3 epp-item cat-{{ $epp->categoria_id }}"
+             data-nombre="{{ strtolower($epp->nombre) }}"
+             data-descripcion="{{ strtolower($epp->descripcion ?? '') }}"
+             data-codigo="{{ strtolower($epp->codigo_logistica ?? '') }}"
+             data-depto="{{ $deptoIds }}"
+             data-vencimiento="{{ $estadoVencimiento }}">
 
-            {{-- Image --}}
-            <div class="position-relative d-flex align-items-center justify-content-center bg-light"
-                 style="height:170px; border-bottom: 1px solid #f0f0f0;">
-                @if($epp->imagen)
-                    <img src="{{ asset('storage/' . $epp->imagen) }}"
-                         class="img-fluid h-100 p-2" style="object-fit:contain;">
-                @else
-                    <div class="text-center px-3">
-                        <p class="text-muted fw-bold mb-0" style="font-size: 0.7rem; letter-spacing: 1px; text-transform: uppercase;">
-                            Imagen no<br>adjuntada
-                        </p>
-                    </div>
-                @endif
-            </div>
+            <div class="card border-0 shadow-sm h-100 card-epp">
 
-            {{-- Body --}}
-            <div class="card-body d-flex flex-column">
-                <div class="d-flex justify-content-between align-items-start mb-2">
-                    <div class="me-2">
-                        @php
-                            $partes = explode('-', $epp->nombre);
-                            $principal = trim($partes[0]);
-                            $subtipoDetalle = isset($partes[1]) ? trim($partes[1]) : null;
-                        @endphp
-                        <h6 class="fw-bold mb-0 text-dark" style="font-size:.95rem; line-height: 1.2;">{{ Str::upper($principal) }}</h6>
-                        @if($subtipoDetalle)
-                            <span class="text-primary fw-semibold" style="font-size:0.75rem;">
-                                {{ Str::upper($subtipoDetalle) }}
-                            </span>
+                {{-- Imagen + badge --}}
+                <div class="position-relative">
+                    <div class="epp-img-container d-flex align-items-center justify-content-center bg-light"
+                         style="height:170px; border-bottom:1px solid #f0f0f0; overflow:hidden;">
+                        @if($epp->imagen)
+                            <img src="{{ asset('storage/' . $epp->imagen) }}"
+                                 class="img-fluid h-100 p-2" style="object-fit:contain;"
+                                 onerror="this.parentElement.innerHTML='<div class=\'no-image-placeholder\'><i class=\'bi bi-shield-slash\'></i><span>Sin Imagen</span></div>'">
+                        @else
+                            <div class="no-image-placeholder">
+                                <i class="bi bi-shield-slash"></i>
+                                <span>Sin Imagen</span>
+                            </div>
                         @endif
                     </div>
-                    <div class="dropdown flex-shrink-0">
-                        <button class="btn btn-light btn-sm border-0" type="button" data-bs-toggle="dropdown">
-                            <i class="bi bi-three-dots-vertical"></i>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                            <li><a class="dropdown-item" href="{{ route('epps.show', $epp->id) }}"><i class="bi bi-eye me-2 text-info"></i>Ficha Técnica</a></li>
-                            <li><a class="dropdown-item" href="{{ route('epps.edit', $epp->id) }}"><i class="bi bi-pencil me-2 text-primary"></i>Editar</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li>
-                                <button type="button" class="dropdown-item text-danger"
-                                        data-bs-toggle="modal" data-bs-target="#modalEliminarEpp"
-                                        data-epp-nombre="{{ $epp->nombre }}"
-                                        data-epp-url="{{ route('epps.destroy', $epp->id) }}">
-                                    <i class="bi bi-trash me-2"></i>Eliminar
-                                </button>
-                            </li>
-                        </ul>
-                    </div>
+                    @if($estadoVencimiento === 'vencido')
+                        <span class="badge-vencido position-absolute top-0 end-0 m-2" style="z-index:5;">VENCIDO</span>
+                    @elseif($estadoVencimiento === 'proximo')
+                        <span class="badge-proximo position-absolute top-0 end-0 m-2" style="z-index:5;">PRÓX. A VENCER</span>
+                    @endif
                 </div>
 
-                {{-- Descripción / Modelo --}}
-                <p class="text-muted mb-3" style="font-size:0.8rem; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; min-height: 2.4rem;">
-                    {{ $epp->descripcion ?? 'Sin especificaciones del modelo.' }}
-                </p>
-
-                {{-- Specs Box (Rediseñada para mostrar Código y Vida Útil) --}}
-                <div class="specs-box bg-light rounded-3 p-2 mb-3">
-                    <div class="d-flex justify-content-between align-items-center mb-1 border-bottom pb-1">
-                        <span class="text-muted" style="font-size:0.65rem;"><i class="bi bi-barcode me-1"></i>CÓD. LOGÍSTICA:</span>
-                        <span class="fw-bold text-dark" style="font-size:0.7rem;">
-                            {{ $epp->codigo_logistica ?? 'N/A' }}
-                        </span>
+                <div class="card-body d-flex flex-column p-3">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div class="me-2 min-w-0">
+                            @php
+                                $partes = explode('-', $epp->nombre);
+                                $principal = trim($partes[0]);
+                                $subtipoDetalle = isset($partes[1]) ? trim($partes[1]) : null;
+                            @endphp
+                            <h6 class="fw-bold mb-0 text-dark" style="font-size:.95rem; line-height:1.2;">{{ Str::upper($principal) }}</h6>
+                            @if($subtipoDetalle)
+                                <span class="text-primary fw-semibold" style="font-size:0.75rem;">{{ Str::upper($subtipoDetalle) }}</span>
+                            @endif
+                        </div>
+                        <div class="dropdown flex-shrink-0">
+                            <button class="btn btn-light btn-sm border-0" type="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-three-dots-vertical"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                                <li><a class="dropdown-item" href="{{ route('epps.edit', $epp->id) }}">
+                                    <i class="bi bi-pencil me-2 text-primary"></i>Editar</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <button type="button" class="dropdown-item text-danger"
+                                            data-bs-toggle="modal" data-bs-target="#modalEliminarEpp"
+                                            data-epp-nombre="{{ $epp->nombre }}"
+                                            data-epp-url="{{ route('epps.destroy', $epp->id) }}">
+                                        <i class="bi bi-trash me-2"></i>Eliminar
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
                     </div>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="text-muted" style="font-size:0.65rem;"><i class="bi bi-clock-history me-1"></i>VIDA ÚTIL:</span>
-                        <span class="fw-bold text-dark" style="font-size:0.7rem;">
-                            {{ $epp->vida_util_meses >= 12 ? ($epp->vida_util_meses / 12).' Años' : $epp->vida_util_meses.' Meses' }}
-                        </span>
-                    </div>
-                </div>
 
-                <div class="mt-auto">
-                    <a href="{{ route('epps.show', $epp->id) }}" class="btn btn-outline-dark btn-sm w-100 py-1 fw-bold">
-                        <i class="bi bi-info-circle me-1"></i>Ver Ficha Técnica
-                    </a>
+                    <p class="text-muted mb-3" style="font-size:0.8rem; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; min-height:2.4rem;">
+                        {{ $epp->descripcion ?? 'Sin especificaciones del modelo.' }}
+                    </p>
+
+                    <div class="specs-box bg-light rounded-3 p-2 mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1 border-bottom pb-1">
+                            <span class="text-muted" style="font-size:0.65rem;"><i class="bi bi-barcode me-1"></i>CÓD. LOGÍSTICA:</span>
+                            <span class="fw-bold text-dark" style="font-size:0.7rem;">{{ $epp->codigo_logistica ?? 'N/A' }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-1 border-bottom pb-1">
+                            <span class="text-muted" style="font-size:0.65rem;"><i class="bi bi-clock-history me-1"></i>VIDA ÚTIL:</span>
+                            <span class="fw-bold text-dark" style="font-size:0.7rem;">
+                                {{ $epp->vida_util_meses >= 12 ? ($epp->vida_util_meses / 12).' Años' : $epp->vida_util_meses.' Meses' }}
+                            </span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-1 border-bottom pb-1">
+                            <span class="text-muted" style="font-size:0.65rem;"><i class="bi bi-calendar-plus me-1"></i>F. REGISTRO:</span>
+                            <span class="fw-bold text-dark" style="font-size:0.7rem;">
+                                {{ $epp->created_at ? \Carbon\Carbon::parse($epp->created_at)->format('d/m/Y') : 'N/A' }}
+                            </span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted" style="font-size:0.65rem;"><i class="bi bi-calendar-x me-1"></i>F. VENCIMIENTO:</span>
+                            @if($vencimientoReal)
+                                <span class="fw-bold" style="font-size:0.7rem; color:{{ $estadoVencimiento==='vencido'?'#dc3545':($estadoVencimiento==='proximo'?'#fd7e14':'#198754') }};">
+                                    {{ $vencimientoReal->format('d/m/Y') }}
+                                </span>
+                            @else
+                                <span class="fw-bold text-muted" style="font-size:0.7rem;">N/A</span>
+                            @endif
+                        </div>
+                    </div>
+
+                    <div class="mt-auto">
+                        <a href="{{ route('epps.show', $epp->id) }}" class="btn btn-outline-dark btn-sm w-100 py-1 fw-bold">
+                            <i class="bi bi-info-circle me-1"></i>Ver Detalles
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
+        @empty
+        <div class="col-12 text-center py-5" id="emptyStateTotal">
+            <i class="bi bi-box-seam display-1 text-muted opacity-25"></i>
+            <p class="mt-3 text-muted">No se encontraron equipos de protección personal.</p>
+        </div>
+        @endforelse
     </div>
-    @empty
-    <div class="col-12 text-center py-5">
-        <i class="bi bi-box-seam display-1 text-muted opacity-25"></i>
-        <p class="mt-3 text-muted">No se encontraron equipos de protección personal.</p>
+
+    {{-- Mensaje cuando filtros no dan resultados --}}
+    <div id="emptyStateFilter" class="text-center py-5" style="display:none;">
+        <i class="bi bi-funnel display-1 text-muted opacity-25"></i>
+        <p class="mt-3 fw-semibold text-muted mb-1">Sin resultados para este filtro</p>
+        <p class="text-muted small">No hay EPPs que coincidan con la selección actual.</p>
+        <button class="btn btn-sm btn-outline-primary mt-1" id="clearFiltersBtn">
+            <i class="bi bi-x-circle me-1"></i>Limpiar filtros
+        </button>
     </div>
-    @endforelse
-</div>
 
 </div>
 
@@ -231,67 +372,6 @@
                     <button type="submit" class="btn btn-danger">Sí, Eliminar</button>
                 </form>
             </div>
-        </div>
-    </div>
-</div>
-
-{{-- Nuevo EPP --}}
-<div class="modal fade" id="modalNuevoEpp" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-        <div class="modal-content shadow-lg">
-            <div class="modal-header bg-light">
-                <h5 class="modal-title fw-bold">Registrar Nuevo EPP</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <form action="{{ route('epps.store') }}" method="POST" enctype="multipart/form-data">
-                @csrf
-                <div class="modal-body p-3 p-sm-4">
-                    <div class="row g-3">
-                        <div class="col-12 col-sm-6">
-                            <label class="form-label fw-bold small">Nombre del Equipo</label>
-                            <input type="text" name="nombre" class="form-control" placeholder="Ej. Guante - Nitrilo" required>
-                        </div>
-                        <div class="col-12 col-sm-6">
-                            <label class="form-label fw-bold small">Fecha de Vencimiento (Opcional)</label>
-                            <input type="date" name="fecha_vencimiento" class="form-control">
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label fw-bold small">Descripción / Notas</label>
-                            <textarea name="descripcion" class="form-control" rows="2" placeholder="Detalles del material, talla o uso específico..."></textarea>
-                        </div>
-                        <div class="col-6 col-sm-3">
-                            <label class="form-label fw-bold small">Categoría</label>
-                            <select name="categoria_id" class="form-select" required>
-                                <option value="">Seleccione...</option>
-                                @foreach($categorias as $cat)
-                                    <option value="{{ $cat->id }}">{{ $cat->nombre }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-6 col-sm-3">
-                            <label class="form-label fw-bold small">Código Logística</label>
-                            <input type="text" name="codigo_logistica" class="form-control">
-                        </div>
-                        <div class="col-6 col-sm-3">
-                            <label class="form-label fw-bold small">Vida Útil (Meses)</label>
-                            <input type="number" name="vida_util_meses" class="form-control" value="12" min="1">
-                        </div>
-                        <div class="col-12 col-sm-6">
-                            <label class="form-label fw-bold small">Imagen del producto</label>
-                            <input type="file" name="imagen" class="form-control" accept="image/*">
-                        </div>
-                        <div class="col-12 col-sm-6">
-                            <label for="fecha_registro_manual" class="form-label fw-bold small">Fecha de Registro (opcional)</label>
-                            <input type="date" name="fecha_registro" id="fecha_registro_manual" class="form-control">
-                            <small class="text-muted" style="font-size:.72rem;">Si no se especifica, se usará la fecha actual.</small>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer border-0">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary px-4" style="background-color:#003366;">Guardar EPP</button>
-                </div>
-            </form>
         </div>
     </div>
 </div>
@@ -352,7 +432,6 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
 
-    // Lógica para el modal de eliminación dinámica
     const modalEliminar = document.getElementById('modalEliminarEpp');
     if (modalEliminar) {
         modalEliminar.addEventListener('show.bs.modal', function (event) {
@@ -362,27 +441,33 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Filtros de búsqueda y categoría
-    const filterBtns   = document.querySelectorAll('.filter-btn');
-    const subtipoFilter = document.getElementById('subtipoFilter');
-    const searchInput   = document.getElementById('searchEpp');
-    const items         = document.querySelectorAll('.epp-item');
+    const filterBtns        = document.querySelectorAll('.filter-btn');
+    const deptoFilter       = document.getElementById('deptoFilter');
+    const vencimientoFilter = document.getElementById('vencimientoFilter');
+    const searchInput       = document.getElementById('searchEpp');
+    const items             = document.querySelectorAll('.epp-item');
 
     function applyFilters() {
-        const activeCat    = (document.querySelector('.filter-btn.btn-primary') ?? {}).dataset?.filter ?? 'all';
-        const activeSubtipo = subtipoFilter.value;
-        const searchText    = searchInput.value.toLowerCase();
+        const activeCat   = (document.querySelector('.filter-btn.btn-primary') ?? {}).dataset?.filter ?? 'all';
+        const activeDepto = deptoFilter.value;
+        const activeVenc  = vencimientoFilter.value;
+        const searchText  = searchInput.value.toLowerCase().trim();
 
         items.forEach(item => {
-            const matchesCat     = activeCat === 'all' || item.classList.contains(activeCat);
-            const matchesSubtipo = activeSubtipo === 'all' || item.dataset.subtipo === activeSubtipo;
-            const matchesSearch  = !searchText
+            const matchesCat    = activeCat === 'all' || item.classList.contains(activeCat);
+            const matchesDepto  = activeDepto === 'all' || item.dataset.depto.includes(',' + activeDepto + ',');
+            const matchesVenc   = activeVenc === 'all' || item.dataset.vencimiento === activeVenc;
+            const matchesSearch = !searchText
                 || item.dataset.nombre.includes(searchText)
                 || item.dataset.codigo.includes(searchText)
                 || item.dataset.descripcion.includes(searchText);
 
-            item.style.display = (matchesCat && matchesSubtipo && matchesSearch) ? '' : 'none';
+            item.style.display = (matchesCat && matchesDepto && matchesVenc && matchesSearch) ? '' : 'none';
         });
+
+        const anyVisible = [...items].some(i => i.style.display !== 'none');
+        const emptyFilter = document.getElementById('emptyStateFilter');
+        if (emptyFilter) emptyFilter.style.display = anyVisible ? 'none' : 'block';
     }
 
     filterBtns.forEach(btn => {
@@ -394,8 +479,38 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    subtipoFilter.addEventListener('change', applyFilters);
+    deptoFilter.addEventListener('change', applyFilters);
+    vencimientoFilter.addEventListener('change', applyFilters);
     searchInput.addEventListener('input', applyFilters);
+
+    const clearBtn = document.getElementById('clearFiltersBtn');
+    if (clearBtn) {
+        clearBtn.addEventListener('click', function () {
+            filterBtns.forEach(b => { b.classList.remove('btn-primary'); b.classList.add('btn-outline-primary'); });
+            document.querySelector('.filter-btn[data-filter="all"]').classList.replace('btn-outline-primary', 'btn-primary');
+            deptoFilter.value       = 'all';
+            vencimientoFilter.value = 'all';
+            searchInput.value       = '';
+            applyFilters();
+        });
+    }
+
+    const modalImgInput = document.getElementById('modalImagenInput');
+    if (modalImgInput) {
+        modalImgInput.addEventListener('change', function (e) {
+            const file      = e.target.files[0];
+            const preview   = document.getElementById('modal-image-preview');
+            const container = document.getElementById('modal-preview-container');
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = ev => { preview.src = ev.target.result; container.style.display = 'block'; };
+                reader.readAsDataURL(file);
+            } else {
+                container.style.display = 'none';
+                preview.src = '';
+            }
+        });
+    }
 });
 </script>
 @endsection

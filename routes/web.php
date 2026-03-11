@@ -70,11 +70,11 @@ Route::post('password/reset', [App\Http\Controllers\PasswordController::class, '
 Route::middleware(['auth'])->group(function () {
 
     Route::get('/primer-ingreso', function () {
-    if (view()->exists('auth.primer-ingreso')) {
-        return view('auth.primer-ingreso');
-    }
-    return "Error: El archivo resources/views/auth/primer-ingreso.blade.php NO existe en el servidor.";
-})->name('primer.ingreso');
+        if (view()->exists('auth.primer-ingreso')) {
+            return view('auth.primer-ingreso');
+        }
+        return "Error: El archivo resources/views/auth/primer-ingreso.blade.php NO existe en el servidor.";
+    })->name('primer.ingreso');
 
     Route::post('/primer-ingreso', [ProfileController::class, 'actualizarPasswordInicial'])
         ->name('primer.ingreso.update');
@@ -122,6 +122,8 @@ Route::middleware(['auth', 'isAdmin'])->group(function () {
         Route::delete('/departamentos-destroy-all', [DepartamentoController::class, 'destroyAll'])->name('departamentos.destroy_all');
         Route::delete('/departamentos-destroy-selected', [DepartamentoController::class, 'destroySelected'])->name('departamentos.destroy_selected');
         Route::post('/departamentos/{id}/asignar-masivo', [DepartamentoController::class, 'asignarMasivo'])->name('departamentos.asignar_masivo');
+        // ↓ NUEVA RUTA — debe ir ANTES del resource para evitar conflicto con {departamento}
+        Route::get('/departamentos/asignar-imagenes', [DepartamentoController::class, 'asignarImagenesAutomaticas'])->name('departamentos.asignar_imagenes');
         Route::resource('departamentos', DepartamentoController::class);
 
 
@@ -129,11 +131,8 @@ Route::middleware(['auth', 'isAdmin'])->group(function () {
         Route::resource('entregas', EntregaController::class);
 
 
-
-        // --- AGREGAR ESTO AQUÍ ---
-// Ruta para obtener la matriz de EPP por taller (AJAX)
-Route::get('/api/matriz-taller/{taller}', [EntregaController::class, 'getMatrizPorTaller'])
-    ->name('entregas.matriz_taller');
+        Route::get('/api/matriz-taller/{taller}', [EntregaController::class, 'getMatrizPorTaller'])
+            ->name('entregas.matriz_taller');
 
 
         Route::get('/asignaciones', [AsignacionController::class, 'index'])->name('asignaciones.index');
@@ -158,8 +157,7 @@ Route::get('/api/matriz-taller/{taller}', [EntregaController::class, 'getMatrizP
 
     });
 
-    // Ruta para la vista principal del inventario
-Route::get('/inventario', [InventarioController::class, 'index'])->name('inventario.index');
-Route::patch('/inventario/{id}', [InventarioController::class, 'update'])->name('inventario.update');
+    Route::get('/inventario', [InventarioController::class, 'index'])->name('inventario.index');
+    Route::patch('/inventario/{id}', [InventarioController::class, 'update'])->name('inventario.update');
 
 });

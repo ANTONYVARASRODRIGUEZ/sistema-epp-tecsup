@@ -13,17 +13,31 @@ class InventarioController extends Controller
         return view('inventario.index', compact('epps'));
     }
 
-    // Nueva función para actualizar solo el stock
     public function update(Request $request, $id)
     {
         $request->validate([
-            'stock' => 'required|integer|min:0',
+            'cantidad'     => 'required|integer|min:0',
+            'tipo_ajuste_' . $id => 'required|in:sumar,fijar',
         ]);
 
-        $epp = Epp::findOrFail($id);
-        $epp->stock = $request->stock;
+        $epp        = Epp::findOrFail($id);
+        $cantidad   = (int) $request->cantidad;
+        $tipo       = $request->input('tipo_ajuste_' . $id);
+
+        switch ($tipo) {
+            case 'sumar':
+                $epp->stock = ($epp->stock ?? 0) + $cantidad;
+                $msg = "Se sumaron {$cantidad} unidades al stock de {$epp->nombre}. Total: {$epp->stock}";
+                break;
+            case 'fijar':
+            default:
+                $epp->stock = $cantidad;
+                $msg = "Stock de {$epp->nombre} fijado en {$cantidad} unidades.";
+                break;
+        }
+
         $epp->save();
 
-        return redirect()->back()->with('success', 'Stock de ' . $epp->nombre . ' actualizado correctamente.');
+        return redirect()->back()->with('success', $msg);
     }
 }

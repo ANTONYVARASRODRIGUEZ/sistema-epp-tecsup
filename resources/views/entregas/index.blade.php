@@ -4,7 +4,7 @@
 <style>
     /* ── TABLE (desktop) ── */
     .table-desktop {
-        min-width: 1100px;
+        min-width: 800px;
     }
 
     /* ── CARDS (mobile) ── */
@@ -39,16 +39,17 @@
     .modal-content { 
         border-radius: 20px !important; 
         border: none !important;
-        max-height: 90vh; /* Que no mida más del 90% de la pantalla */
+        max-height: 90vh;
         display: flex;
-        flex-direction: column; }
+        flex-direction: column;
+    }
 
-        .modal-footer {
-        flex-shrink: 0; /* Que el botón no se encoja ni se oculte */
+    .modal-footer {
+        flex-shrink: 0;
         background: white;
         z-index: 10;
         border-top: 1px solid #dee2e6 !important;
-        position: sticky; /* Lo mantiene siempre visible al final del contenedor */
+        position: sticky;
         bottom: 0;
     }
 </style>
@@ -62,9 +63,9 @@
             <p class="text-muted mb-0 small">Lista de personal y asignación de equipos</p>
         </div>
         <button class="btn btn-dark rounded-pill px-4 shadow-sm flex-shrink-0"
-        onclick="abrirModalMasivo('{{ $departamentoIdFiltro }}')">
-    <i class="bi bi-boxes me-2"></i>Asignar a Todos
-</button>
+            onclick="abrirModalMasivo('{{ $departamentoIdFiltro }}')">
+            <i class="bi bi-boxes me-2"></i>Asignar a Todos
+        </button>
     </div>
 
     {{-- ── FILTER BAR ── --}}
@@ -93,7 +94,7 @@
                     </span>
                     <input type="text" class="form-control border-start-0 ps-0"
                            id="buscadorDocente"
-                           placeholder="Buscar docente, DNI..."
+                           placeholder="Buscar docente..."
                            onkeyup="filtrarTabla()">
                 </div>
 
@@ -112,38 +113,31 @@
             <table class="table table-hover align-middle mb-0 table-desktop" id="tablaPersonal">
                 <thead class="table-light">
                     <tr>
-                        <th style="width:18%;">Docente</th>
-                        <th style="width:14%;">Carrera</th>
-                        <th style="width:9%;">Tipo</th>
-                        <th style="width:9%;">DNI</th>
-                        <th style="width:24%;">EPPs Asignados</th>
-                        <th style="width:18%;">Estado / Acciones</th>
-                        <th style="width:8%; text-align:center;">Entregar</th>
+                        <th style="width:22%;">Docente</th>
+                        <th style="width:12%;">Tipo</th>
+                        <th style="width:28%;">EPPs Asignados</th>
+                        <th style="width:28%;">Estado / Acciones</th>
+                        <th style="width:10%; text-align:center;">Entregar</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($personals as $persona) {{-- <--- ASEGÚRATE DE QUE ESTA LÍNEA ESTÉ AQUÍ --}}
+                    @foreach($personals as $persona)
                     <tr>
                         <td>
                             <div class="d-flex align-items-center">
                                 <div>
                                     <p class="mb-0 fw-semibold">{{ $persona->nombre_completo }}</p>
-                                
                                 </div>
                                 <button class="btn btn-link btn-sm text-muted ms-2 p-0"
-        onclick="editarPersonal({{ $persona->id }}, '{{ addslashes($persona->nombre_completo) }}', '{{ $persona->dni }}', '{{ addslashes($persona->carrera) }}', '{{ $persona->tipo_contrato }}')"
-        title="Editar datos">
-    <i class="bi bi-pencil-square"></i>
-</button>
+                                    onclick="editarPersonal({{ $persona->id }}, '{{ addslashes($persona->nombre_completo) }}', '{{ $persona->tipo_contrato }}')"
+                                    title="Editar datos">
+                                    <i class="bi bi-pencil-square"></i>
+                                </button>
                             </div>
-                        </td>
-                        <td>
-                            <span class="badge bg-light text-dark border" style="font-size:.82rem;">{{ $persona->carrera }}</span>
                         </td>
                         <td>
                             <span class="badge bg-light text-dark border" style="font-size:.82rem;">{{ $persona->tipo_contrato ?? '---' }}</span>
                         </td>
-                        <td><small>{{ $persona->dni }}</small></td>
 
                         <td>
                             @forelse($persona->asignaciones as $asignacion)
@@ -158,24 +152,22 @@
 
                         <td>
                             @forelse($persona->asignaciones as $asignacion)
-                                <div class="py-1 border-bottom d-flex align-items-center gap-1" style="min-height:38px;">
+                                <div class="py-1 border-bottom d-flex align-items-center gap-1 flex-wrap" style="min-height:38px;">
                                     @if($asignacion->estado == 'Entregado')
                                         <button type="button" class="btn btn-success btn-sm py-0 px-2"
                                                 style="font-size:.78rem; white-space:nowrap;"
                                                 onclick="confirmarDevolucion('{{ route('asignaciones.devolver', $asignacion->id) }}')">
-                                            <i class="bi bi-check-lg"></i> Devolver
+                                            <i class="bi bi-check-lg me-1"></i>Devolver
                                         </button>
                                         <button type="button" class="btn btn-outline-warning btn-sm py-0 px-2"
-                                                style="font-size:.78rem;"
-                                                title="Dañado"
+                                                style="font-size:.78rem; white-space:nowrap;"
                                                 onclick="confirmarIncidencia({{ $asignacion->id }}, 'Dañado')">
-                                            <i class="bi bi-tools"></i>
+                                            <i class="bi bi-tools me-1"></i>Dañado
                                         </button>
                                         <button type="button" class="btn btn-outline-danger btn-sm py-0 px-2"
-                                                style="font-size:.78rem;"
-                                                title="Perdido"
+                                                style="font-size:.78rem; white-space:nowrap;"
                                                 onclick="confirmarIncidencia({{ $asignacion->id }}, 'Perdido')">
-                                            <i class="bi bi-x-circle"></i>
+                                            <i class="bi bi-x-circle me-1"></i>Perdido
                                         </button>
                                     @elseif($asignacion->estado == 'Devuelto')
                                         <span class="badge bg-success bg-opacity-10 text-success border border-success" style="font-size:.75rem;">
@@ -198,16 +190,16 @@
 
                         <td class="text-center">
                             <button class="btn btn-primary btn-sm rounded-pill px-3"
-    onclick="abrirModalEntrega(
-        {{ $persona->id }},
-        '{{ addslashes($persona->nombre_completo) }}',
-        {{ $persona->departamento_id ?? 'null' }}
-    )">
-    <i class="bi bi-hand-index-thumb me-1"></i>Entregar
-</button>
+                                onclick="abrirModalEntrega(
+                                    {{ $persona->id }},
+                                    '{{ addslashes($persona->nombre_completo) }}',
+                                    {{ $persona->departamento_id ?? 'null' }}
+                                )">
+                                <i class="bi bi-hand-index-thumb me-1"></i>Entregar
+                            </button>
                         </td>
                     </tr>
-                    @endforeach {{-- <--- ¡ESTA LÍNEA ES LA QUE FALTABA! --}}
+                    @endforeach
                 </tbody>
             </table>
         </div>
@@ -218,7 +210,6 @@
     ══════════════════════════════════════ --}}
     <div class="d-md-none" id="listaCardsMobile">
         @forelse($personals as $persona)
-       
         <div class="card card-personal shadow-sm mb-3 card-mobile-item"
              data-nombre="{{ strtolower($persona->nombre_completo) }}"
              data-dni="{{ strtolower($persona->dni) }}">
@@ -230,24 +221,23 @@
                         <div class="d-flex align-items-center gap-2 flex-wrap">
                             <span class="fw-bold">{{ $persona->nombre_completo }}</span>
                             <button class="btn btn-link btn-sm text-muted p-0"
-        onclick="editarPersonal({{ $persona->id }}, '{{ addslashes($persona->nombre_completo) }}', '{{ $persona->dni }}', '{{ addslashes($persona->carrera) }}', '{{ $persona->tipo_contrato }}')"
-        title="Editar">
-    <i class="bi bi-pencil-square small"></i>
-</button>
+                                onclick="editarPersonal({{ $persona->id }}, '{{ addslashes($persona->nombre_completo) }}', '{{ $persona->tipo_contrato }}')"
+                                title="Editar">
+                                <i class="bi bi-pencil-square small"></i>
+                            </button>
                         </div>
                         <div class="d-flex flex-wrap gap-1 mt-1">
-                           
-                            <span class="epp-chip text-muted"><i class="bi bi-credit-card"></i>{{ $persona->dni }}</span>
+                            <span class="epp-chip text-muted"><i class="bi bi-credit-card me-1"></i>{{ $persona->dni }}</span>
                         </div>
                     </div>
                     <button class="btn btn-primary btn-sm rounded-pill px-3 flex-shrink-0"
-        onclick="abrirModalEntrega(
-            {{ $persona->id }},
-            '{{ addslashes($persona->nombre_completo) }}',
-            '{{ $persona->departamento_id }}' {{-- Cambiamos tallerNombre por el ID del depto --}}
-        )">
-    <i class="bi bi-hand-index-thumb"></i>
-</button>
+                        onclick="abrirModalEntrega(
+                            {{ $persona->id }},
+                            '{{ addslashes($persona->nombre_completo) }}',
+                            '{{ $persona->departamento_id }}'
+                        )">
+                        <i class="bi bi-hand-index-thumb"></i>
+                    </button>
                 </div>
 
                 {{-- Badges --}}
@@ -267,24 +257,22 @@
                                 {{ $asignacion->epp->nombre }}
                                 <span class="text-muted fw-normal">x{{ $asignacion->cantidad }}</span>
                             </span>
-                            <div class="d-flex align-items-center gap-1">
+                            <div class="d-flex align-items-center gap-1 flex-wrap">
                                 @if($asignacion->estado == 'Entregado')
                                     <button type="button" class="btn btn-success btn-sm py-0 px-2"
                                             style="font-size:.75rem;"
                                             onclick="confirmarDevolucion('{{ route('asignaciones.devolver', $asignacion->id) }}')">
-                                        <i class="bi bi-check-lg"></i>
+                                        <i class="bi bi-check-lg me-1"></i>Devolver
                                     </button>
                                     <button type="button" class="btn btn-outline-warning btn-sm py-0 px-2"
-                                            style="font-size:.75rem;"
-                                            title="Dañado"
+                                            style="font-size:.75rem; white-space:nowrap;"
                                             onclick="confirmarIncidencia({{ $asignacion->id }}, 'Dañado')">
-                                        <i class="bi bi-tools"></i>
+                                        <i class="bi bi-tools me-1"></i>Dañado
                                     </button>
                                     <button type="button" class="btn btn-outline-danger btn-sm py-0 px-2"
-                                            style="font-size:.75rem;"
-                                            title="Perdido"
+                                            style="font-size:.75rem; white-space:nowrap;"
                                             onclick="confirmarIncidencia({{ $asignacion->id }}, 'Perdido')">
-                                        <i class="bi bi-x-circle"></i>
+                                        <i class="bi bi-x-circle me-1"></i>Perdido
                                     </button>
                                 @elseif($asignacion->estado == 'Devuelto')
                                     <span class="badge bg-success bg-opacity-10 text-success border border-success" style="font-size:.7rem;">
@@ -321,6 +309,7 @@
     </div>
 
 </div>
+
 {{-- ════════════════════════════════════════
      MODAL: Entrega Individual
 ════════════════════════════════════════ --}}
@@ -339,7 +328,7 @@
                         <label for="fecha_entrega_individual" class="form-label fw-bold small">Fecha de Entrega</label>
                         <input type="date" name="fecha_entrega" id="fecha_entrega_individual"
                                class="form-control" value="{{ now()->format('Y-m-d') }}">
-                        <small class="text-muted">Si la entrega fue en una fecha pasada, selecciónala aquí.</small>
+                        <small class="text-muted">Podés seleccionar una fecha pasada si olvidaste registrarlo antes.</small>
                     </div>
                     <div class="alert alert-light border mb-3 py-2">
                         <small class="text-muted"><i class="bi bi-check2-square me-1"></i>Marca los equipos que deseas entregar.</small>
@@ -361,38 +350,35 @@
                                     <th style="width:80px;">Cant.</th>
                                 </tr>
                             </thead>
-                            
-                            {{-- En el tbody del modalEntrega --}}
-<tbody>
-    @foreach($epps as $epp)
-        {{-- NUEVA CONDICIÓN: Solo procesar si el stock es mayor a 0 --}}
-        @if($epp->stock > 0) 
-            <tr>
-                <td>
-                    <input class="form-check-input" type="checkbox"
-                           name="epps[{{ $epp->id }}][checked]" value="1"
-                           id="check_ind_{{ $epp->id }}"
-                           data-stock="{{ $epp->stock }}">
-                </td>
-                <td>
-                    <label class="form-check-label w-100 small"
-                           for="check_ind_{{ $epp->id }}"
-                           style="cursor:pointer;">
-                        {{ $epp->nombre }}
-                    </label>
-                </td>
-                <td class="text-center">
-                    <span class="badge bg-secondary">{{ $epp->stock }}</span>
-                </td>
-                <td>
-                    <input type="number" name="epps[{{ $epp->id }}][cantidad]"
-                           class="form-control form-control-sm text-center"
-                           value="1" min="1">
-                </td>
-            </tr>
-        @endif
-    @endforeach
-</tbody>
+                            <tbody>
+                                @foreach($epps as $epp)
+                                    @if($epp->stock > 0)
+                                        <tr>
+                                            <td>
+                                                <input class="form-check-input" type="checkbox"
+                                                       name="epps[{{ $epp->id }}][checked]" value="1"
+                                                       id="check_ind_{{ $epp->id }}"
+                                                       data-stock="{{ $epp->stock }}">
+                                            </td>
+                                            <td>
+                                                <label class="form-check-label w-100 small"
+                                                       for="check_ind_{{ $epp->id }}"
+                                                       style="cursor:pointer;">
+                                                    {{ $epp->nombre }}
+                                                </label>
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="badge bg-secondary">{{ $epp->stock }}</span>
+                                            </td>
+                                            <td>
+                                                <input type="number" name="epps[{{ $epp->id }}][cantidad]"
+                                                       class="form-control form-control-sm text-center"
+                                                       value="1" min="1">
+                                            </td>
+                                        </tr>
+                                    @endif
+                                @endforeach
+                            </tbody>
                         </table>
                     </div>
                 </div>
@@ -426,7 +412,7 @@
                         <label for="fecha_entrega_masiva" class="form-label fw-bold small">Fecha de Entrega</label>
                         <input type="date" name="fecha_entrega" id="fecha_entrega_masiva"
                                class="form-control" value="{{ now()->format('Y-m-d') }}">
-                        <small class="text-muted">La fecha seleccionada se aplicará a todas las asignaciones.</small>
+                        <small class="text-muted">Podés seleccionar una fecha pasada si olvidaste registrarlo antes.</small>
                     </div>
                     <div class="mb-3">
                         <div class="input-group">
@@ -445,37 +431,35 @@
                                     <th style="width:90px;">Cant.</th>
                                 </tr>
                             </thead>
-                            {{-- En el tbody del modalMasivo --}}
-<tbody>
-    @foreach($epps as $epp)
-        {{-- NUEVA CONDICIÓN: Solo procesar si el stock es mayor a 0 --}}
-        @if($epp->stock > 0)
-            <tr>
-                <td>
-                    <input class="form-check-input" type="checkbox"
-                           name="epps[{{ $epp->id }}][checked]" value="1"
-                           id="check_epp_{{ $epp->id }}"
-                           data-stock="{{ $epp->stock }}">
-                </td>
-                <td>
-                    <label class="form-check-label w-100 small"
-                           for="check_epp_{{ $epp->id }}"
-                           style="cursor:pointer;">
-                        {{ $epp->nombre }}
-                    </label>
-                </td>
-                <td class="text-center">
-                    <span class="badge bg-secondary">{{ $epp->stock }}</span>
-                </td>
-                <td>
-                    <input type="number" name="epps[{{ $epp->id }}][cantidad]"
-                           class="form-control form-control-sm text-center"
-                           value="1" min="1">
-                </td>
-            </tr>
-        @endif
-    @endforeach
-</tbody>
+                            <tbody>
+                                @foreach($epps as $epp)
+                                    @if($epp->stock > 0)
+                                        <tr>
+                                            <td>
+                                                <input class="form-check-input" type="checkbox"
+                                                       name="epps[{{ $epp->id }}][checked]" value="1"
+                                                       id="check_epp_{{ $epp->id }}"
+                                                       data-stock="{{ $epp->stock }}">
+                                            </td>
+                                            <td>
+                                                <label class="form-check-label w-100 small"
+                                                       for="check_epp_{{ $epp->id }}"
+                                                       style="cursor:pointer;">
+                                                    {{ $epp->nombre }}
+                                                </label>
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="badge bg-secondary">{{ $epp->stock }}</span>
+                                            </td>
+                                            <td>
+                                                <input type="number" name="epps[{{ $epp->id }}][cantidad]"
+                                                       class="form-control form-control-sm text-center"
+                                                       value="1" min="1">
+                                            </td>
+                                        </tr>
+                                    @endif
+                                @endforeach
+                            </tbody>
                         </table>
                     </div>
                 </div>
@@ -506,14 +490,6 @@
                         <input type="text" name="nombre_completo" id="edit_nombre" class="form-control" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label small fw-bold">DNI</label>
-                        <input type="text" name="dni" id="edit_dni" class="form-control">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold">Carrera / Especialidad</label>
-                        <input type="text" name="carrera" id="edit_carrera" class="form-control">
-                    </div>
-                    <div class="mb-3">
                         <label class="form-label small fw-bold">Tipo de Personal</label>
                         <select name="tipo_contrato" id="edit_tipo" class="form-select">
                             <option value="Docente TC">Docente Tiempo Completo</option>
@@ -521,7 +497,6 @@
                             <option value="Administrativo">Administrativo</option>
                         </select>
                     </div>
-                    
                 </div>
                 <div class="modal-footer border-0">
                     <button type="submit" class="btn btn-primary rounded-pill w-100 fw-bold">Guardar Cambios</button>
@@ -567,41 +542,29 @@ function normalizar(str) {
 }
 
 function abrirModalEntrega(id, nombre, departamentoIdDocente) {
-    // 1. Asignaciones básicas
     document.getElementById('personal_id').value = id;
     document.getElementById('nombreDocente').innerText = nombre;
     document.getElementById('personal_id').dataset.deptoId = departamentoIdDocente;
 
-    // 2. Traer el mapa de EPPs
-    const eppsPorDepartamento = @json($eppsVinculados ?? []);
-    
-    // --- CONSOLA PARA DEPURAR ---
-    console.log("Mapa completo recibido:", eppsPorDepartamento);
-    console.log("Buscando llave:", departamentoIdDocente);
-    // ----------------------------
+    document.getElementById('fecha_entrega_individual').value = '{{ now()->format('Y-m-d') }}';
 
-    // 3. Ocultar todas las filas primero
+    const eppsPorDepartamento = @json($eppsVinculados ?? []);
+
     document.querySelectorAll('#modalEntrega tbody tr').forEach(row => {
         row.style.display = 'none';
         const check = row.querySelector('input[type="checkbox"]');
         if (check) check.checked = false;
     });
 
-    // 4. Obtener IDs permitidos (forzamos que la llave sea tratada correctamente)
     let idsPermitidos = eppsPorDepartamento[departamentoIdDocente] || [];
 
     if (idsPermitidos.length > 0) {
         idsPermitidos.forEach(eppId => {
-            // Intentamos encontrar el checkbox por ID
             let checkbox = document.getElementById('check_ind_' + eppId);
             if (checkbox) {
                 checkbox.closest('tr').style.display = '';
-            } else {
-                console.warn("EPP vinculado ID " + eppId + " no existe en la lista general del modal.");
             }
         });
-    } else {
-        console.error("No se encontraron EPPs para el depto:", departamentoIdDocente);
     }
 
     new bootstrap.Modal(document.getElementById('modalEntrega')).show();
@@ -609,56 +572,44 @@ function abrirModalEntrega(id, nombre, departamentoIdDocente) {
 
 
 function abrirModalMasivo() {
-    // 1. Obtenemos el ID del departamento filtrado en la vista (está en el input hidden del modal)
     let deptoId = document.querySelector('#modalMasivo input[name="departamento_id"]').value;
+
+    document.getElementById('fecha_entrega_masiva').value = '{{ now()->format('Y-m-d') }}';
     
-    // 2. Traer el mapa de vinculaciones
     const eppsPorDepartamento = @json($eppsVinculados ?? []);
     let idsPermitidos = (eppsPorDepartamento[deptoId] || []).map(id => String(id));
 
-    // 3. Filtrar las filas de la tabla masiva
     document.querySelectorAll('#modalMasivo tbody tr').forEach(row => {
         let checkbox = row.querySelector('input[type="checkbox"]');
-        // Usamos el mismo patrón que tu buscador: 'check_epp_XX'
         let eppId = checkbox ? checkbox.id.replace('check_epp_', '') : null;
 
         if (!deptoId) {
-            // Si no hay filtro, mostrar todo
             row.style.display = '';
         } else {
-            // Si hay filtro, mostrar solo si coincide con el mapa
             if (idsPermitidos.includes(eppId)) {
                 row.style.display = '';
             } else {
                 row.style.display = 'none';
-                if (checkbox) checkbox.checked = false; // Desmarcar por seguridad
+                if (checkbox) checkbox.checked = false;
             }
         }
     });
 
-    // 4. Mostrar el modal
     new bootstrap.Modal(document.getElementById('modalMasivo')).show();
 }
 
 // Buscadores en modales
 document.getElementById('buscadorIndividual').addEventListener('keyup', function () {
     let f = this.value.toLowerCase();
-    
-    // 1. Obtenemos el ID del departamento que guardamos al abrir el modal
     let deptoId = document.getElementById('personal_id').dataset.deptoId;
-    
-    // 2. Obtenemos la lista de lo que sí está permitido para ese depto
     const eppsPorDepartamento = @json($eppsVinculados ?? []);
     let idsPermitidos = (eppsPorDepartamento[deptoId] || []).map(id => String(id));
 
     document.querySelectorAll('#modalEntrega tbody tr').forEach(row => {
-        // Obtenemos el ID del EPP de esta fila (asumiendo que el checkbox tiene el ID check_ind_XX)
         let checkbox = row.querySelector('input[type="checkbox"]');
         let eppId = checkbox ? checkbox.id.replace('check_ind_', '') : null;
-        
         let nombreMatch = (row.querySelector('label')?.textContent.toLowerCase() ?? '').includes(f);
         
-        // REGLA DE ORO: Solo se muestra si (Coincide el nombre) Y (El ID está en los permitidos)
         if (nombreMatch && idsPermitidos.includes(eppId)) {
             row.style.display = '';
         } else {
@@ -667,13 +618,9 @@ document.getElementById('buscadorIndividual').addEventListener('keyup', function
     });
 });
 
-// --- Ajuste para el Buscador Masivo ---
 document.getElementById('buscadorMasivo').addEventListener('keyup', function () {
     let f = this.value.toLowerCase();
-    // En el masivo, el ID del depto suele venir de un input hidden que ya tienes:
-    // <input type="hidden" name="departamento_id" value="{{ $departamentoIdFiltro ?? '' }}">
     let deptoId = document.querySelector('#modalMasivo input[name="departamento_id"]').value;
-    
     const eppsPorDepartamento = @json($eppsVinculados ?? []);
     let idsPermitidos = (eppsPorDepartamento[deptoId] || []).map(id => String(id));
 
@@ -682,8 +629,6 @@ document.getElementById('buscadorMasivo').addEventListener('keyup', function () 
         let eppId = checkbox ? checkbox.id.replace('check_epp_', '') : null;
         let nombreMatch = (row.querySelector('label')?.textContent.toLowerCase() ?? '').includes(f);
 
-        // Si hay un departamento filtrado, aplicamos la restricción. 
-        // Si deptoId está vacío (vistas generales), mostramos todo según el buscador.
         if (!deptoId) {
             row.style.display = nombreMatch ? '' : 'none';
         } else {
@@ -700,14 +645,11 @@ document.getElementById('buscadorMasivo').addEventListener('keyup', function () 
 function filtrarTabla() {
     let busqueda = document.getElementById('buscadorDocente').value.toLowerCase();
 
-    // Desktop table
     document.querySelectorAll('#tablaPersonal tbody tr').forEach(row => {
         let nombre = row.querySelector('td:nth-child(1)')?.textContent.toLowerCase() ?? '';
-        let dni    = row.querySelector('td:nth-child(4)')?.textContent.toLowerCase() ?? '';
-        row.style.display = (nombre.includes(busqueda) || dni.includes(busqueda)) ? '' : 'none';
+        row.style.display = nombre.includes(busqueda) ? '' : 'none';
     });
 
-    // Mobile cards
     document.querySelectorAll('.card-mobile-item').forEach(card => {
         let nombre = card.dataset.nombre ?? '';
         let dni    = card.dataset.dni ?? '';
@@ -715,12 +657,10 @@ function filtrarTabla() {
     });
 }
 
-function editarPersonal(id, nombre, dni, carrera, tipo) {
+function editarPersonal(id, nombre, tipo) {
     document.getElementById('formEditarPersonal').action = '/personals/' + id;
-    document.getElementById('edit_nombre').value  = nombre;
-    document.getElementById('edit_dni').value     = dni;
-    document.getElementById('edit_carrera').value = carrera;
-    document.getElementById('edit_tipo').value    = tipo;
+    document.getElementById('edit_nombre').value = nombre;
+    document.getElementById('edit_tipo').value   = tipo;
     
     new bootstrap.Modal(document.getElementById('modalEditarPersonal')).show();
 }

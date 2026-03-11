@@ -14,112 +14,222 @@
         padding: 14px 12px;
         white-space: nowrap;
     }
-    .table-modern td { padding: 14px 12px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+    .table-modern td {
+        padding: 13px 12px;
+        border-bottom: 1px solid #f1f5f9;
+        vertical-align: middle;
+    }
+    .table-modern tbody tr:last-child td { border-bottom: none; }
 
     .avatar-circle {
-        width: 40px; height: 40px; min-width: 40px;
-        background: #003a70; color: white;
+        width: 38px; height: 38px; min-width: 38px;
+        background: #003366; color: white;
         display: flex; align-items: center; justify-content: center;
-        border-radius: 50%; font-weight: bold; font-size: 0.9rem;
+        border-radius: 50%; font-weight: 700; font-size: 0.85rem;
     }
 
-    .status-badge { padding: 5px 10px; border-radius: 10px; font-size: 0.72rem; font-weight: 700; white-space: nowrap; }
+    .status-badge {
+        padding: 4px 10px; border-radius: 8px;
+        font-size: 0.72rem; font-weight: 700; white-space: nowrap;
+    }
 
-    /* Buscador */
-    .search-box { border-radius: 50px; border: 2px solid #e9ecef; padding: 8px 16px; transition: 0.2s; }
-    .search-box:focus { border-color: #003366; box-shadow: 0 0 0 0.2rem rgba(0,51,102,0.1); }
+    .search-box {
+        border-radius: 50px; border: 2px solid #e9ecef;
+        padding: 8px 16px; transition: 0.2s;
+    }
+    .search-box:focus {
+        border-color: #003366;
+        box-shadow: 0 0 0 0.2rem rgba(0,51,102,0.08);
+        outline: none;
+    }
 
-    /* Botones acción header — scroll horizontal en móvil */
+    /* ── BOTONES DEL HEADER ── */
     .btn-group-header {
         display: flex;
         flex-wrap: wrap;
         gap: 8px;
-        justify-content: flex-start;
     }
-
     @media (min-width: 768px) {
         .btn-group-header { justify-content: flex-end; }
     }
+    /* Altura mínima táctil */
+    .btn-group-header .btn {
+        min-height: 42px;
+        white-space: nowrap;
+    }
+    /* En xs muy pequeño: solo ícono en botones secundarios */
+    @media (max-width: 420px) {
+        .btn-group-header .btn { font-size: 0.8rem; padding-left: 10px; padding-right: 10px; }
+        .btn-label-long { display: none; }
+    }
 
-    /* Tabla siempre scrollable */
-    .table-scroll-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .table-scroll-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+        scrollbar-color: #cbd5e1 transparent;
+    }
+    .table-scroll-wrapper::-webkit-scrollbar { height: 4px; }
+    .table-scroll-wrapper::-webkit-scrollbar-track { background: transparent; }
+    .table-scroll-wrapper::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
 
-    /* Highlight de búsqueda */
-    .highlight { background-color: #fff3cd; border-radius: 3px; padding: 0 2px; }
-
-    /* Fila oculta por búsqueda */
     .row-hidden { display: none; }
+
+    /* Modal form */
+    .modal-form .form-control,
+    .modal-form .form-select {
+        background: #f8f9fa; border: 1.5px solid #e9ecef;
+        border-radius: 10px; padding: 10px 14px;
+        transition: border-color .2s;
+    }
+    .modal-form .form-control:focus,
+    .modal-form .form-select:focus {
+        border-color: #003366; box-shadow: none; background: #fff;
+    }
+    .modal-form label { font-size: .8rem; font-weight: 700; color: #555; margin-bottom: 5px; }
+
+    .badge-tc    { background: #e8eef7; color: #003366; }
+    .badge-tp    { background: #e8f5e9; color: #1b5e20; }
+    .badge-admin { background: #f3e8ff; color: #6a1b9a; }
+    .badge-otro  { background: #f1f5f9; color: #475569; }
+
+    /* ── HEADER: título + botones ── */
+    .page-top-row {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        margin-bottom: 16px;
+    }
+    @media (min-width: 768px) {
+        .page-top-row {
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+    }
+
+    /* ── BUSCADOR ── */
+    .search-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    .search-row .search-wrap {
+        position: relative;
+        flex: 1 1 200px;
+        max-width: 440px;
+        min-width: 0;
+    }
+    @media (max-width: 400px) {
+        .search-box { font-size: 0.85rem; }
+    }
+
+    /* ── TABLA: nombre truncado en pantallas medias ── */
+    .personal-nombre {
+        word-break: break-word;
+        min-width: 140px;
+    }
+
+    /* ── ACCIONES: botones circulares con tamaño táctil ── */
+    .btn-accion {
+        width: 34px; height: 34px;
+        display: inline-flex; align-items: center; justify-content: center;
+        padding: 0;
+        flex-shrink: 0;
+    }
+
+    /* ── MODALES: padding reducido en móvil ── */
+    @media (max-width: 480px) {
+        .modal-body.p-4 { padding: 1.1rem !important; }
+        .modal-footer.px-4 { padding-left: 1.1rem !important; padding-right: 1.1rem !important; }
+        .modal-header.px-4 { padding-left: 1.1rem !important; padding-right: 1.1rem !important; }
+    }
+
+    /* Empty state */
+    .bi.display-4 { font-size: clamp(2rem, 10vw, 3.5rem) !important; }
 </style>
 
 <div class="container-fluid px-3 px-md-4 py-4">
 
-    {{-- Alertas --}}
+    {{-- ── ALERTAS ── --}}
     @if($message = session('success'))
-    <div class="alert alert-success alert-dismissible fade show mb-4 border-0 shadow-sm" role="alert" style="border-radius: 15px;">
-        <i class="bi bi-check-circle me-2"></i><strong>¡Éxito!</strong> {{ $message }}
+    <div class="alert alert-success alert-dismissible fade show mb-4 border-0 shadow-sm" style="border-radius:12px;">
+        <i class="bi bi-check-circle-fill me-2"></i><strong>¡Éxito!</strong> {{ $message }}
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
     @endif
     @if($message = session('error'))
-    <div class="alert alert-danger alert-dismissible fade show mb-4 border-0 shadow-sm" role="alert" style="border-radius: 15px;">
-        <i class="bi bi-exclamation-triangle me-2"></i><strong>Error:</strong> {{ $message }}
+    <div class="alert alert-danger alert-dismissible fade show mb-4 border-0 shadow-sm" style="border-radius:12px;">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i><strong>Error:</strong> {{ $message }}
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
     @endif
 
-    {{-- Encabezado --}}
+    {{-- ── HEADER ── --}}
     <div class="mb-4">
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-3">
+        <div class="page-top-row">
+            {{-- Título --}}
             <div>
-                <h2 class="fw-bold mb-0 fs-4">Base de Datos de Docentes</h2>
-                <p class="text-muted mb-0 small">Lista maestra para asignación de EPP</p>
+                <h2 class="fw-bold mb-0" style="font-size: clamp(1.15rem, 4vw, 1.5rem);">Base de Datos de Personal</h2>
+                <p class="text-muted mb-0 small">
+                    <strong>{{ $personals->count() }}</strong> persona(s) · lista maestra para asignación de EPP
+                </p>
             </div>
+
+            {{-- Botones --}}
             <div class="btn-group-header">
-                <a href="{{ route('organizador.index') }}" class="btn btn-outline-primary rounded-pill px-3 fw-bold">
-                    <i class="bi bi-grid-3x3-gap me-1"></i>Organizador
+                <a href="{{ route('organizador.index') }}"
+                   class="btn btn-outline-primary rounded-pill px-3 fw-bold">
+                    <i class="bi bi-grid-3x3-gap me-1"></i><span class="btn-label-long">Organizador</span><span class="d-inline d-sm-none"><span class="d-none d-xs-inline">Org.</span></span>
                 </a>
-                <button class="btn btn-success rounded-pill px-3 fw-bold" data-bs-toggle="modal" data-bs-target="#modalImportarPersonal">
-                    <i class="bi bi-file-earmark-excel me-1"></i>Importar Excel
+                <button class="btn btn-success rounded-pill px-3 fw-bold"
+                        data-bs-toggle="modal" data-bs-target="#modalImportarPersonal">
+                    <i class="bi bi-file-earmark-excel me-1"></i><span class="btn-label-long">Importar Excel</span>
                 </button>
-                <button class="btn btn-dark rounded-pill px-3 fw-bold" data-bs-toggle="modal" data-bs-target="#modalNuevoDocente">
-                    <i class="bi bi-person-plus-fill me-1"></i>Registrar
+                <button class="btn btn-dark rounded-pill px-3 fw-bold"
+                        data-bs-toggle="modal" data-bs-target="#modalNuevoDocente">
+                    <i class="bi bi-person-plus-fill me-1"></i><span class="btn-label-long">Registrar</span>
                 </button>
-                <button class="btn btn-warning rounded-pill px-3 fw-bold d-none" id="btnEliminarSeleccionados"
+                <button class="btn btn-warning rounded-pill px-3 fw-bold d-none"
+                        id="btnEliminarSeleccionados"
                         data-bs-toggle="modal" data-bs-target="#modalConfirmarDelete"
                         onclick="prepararEliminacionMultiple()">
-                    <i class="bi bi-trash me-1"></i>Eliminar Sel.
+                    <i class="bi bi-trash me-1"></i><span class="btn-label-long">Eliminar sel.</span>
                 </button>
-                <button class="btn btn-danger rounded-pill px-3 fw-bold" onclick="confirmarVaciarTodo()">
-                    <i class="bi bi-exclamation-triangle me-1"></i>Vaciar Todo
+                <button class="btn btn-danger rounded-pill px-3 fw-bold"
+                        onclick="confirmarVaciarTodo()">
+                    <i class="bi bi-exclamation-triangle me-1"></i><span class="btn-label-long">Vaciar Todo</span>
                 </button>
             </div>
         </div>
 
         {{-- Buscador --}}
-        <div class="d-flex align-items-center gap-2">
-            <div class="position-relative flex-grow-1" style="max-width: 460px;">
-                <i class="bi bi-search position-absolute text-muted" style="top: 50%; left: 14px; transform: translateY(-50%);"></i>
-                <input type="text" id="buscadorDocentes" class="form-control search-box ps-5"
-                       placeholder="Buscar por nombre, DNI, carrera, área...">
+        <div class="search-row">
+            <div class="search-wrap">
+                <i class="bi bi-search position-absolute text-muted"
+                   style="top:50%;left:14px;transform:translateY(-50%);pointer-events:none;"></i>
+                <input type="text" id="buscadorDocentes"
+                       class="form-control search-box ps-5 w-100"
+                       placeholder="Buscar por nombre o tipo...">
             </div>
             <span class="text-muted small" id="contadorResultados"></span>
         </div>
     </div>
 
-    {{-- Tabla --}}
+    {{-- ── TABLA ── --}}
     <div class="card card-master shadow-sm">
         <div class="card-body p-0">
             <div class="table-scroll-wrapper">
-                <table class="table table-modern mb-0" style="min-width: 900px;">
+                <table class="table table-modern mb-0" style="min-width:620px;">
                     <thead>
                         <tr>
-                            <th style="width: 36px;">
-                                <input type="checkbox" id="selectAll" class="form-check-input" onchange="seleccionarTodos(this)">
+                            <th style="width:36px;">
+                                <input type="checkbox" id="selectAll" class="form-check-input"
+                                       onchange="seleccionarTodos(this)">
                             </th>
-                            <th>Docente</th>
-                            <th>Carrera</th>
+                            <th>Docente / Personal</th>
                             <th>Tipo</th>
-                            <th>DNI / Código</th>
                             <th>Área Asignada</th>
                             <th class="text-center">EPPs en Uso</th>
                             <th class="text-end">Acciones</th>
@@ -127,77 +237,86 @@
                     </thead>
                     <tbody id="tablaDocentes">
                         @forelse($personals as $docente)
+                        @php
+                            $tipo = $docente->tipo_contrato ?? '---';
+                            $tipoClass = match(true) {
+                                str_contains($tipo, 'TC')    => 'badge-tc',
+                                str_contains($tipo, 'TP')    => 'badge-tp',
+                                str_contains($tipo, 'Admin') => 'badge-admin',
+                                default                      => 'badge-otro',
+                            };
+                            $eppsCount = $docente->asignaciones->count();
+                        @endphp
                         <tr class="fila-docente"
                             data-nombre="{{ strtolower($docente->nombre_completo) }}"
-                            data-dni="{{ strtolower($docente->dni ?? '') }}"
-                            data-carrera="{{ strtolower($docente->carrera ?? '') }}"
-                            data-area="{{ strtolower($docente->departamento->nombre ?? '') }}"
-                            data-tipo="{{ strtolower($docente->tipo_contrato ?? '') }}">
+                            data-tipo="{{ strtolower($tipo) }}">
                             <td>
                                 <input type="checkbox" class="form-check-input chkDocente"
-                                       value="{{ $docente->id }}" onchange="actualizarBotonEliminar()">
+                                       value="{{ $docente->id }}"
+                                       onchange="actualizarBotonEliminar()">
                             </td>
                             <td>
                                 <div class="d-flex align-items-center gap-2">
-                                    <div class="avatar-circle">
+                                    <div class="avatar-circle flex-shrink-0">
                                         {{ strtoupper(substr($docente->nombre_completo, 0, 1)) }}
                                     </div>
-                                    <span class="fw-bold text-dark">{{ $docente->nombre_completo }}</span>
+                                    <span class="fw-bold text-dark personal-nombre">{{ $docente->nombre_completo }}</span>
                                 </div>
                             </td>
-                            <td class="text-m    uted">{{ $docente->carrera ?? '---' }}</td>
                             <td>
-                                <span class="badge bg-light text-dark border">{{ $docente->tipo_contrato ?? '---' }}</span>
+                                <span class="status-badge {{ $tipoClass }}">{{ $tipo }}</span>
                             </td>
-                            <td class="text-muted fw-bold">{{ $docente->dni ?? '---' }}</td>
                             <td>
                                 @if($docente->departamento)
-                                    <span class="status-badge bg-primary bg-opacity-10 text-primary">
+                                    <span class="status-badge badge-tc">
                                         <i class="bi bi-building me-1"></i>{{ $docente->departamento->nombre }}
                                     </span>
                                 @else
-                                    <span class="status-badge bg-warning bg-opacity-10 text-warning">
-                                        <i class="bi bi-exclamation-triangle me-1"></i>Sin Asignar
+                                    <span class="status-badge" style="background:#fff8e1;color:#b45309;">
+                                        <i class="bi bi-exclamation-circle me-1"></i>Sin asignar
                                     </span>
                                 @endif
                             </td>
                             <td class="text-center">
-                                @php $cantidad = $docente->asignaciones->count(); @endphp
-                                @if($cantidad > 0)
-                                    <span class="badge bg-success bg-opacity-10 text-success border border-success px-2 py-1 rounded-pill">
-                                        <i class="bi bi-shield-check me-1"></i>{{ $cantidad }} Asignados
+                                @if($eppsCount > 0)
+                                    <span class="badge rounded-pill px-3 py-1"
+                                          style="background:#d1fae5;color:#065f46;font-size:.75rem;">
+                                        <i class="bi bi-shield-check me-1"></i>{{ $eppsCount }}
                                     </span>
                                 @else
-                                    <span class="badge bg-secondary bg-opacity-10 text-secondary border px-2 py-1 rounded-pill">
-                                        <i class="bi bi-dash-circle me-1"></i>Ninguno
+                                    <span class="badge rounded-pill px-3 py-1"
+                                          style="background:#f1f5f9;color:#94a3b8;font-size:.75rem;">
+                                        <i class="bi bi-dash me-1"></i>Ninguno
                                     </span>
                                 @endif
                             </td>
                             <td class="text-end">
                                 <div class="d-flex justify-content-end gap-1">
-                                    <button class="btn btn-light btn-sm rounded-circle shadow-sm"
+                                    <button class="btn btn-light btn-sm rounded-circle shadow-sm btn-accion"
                                             onclick="abrirModalEditar(this)"
                                             data-id="{{ $docente->id }}"
                                             data-nombre="{{ $docente->nombre_completo }}"
-                                            data-dni="{{ $docente->dni ?? '' }}"
-                                            data-carrera="{{ $docente->carrera ?? '' }}"
-                                            data-tipo="{{ $docente->tipo_contrato ?? '' }}"
+                                            data-tipo="{{ $tipo }}"
                                             title="Editar">
                                         <i class="bi bi-pencil text-primary"></i>
                                     </button>
-                                    <button class="btn btn-light btn-sm rounded-circle shadow-sm text-danger"
-                                            title="Eliminar"
-                                            onclick="confirmarEliminacion('{{ route('personals.destroy', $docente->id) }}')">
-                                        <i class="bi bi-trash"></i>
+                                    <button class="btn btn-light btn-sm rounded-circle shadow-sm btn-accion"
+                                            onclick="confirmarEliminacion('{{ route('personals.destroy', $docente->id) }}')"
+                                            title="Eliminar">
+                                        <i class="bi bi-trash text-danger"></i>
                                     </button>
                                 </div>
                             </td>
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="8" class="text-center py-5">
-                                <i class="bi bi-people display-4 text-light"></i>
-                                <p class="text-muted mt-2 mb-0">No hay docentes en la base de datos.</p>
+                            <td colspan="6" class="text-center py-5">
+                                <i class="bi bi-people display-4 text-muted opacity-25"></i>
+                                <p class="text-muted mt-3 mb-2">No hay personal registrado.</p>
+                                <button class="btn btn-sm btn-outline-dark rounded-pill"
+                                        data-bs-toggle="modal" data-bs-target="#modalNuevoDocente">
+                                    <i class="bi bi-person-plus me-1"></i>Registrar primero
+                                </button>
                             </td>
                         </tr>
                         @endforelse
@@ -205,197 +324,60 @@
                 </table>
             </div>
 
-            {{-- Sin resultados de búsqueda --}}
             <div id="sinResultados" class="text-center py-5 d-none">
-                <i class="bi bi-search display-4 text-light"></i>
-                <p class="text-muted mt-2 mb-0">No se encontraron docentes con ese criterio.</p>
-                <button class="btn btn-sm btn-outline-secondary rounded-pill mt-2" onclick="limpiarBusqueda()">
-                    <i class="bi bi-x-circle me-1"></i>Limpiar búsqueda
+                <i class="bi bi-search display-4 text-muted opacity-25"></i>
+                <p class="text-muted mt-3 mb-1 fw-semibold">Sin resultados</p>
+                <p class="text-muted small mb-2">Ningún personal coincide con la búsqueda.</p>
+                <button class="btn btn-sm btn-outline-secondary rounded-pill" onclick="limpiarBusqueda()">
+                    <i class="bi bi-x-circle me-1"></i>Limpiar
                 </button>
             </div>
         </div>
     </div>
 </div>
 
-{{-- ===================== MODALES ===================== --}}
+{{-- ══════════════════ MODALES ══════════════════ --}}
 
-<!-- Modal Nuevo Docente -->
+{{-- Registrar --}}
 <div class="modal fade" id="modalNuevoDocente" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered mx-3 mx-sm-auto">
-        <div class="modal-content border-0 shadow" style="border-radius: 24px;">
-            <button type="button" class="btn-close position-absolute top-0 end-0 m-3" style="z-index:1050;" data-bs-dismiss="modal"></button>
-            <div class="modal-body p-4 p-sm-5 text-center">
-                <div class="bg-dark bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width:70px;height:70px;">
-                    <i class="bi bi-person-badge text-dark fs-2"></i>
+    <div class="modal-dialog modal-dialog-centered" style="max-width:400px;">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:20px;overflow:hidden;">
+            <div class="modal-header border-0 px-4 pt-4 pb-2">
+                <div class="d-flex align-items-center gap-3">
+                    <div style="width:44px;height:44px;border-radius:12px;background:#e8eef7;
+                                display:flex;align-items:center;justify-content:center;">
+                        <i class="bi bi-person-plus-fill" style="color:#003366;font-size:1.2rem;"></i>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold mb-0">Registrar Personal</h5>
+                        <p class="text-muted mb-0" style="font-size:.78rem;">Añade a la lista maestra</p>
+                    </div>
                 </div>
-                <h4 class="fw-bold mb-1">Registrar Docente</h4>
-                <p class="text-muted mb-4">Añade al personal a la lista maestra</p>
-                <form action="{{ route('personals.store') }}" method="POST">
-                    @csrf
-                    <div class="text-start mb-3">
-                        <label class="form-label small fw-bold text-muted">Nombre Completo</label>
-                        <input type="text" name="nombre_completo" class="form-control bg-light border-0 py-2 px-3 rounded-3" placeholder="Ej. Pedro Picapiedra" required>
-                    </div>
-                    <div class="text-start mb-3">
-                        <label class="form-label small fw-bold text-muted">DNI o Código de Planilla</label>
-                        <input type="text" name="dni" class="form-control bg-light border-0 py-2 px-3 rounded-3" placeholder="Ej. 74859632">
-                    </div>
-                    <div class="text-start mb-3">
-                        <label class="form-label small fw-bold text-muted">Carrera / Especialidad</label>
-                        <input type="text" name="carrera" class="form-control bg-light border-0 py-2 px-3 rounded-3" placeholder="Ej. Mecánica, Software...">
-                    </div>
-                    <div class="text-start mb-4">
-                        <label class="form-label small fw-bold text-muted">Tipo de Personal</label>
-                        <select name="tipo_contrato" class="form-select bg-light border-0 py-2 px-3 rounded-3">
-                            <option value="Docente TC">Docente Tiempo Completo</option>
-                            <option value="Docente TP">Docente Tiempo Parcial</option>
-                            <option value="Administrativo">Administrativo</option>
-                        </select>
-                    </div>
-                    <button type="submit" class="btn btn-dark w-100 rounded-pill py-2 fw-bold">Guardar en Lista Maestra</button>
-                </form>
+                <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
             </div>
-        </div>
-    </div>
-</div>
-
-<!-- Modal Editar Docente -->
-<div class="modal fade" id="modalEditarDocente" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered mx-3 mx-sm-auto">
-        <div class="modal-content border-0 shadow" style="border-radius: 24px;">
-            <button type="button" class="btn-close position-absolute top-0 end-0 m-3" style="z-index:1050;" data-bs-dismiss="modal"></button>
-            <div class="modal-body p-4 p-sm-5 text-center">
-                <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width:70px;height:70px;">
-                    <i class="bi bi-pencil-square text-primary fs-2"></i>
-                </div>
-                <h4 class="fw-bold mb-1">Editar Docente</h4>
-                <p class="text-muted mb-4">Actualizar información del personal</p>
-                <form id="formEditarDocente" method="POST">
-                    @csrf @method('PUT')
-                    <div class="text-start mb-3">
-                        <label class="form-label small fw-bold text-muted">Nombre Completo</label>
-                        <input type="text" name="nombre_completo" id="edit_nombre" class="form-control bg-light border-0 py-2 px-3 rounded-3" required>
-                    </div>
-                    <div class="text-start mb-3">
-                        <label class="form-label small fw-bold text-muted">DNI o Código de Planilla</label>
-                        <input type="text" name="dni" id="edit_dni" class="form-control bg-light border-0 py-2 px-3 rounded-3">
-                    </div>
-                    <div class="text-start mb-3">
-                        <label class="form-label small fw-bold text-muted">Carrera / Especialidad</label>
-                        <input type="text" name="carrera" id="edit_carrera" class="form-control bg-light border-0 py-2 px-3 rounded-3">
-                    </div>
-                    <div class="text-start mb-4">
-                        <label class="form-label small fw-bold text-muted">Tipo de Personal</label>
-                        <select name="tipo_contrato" id="edit_tipo" class="form-select bg-light border-0 py-2 px-3 rounded-3">
-                            <option value="Docente TC">Docente Tiempo Completo</option>
-                            <option value="Docente TP">Docente Tiempo Parcial</option>
-                            <option value="Administrativo">Administrativo</option>
-                        </select>
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-bold" style="background-color:#003366;border:none;">Guardar Cambios</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Modal Confirmar Eliminación individual -->
-<div class="modal fade" id="modalConfirmarEliminar" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered mx-3 mx-sm-auto">
-        <div class="modal-content border-0 shadow" style="border-radius: 20px;">
-            <div class="modal-body p-4 text-center">
-                <div class="bg-danger bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width:60px;height:60px;">
-                    <i class="bi bi-exclamation-triangle-fill text-danger fs-3"></i>
-                </div>
-                <h5 class="fw-bold mb-2">¿Estás seguro?</h5>
-                <p class="text-muted mb-4">Vas a eliminar a este docente de la lista maestra. Esta acción no se puede deshacer.</p>
-                <div class="d-flex flex-column flex-sm-row justify-content-center gap-2">
-                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
-                    <form id="formEliminarDocente" method="POST" action="">
-                        @csrf @method('DELETE')
-                        <button type="submit" class="btn btn-danger rounded-pill px-4 fw-bold w-100">Sí, Eliminar</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Modal Confirmar Eliminar Seleccionados -->
-<div class="modal fade" id="modalConfirmarDelete" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered mx-3 mx-sm-auto">
-        <div class="modal-content border-0 shadow" style="border-radius: 20px;">
-            <div class="modal-body p-4 text-center">
-                <div class="bg-danger bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width:60px;height:60px;">
-                    <i class="bi bi-exclamation-triangle-fill text-danger fs-3"></i>
-                </div>
-                <h5 class="fw-bold mb-2">¿Eliminar Seleccionados?</h5>
-                <p class="text-muted mb-4">Vas a eliminar <strong id="countSeleccionados">0</strong> docente(s). Esta acción no se puede deshacer.</p>
-                <div class="d-flex flex-column flex-sm-row justify-content-center gap-2">
-                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
-                    <form id="formEliminarSeleccionados" method="POST" action="{{ route('personals.delete_multiple') }}">
-                        @csrf
-                        <input type="hidden" id="inputIds" name="ids" value="">
-                        <button type="submit" class="btn btn-danger rounded-pill px-4 fw-bold w-100">Sí, Eliminar</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Modal Vaciar Todo -->
-<div class="modal fade" id="modalConfirmarVaciar" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered mx-3 mx-sm-auto">
-        <div class="modal-content border-0 shadow" style="border-radius: 20px;">
-            <div class="modal-body p-4 text-center">
-                <div class="bg-danger bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width:60px;height:60px;">
-                    <i class="bi bi-exclamation-lg text-danger fs-3"></i>
-                </div>
-                <h5 class="fw-bold mb-2">⚠️ ¡Cuidado!</h5>
-                <p class="text-muted mb-1"><strong>Estás a punto de eliminar TODOS los docentes</strong></p>
-                <p class="text-muted mb-4 small">Total: <strong id="countTotalDocentes">0</strong> docente(s). Esta acción <strong>no se puede deshacer</strong>.</p>
-                <div class="d-flex flex-column flex-sm-row justify-content-center gap-2">
-                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
-                    <form method="POST" action="{{ route('personals.delete_all') }}">
-                        @csrf @method('DELETE')
-                        <button type="submit" class="btn btn-danger rounded-pill px-4 fw-bold w-100">Sí, Vaciar Todo</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Modal Importar Excel -->
-<div class="modal fade" id="modalImportarPersonal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered mx-3 mx-sm-auto">
-        <div class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
-            <div class="modal-header bg-success text-white">
-                <h5 class="modal-title fw-bold"><i class="bi bi-file-earmark-excel me-2"></i>Importar Docentes desde Excel</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <form action="{{ route('personals.import_excel') }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route('personals.store') }}" method="POST" class="modal-form">
                 @csrf
-                <div class="modal-body p-4">
-                    <div class="mb-3 text-center">
-                        <i class="bi bi-cloud-arrow-up display-1 text-success opacity-50"></i>
+                <div class="modal-body px-4 py-3">
+                    <div class="mb-3">
+                        <label>Nombre Completo <span class="text-danger">*</span></label>
+                        <input type="text" name="nombre_completo" class="form-control"
+                               placeholder="Ej. Pedro Ramírez Torres" required autocomplete="off">
                     </div>
-                    <p class="mb-4 text-center">Selecciona el archivo Excel que contiene la matriz de docentes.</p>
-                    <input type="file" name="file" class="form-control border-2" accept=".xlsx,.xls,.csv" required>
-                    <div class="mt-4 bg-light p-3 rounded-3 small">
-                        <p class="fw-bold mb-2"><i class="bi bi-info-circle me-2"></i>Formato esperado del archivo:</p>
-                        <ul class="ps-3 mb-2">
-                            <li><strong>Hoja:</strong> "Matriz x docente" (segunda hoja)</li>
-                            <li><strong>Columnas (en orden):</strong> Docente, TC/TP, Taller/Lab, DNI, Carrera</li>
-                        </ul>
-                        <p class="mb-0 text-muted">✓ Los datos se mostrarán automáticamente en la tabla después de importar.</p>
+                    <div>
+                        <label>Tipo de Personal <span class="text-danger">*</span></label>
+                        <select name="tipo_contrato" class="form-select" required>
+                            <option value="Docente TC">Docente Tiempo Completo (TC)</option>
+                            <option value="Docente TP">Docente Tiempo Parcial (TP)</option>
+                            <option value="Administrativo">Administrativo</option>
+                        </select>
                     </div>
                 </div>
-                <div class="modal-footer border-0 flex-column flex-sm-row gap-2">
-                    <button type="button" class="btn btn-light w-100 w-sm-auto" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-success px-4 w-100 w-sm-auto">
-                        <i class="bi bi-download me-2"></i>Subir e Importar
+                <div class="modal-footer border-0 px-4 pb-4 pt-2 gap-2">
+                    <button type="button" class="btn btn-light flex-fill rounded-pill"
+                            data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn flex-fill rounded-pill fw-bold text-white"
+                            style="background:#003366;">
+                        <i class="bi bi-save me-1"></i>Guardar
                     </button>
                 </div>
             </form>
@@ -403,60 +385,232 @@
     </div>
 </div>
 
-<style>
-    @media (min-width: 576px) { .w-sm-auto { width: auto !important; } }
-</style>
+{{-- Editar --}}
+<div class="modal fade" id="modalEditarDocente" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:400px;">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:20px;overflow:hidden;">
+            <div class="modal-header border-0 px-4 pt-4 pb-2">
+                <div class="d-flex align-items-center gap-3">
+                    <div style="width:44px;height:44px;border-radius:12px;background:#e8eef7;
+                                display:flex;align-items:center;justify-content:center;">
+                        <i class="bi bi-pencil-square" style="color:#003366;font-size:1.2rem;"></i>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold mb-0">Editar Personal</h5>
+                        <p class="text-muted mb-0" style="font-size:.78rem;">Actualizar información</p>
+                    </div>
+                </div>
+                <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="formEditarDocente" method="POST" class="modal-form">
+                @csrf @method('PUT')
+                <div class="modal-body px-4 py-3">
+                    <div class="mb-3">
+                        <label>Nombre Completo <span class="text-danger">*</span></label>
+                        <input type="text" name="nombre_completo" id="edit_nombre"
+                               class="form-control" required>
+                    </div>
+                    <div>
+                        <label>Tipo de Personal</label>
+                        <select name="tipo_contrato" id="edit_tipo" class="form-select">
+                            <option value="Docente TC">Docente Tiempo Completo (TC)</option>
+                            <option value="Docente TP">Docente Tiempo Parcial (TP)</option>
+                            <option value="Administrativo">Administrativo</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 px-4 pb-4 pt-2 gap-2">
+                    <button type="button" class="btn btn-light flex-fill rounded-pill"
+                            data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn flex-fill rounded-pill fw-bold text-white"
+                            style="background:#003366;">
+                        <i class="bi bi-save me-1"></i>Guardar Cambios
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{{-- Eliminar individual --}}
+<div class="modal fade" id="modalConfirmarEliminar" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:360px;">
+        <div class="modal-content border-0 shadow" style="border-radius:18px;">
+            <div class="modal-body p-4 text-center">
+                <div style="width:56px;height:56px;border-radius:50%;background:#fdecea;
+                            display:flex;align-items:center;justify-content:center;margin:0 auto 14px;">
+                    <i class="bi bi-exclamation-triangle-fill text-danger fs-4"></i>
+                </div>
+                <h5 class="fw-bold mb-2">¿Eliminar este registro?</h5>
+                <p class="text-muted mb-4" style="font-size:.88rem;">
+                    Se eliminará el personal y sus asignaciones de EPP.<br>
+                    <strong>Esta acción no se puede deshacer.</strong>
+                </p>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-light flex-fill rounded-pill"
+                            data-bs-dismiss="modal">Cancelar</button>
+                    <form id="formEliminarDocente" method="POST" class="flex-fill">
+                        @csrf @method('DELETE')
+                        <button type="submit" class="btn btn-danger w-100 rounded-pill fw-bold">
+                            Sí, eliminar
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- Eliminar seleccionados --}}
+<div class="modal fade" id="modalConfirmarDelete" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:360px;">
+        <div class="modal-content border-0 shadow" style="border-radius:18px;">
+            <div class="modal-body p-4 text-center">
+                <div style="width:56px;height:56px;border-radius:50%;background:#fdecea;
+                            display:flex;align-items:center;justify-content:center;margin:0 auto 14px;">
+                    <i class="bi bi-exclamation-triangle-fill text-danger fs-4"></i>
+                </div>
+                <h5 class="fw-bold mb-2">¿Eliminar seleccionados?</h5>
+                <p class="text-muted mb-4" style="font-size:.88rem;">
+                    Vas a eliminar <strong id="countSeleccionados">0</strong> registro(s)
+                    y sus asignaciones de EPP.
+                </p>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-light flex-fill rounded-pill"
+                            data-bs-dismiss="modal">Cancelar</button>
+                    <form id="formEliminarSeleccionados" method="POST"
+                          action="{{ route('personals.delete_multiple') }}" class="flex-fill">
+                        @csrf
+                        <input type="hidden" id="inputIds" name="ids" value="">
+                        <button type="submit" class="btn btn-danger w-100 rounded-pill fw-bold">
+                            Sí, eliminar
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- Vaciar Todo --}}
+<div class="modal fade" id="modalConfirmarVaciar" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:360px;">
+        <div class="modal-content border-0 shadow" style="border-radius:18px;">
+            <div class="modal-body p-4 text-center">
+                <div style="width:56px;height:56px;border-radius:50%;background:#fdecea;
+                            display:flex;align-items:center;justify-content:center;margin:0 auto 14px;">
+                    <i class="bi bi-exclamation-lg text-danger fs-4"></i>
+                </div>
+                <h5 class="fw-bold mb-2">¡Vaciar toda la base?</h5>
+                <p class="text-muted mb-1" style="font-size:.88rem;">
+                    Se eliminarán <strong id="countTotalDocentes">0</strong> registro(s)
+                    y <strong>todas</strong> sus asignaciones de EPP.
+                </p>
+                <p class="text-danger small fw-semibold mb-4">Esta acción no se puede deshacer.</p>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-light flex-fill rounded-pill"
+                            data-bs-dismiss="modal">Cancelar</button>
+                    <form method="POST" action="{{ route('personals.delete_all') }}" class="flex-fill">
+                        @csrf @method('DELETE')
+                        <button type="submit" class="btn btn-danger w-100 rounded-pill fw-bold">
+                            Sí, vaciar todo
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- Importar Excel --}}
+<div class="modal fade" id="modalImportarPersonal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:460px;">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:18px;overflow:hidden;">
+            <div class="modal-header border-0 text-white px-4 py-3" style="background:#198754;">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-file-earmark-excel fs-5"></i>
+                    <h5 class="modal-title fw-bold mb-0">Importar desde Excel</h5>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ route('personals.import_excel') }}" method="POST"
+                  enctype="multipart/form-data">
+                @csrf
+                <div class="modal-body p-4">
+                    <div class="text-center mb-3">
+                        <i class="bi bi-cloud-arrow-up"
+                           style="font-size:3rem;color:#198754;opacity:.55;"></i>
+                    </div>
+                    <p class="text-center text-muted mb-3">
+                        Selecciona el archivo Excel con la lista de personal.
+                    </p>
+                    <input type="file" name="file" class="form-control"
+                           accept=".xlsx,.xls,.csv" required>
+                    <div class="mt-3 p-3 rounded-3" style="background:#f8f9fa;font-size:.8rem;">
+                        <p class="fw-bold mb-2">
+                            <i class="bi bi-info-circle me-1 text-success"></i>Formato esperado:
+                        </p>
+                        <ul class="mb-0 ps-3 text-muted">
+                            <li><strong>Hoja:</strong> "Matriz x docente" (segunda hoja)</li>
+                            <li><strong>Columnas:</strong> Docente, TC/TP, Taller/Lab, DNI, Carrera</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 px-4 pb-4 pt-0 gap-2">
+                    <button type="button" class="btn btn-light flex-fill rounded-pill"
+                            data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success flex-fill rounded-pill fw-bold">
+                        <i class="bi bi-download me-1"></i>Subir e Importar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 <script>
-// ── Buscador ──────────────────────────────────────────────
-const buscador = document.getElementById('buscadorDocentes');
-const contador = document.getElementById('contadorResultados');
-const sinResultados = document.getElementById('sinResultados');
+document.addEventListener('DOMContentLoaded', function () {
+    // ── Buscador ──────────────────────────────────────────
+    const buscador   = document.getElementById('buscadorDocentes');
+    const contador   = document.getElementById('contadorResultados');
+    const sinRes     = document.getElementById('sinResultados');
+    const tblWrapper = document.querySelector('.table-scroll-wrapper');
 
-buscador.addEventListener('input', function () {
-    const q = this.value.trim().toLowerCase();
-    const filas = document.querySelectorAll('.fila-docente');
-    let visibles = 0;
+    buscador.addEventListener('input', function () {
+        const q     = this.value.trim().toLowerCase();
+        const filas = document.querySelectorAll('.fila-docente');
+        let vis     = 0;
 
-    filas.forEach(fila => {
-        const hayCoincidencia =
-            fila.dataset.nombre.includes(q) ||
-            fila.dataset.dni.includes(q) ||
-            fila.dataset.carrera.includes(q) ||
-            fila.dataset.area.includes(q) ||
-            fila.dataset.tipo.includes(q);
+        filas.forEach(f => {
+            const match = !q
+                || f.dataset.nombre.includes(q)
+                || f.dataset.tipo.includes(q);
+            f.classList.toggle('row-hidden', !match);
+            if (match) vis++;
+        });
 
-        if (hayCoincidencia || q === '') {
-            fila.classList.remove('row-hidden');
-            visibles++;
-        } else {
-            fila.classList.add('row-hidden');
-        }
+        contador.textContent = q ? `${vis} de ${filas.length}` : '';
+        sinRes.classList.toggle('d-none', vis > 0 || !q);
+        if (tblWrapper) tblWrapper.classList.toggle('d-none', vis === 0 && !!q);
     });
 
-    // Contador
-    const total = filas.length;
-    contador.textContent = q ? `${visibles} de ${total} docentes` : '';
-
-    // Mensaje sin resultados
-    sinResultados.classList.toggle('d-none', visibles > 0 || q === '');
-    document.querySelector('.table-scroll-wrapper').classList.toggle('d-none', visibles === 0 && q !== '');
+    // Cerrar modal importar tras éxito
+    @if(session('success'))
+    const m = document.getElementById('modalImportarPersonal');
+    if (m) { const inst = bootstrap.Modal.getInstance(m); if (inst) inst.hide(); }
+    @endif
 });
 
 function limpiarBusqueda() {
-    buscador.value = '';
-    buscador.dispatchEvent(new Event('input'));
+    const b = document.getElementById('buscadorDocentes');
+    b.value = ''; b.dispatchEvent(new Event('input'));
 }
 
-// ── Modales ───────────────────────────────────────────────
 function abrirModalEditar(btn) {
     document.getElementById('formEditarDocente').action = '/personals/' + btn.dataset.id;
-    document.getElementById('edit_nombre').value  = btn.dataset.nombre;
-    document.getElementById('edit_dni').value     = btn.dataset.dni;
-    document.getElementById('edit_carrera').value = btn.dataset.carrera;
-    document.getElementById('edit_tipo').value    = btn.dataset.tipo;
-
-    var el = document.getElementById('modalEditarDocente');
+    document.getElementById('edit_nombre').value = btn.dataset.nombre;
+    document.getElementById('edit_tipo').value   = btn.dataset.tipo;
+    const el = document.getElementById('modalEditarDocente');
     (bootstrap.Modal.getInstance(el) || new bootstrap.Modal(el)).show();
 }
 
@@ -465,16 +619,20 @@ function confirmarEliminacion(url) {
     new bootstrap.Modal(document.getElementById('modalConfirmarEliminar')).show();
 }
 
-function seleccionarTodos(checkbox) {
-    document.querySelectorAll('.chkDocente').forEach(cb => cb.checked = checkbox.checked);
+function seleccionarTodos(cb) {
+    document.querySelectorAll('.chkDocente').forEach(c => c.checked = cb.checked);
     actualizarBotonEliminar();
 }
 
 function actualizarBotonEliminar() {
-    const checked = document.querySelectorAll('.chkDocente:checked').length;
-    const btn = document.getElementById('btnEliminarSeleccionados');
-    document.getElementById('countSeleccionados').textContent = checked;
-    btn.classList.toggle('d-none', checked === 0);
+    const n = document.querySelectorAll('.chkDocente:checked').length;
+    document.getElementById('btnEliminarSeleccionados').classList.toggle('d-none', n === 0);
+    document.getElementById('countSeleccionados').textContent = n;
+}
+
+function prepararEliminacionMultiple() {
+    const ids = [...document.querySelectorAll('.chkDocente:checked')].map(c => c.value).join(',');
+    document.getElementById('inputIds').value = ids;
 }
 
 function confirmarVaciarTodo() {
@@ -482,17 +640,5 @@ function confirmarVaciarTodo() {
         document.querySelectorAll('.chkDocente').length;
     new bootstrap.Modal(document.getElementById('modalConfirmarVaciar')).show();
 }
-
-function prepararEliminacionMultiple() {
-    const ids = Array.from(document.querySelectorAll('.chkDocente:checked')).map(cb => cb.value).join(',');
-    document.getElementById('inputIds').value = ids;
-}
-
-document.addEventListener('DOMContentLoaded', function () {
-    if (document.querySelector('.alert-success')) {
-        const modal = bootstrap.Modal.getInstance(document.getElementById('modalImportarPersonal'));
-        if (modal) modal.hide();
-    }
-});
 </script>
 @endsection

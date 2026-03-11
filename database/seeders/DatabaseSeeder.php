@@ -15,30 +15,24 @@ class DatabaseSeeder extends Seeder
      * Seed the application's database.
      */
     public function run(): void
-{
-
-// CAMBIO AQUÍ: Usamos updateOrCreate para que no falle si ya existe
-        \App\Models\User::updateOrCreate(
-            ['email' => 'admin@tecsup.edu.pe'], // Si encuentra este email...
+    {
+        // Crear o actualizar usuario administrador
+        User::updateOrCreate(
+            ['email' => 'admin@tecsup.edu.pe'],
             [
-                'name' => 'Administrador',
-                'password' => Hash::make('admin123'),
-                'role' => 'Admin',
-                // Agregamos esto para que NO te mande a la pantalla de error 404 (primer-ingreso)
+                'name'       => 'Administrador',
+                'password'   => Hash::make('admin123'),
+                'role'       => 'Admin',
                 'created_at' => now()->subDays(1),
                 'updated_at' => now(),
             ]
         );
-    
 
-
-    // 3. LLAMAR A LOS OTROS SEEDERS EN ORDEN
+        // Llamar a los seeders en orden
         $this->call([
-            // EppSeeder::class, // SI TIENES UNO QUE LLENA CASCOS/GUANTES, PONLO AQUÍ
+            // EppSeeder::class,
             MatrizDinamicaSeeder::class,
+            DepartamentoImagenSeeder::class,
         ]);
-}
-
-
-
+    }
 }

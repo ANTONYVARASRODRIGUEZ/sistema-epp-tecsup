@@ -6,10 +6,8 @@
 <style>
     .page-title { font-size: clamp(1.2rem, 4vw, 1.75rem); }
 
-    /* ── FILTER CARD ── */
     .filter-card { border-radius: 15px; }
 
-    /* ── ACTION BUTTONS ── */
     .btn-actions {
         display: flex;
         flex-wrap: wrap;
@@ -17,10 +15,8 @@
     }
     .btn-actions .btn { white-space: nowrap; }
 
-    /* ── REPORT TABLE (desktop) ── */
     .table-hover tbody tr:hover { background-color: #f8fafc; }
 
-    /* ── REPORT CARDS (mobile) ── */
     .card-persona {
         border: none;
         border-radius: 14px;
@@ -32,7 +28,6 @@
     }
     .epp-item:last-child { border-bottom: none; }
 
-    /* ── PDF / PRINT ── */
     .modo-pdf { font-size: 10px !important; background: white; }
     .modo-pdf h2 { font-size: 16px !important; margin-bottom: 5px !important; }
     .modo-pdf p  { font-size: 11px !important; margin-bottom: 10px !important; }
@@ -77,7 +72,6 @@
 
                 <div class="row g-3 align-items-end">
 
-                    {{-- Departamento --}}
                     <div class="col-12 col-md-6 col-lg-4">
                         <label for="departamento_id" class="form-label fw-bold small">Departamento</label>
                         <select name="departamento_id" id="departamento_id"
@@ -93,7 +87,6 @@
                         </select>
                     </div>
 
-                    {{-- Fecha inicio --}}
                     <div class="col-6 col-md-3 col-lg-2">
                         <label for="fecha_inicio" class="form-label fw-bold small">Desde</label>
                         <input type="date" name="fecha_inicio" id="fecha_inicio"
@@ -102,7 +95,6 @@
                                onchange="this.form.submit()">
                     </div>
 
-                    {{-- Fecha fin --}}
                     <div class="col-6 col-md-3 col-lg-2">
                         <label for="fecha_fin" class="form-label fw-bold small">Hasta</label>
                         <input type="date" name="fecha_fin" id="fecha_fin"
@@ -111,7 +103,6 @@
                                onchange="this.form.submit()">
                     </div>
 
-                    {{-- Action buttons --}}
                     @if(isset($departamentoSeleccionado))
                     <div class="col-12 col-lg-4">
                         <div class="btn-actions justify-content-start justify-content-lg-end">
@@ -135,7 +126,6 @@
     {{-- ── REPORT CONTENT ── --}}
     @if(isset($departamentoSeleccionado))
 
-    {{-- Department header (always visible, shown in PDF/print too) --}}
     <div class="card border-0 shadow-sm" style="border-radius:15px; overflow:hidden;">
         <div class="card-header bg-white border-bottom py-3 px-3 px-md-4">
             <h5 class="mb-0 fw-bold text-primary">
@@ -156,8 +146,7 @@
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light">
                             <tr>
-                                <th class="ps-4" style="min-width:200px;">Docente / Personal</th>
-                                <th style="min-width:110px;">DNI</th>
+                                <th class="ps-4" style="min-width:220px;">Docente / Personal</th>
                                 <th>Equipos Asignados (EPP)</th>
                             </tr>
                         </thead>
@@ -168,7 +157,6 @@
                                     <div class="fw-bold text-dark">{{ $persona->nombre_completo }}</div>
                                     <small class="text-muted">{{ $persona->carrera }}</small>
                                 </td>
-                                <td>{{ $persona->dni }}</td>
                                 <td>
                                     @if($persona->asignaciones->where('estado', 'Entregado')->isEmpty())
                                         <span class="badge bg-light text-muted border">Sin asignaciones activas</span>
@@ -201,18 +189,11 @@
                 <div class="card card-persona shadow-sm mb-3">
                     <div class="card-body p-3">
 
-                        {{-- Person info --}}
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-                            <div>
-                                <div class="fw-bold text-dark">{{ $persona->nombre_completo }}</div>
-                                <small class="text-muted">{{ $persona->carrera }}</small>
-                            </div>
-                            <span class="badge bg-light text-dark border ms-2 flex-shrink-0">
-                                DNI: {{ $persona->dni }}
-                            </span>
+                        <div class="mb-2">
+                            <div class="fw-bold text-dark">{{ $persona->nombre_completo }}</div>
+                            <small class="text-muted">{{ $persona->carrera }}</small>
                         </div>
 
-                        {{-- EPP list --}}
                         @if($asignacionesActivas->isEmpty())
                             <div class="text-muted small fst-italic mt-1">Sin asignaciones activas</div>
                         @else

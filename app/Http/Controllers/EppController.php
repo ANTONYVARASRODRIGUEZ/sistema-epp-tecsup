@@ -15,123 +15,126 @@ class EppController extends Controller
 {
     public function index()
     {
-        $epps = Epp::with('categoria')->get();
-        // La vista de filtros y el modal de creación necesitan las categorías
+        $epps = Epp::with(['categoria', 'departamentos'])->get();
         $categorias = Categoria::all();
-        return view('epps.index', compact('epps', 'categorias'));
+        $departamentos = Departamento::all();
+        return view('epps.index', compact('epps', 'categorias', 'departamentos'));
+    }
+
+    public function create()
+    {
+        $categorias    = Categoria::all();
+        $departamentos = Departamento::all();
+        return view('epps.create', compact('categorias', 'departamentos'));
     }
 
     public function store(Request $request)
-{
-    $request->validate([
-        'nombre' => 'required|string|max:255',
-        'categoria_id' => 'required|exists:categorias,id',
-        'cantidad' => 'nullable|integer|min:0',
-        'vida_util_meses' => 'nullable|integer|min:1',
-        'fecha_ingreso_almacen' => 'nullable|date',
-        'fecha_registro' => 'nullable|date',
-        'departamentos' => 'nullable|array', // Validar array de departamentos
-        'departamentos.*' => 'exists:departamentos,id',
-    ]);
+    {
+        $request->validate([
+            'nombre'              => 'required|string|max:255',
+            'categoria_id'        => 'required|exists:categorias,id',
+            'cantidad'            => 'nullable|integer|min:0',
+            'vida_util_meses'     => 'nullable|integer|min:1',
+            'fecha_ingreso_almacen' => 'nullable|date',
+            'fecha_registro'      => 'nullable|date',
+            'departamentos'       => 'nullable|array',
+            'departamentos.*'     => 'exists:departamentos,id',
+        ]);
 
-    $data = $request->except(['fecha_vencimiento', 'departamentos']); 
+        $data = $request->except(['fecha_vencimiento', 'departamentos']);
 
-    $data['tipo'] = $request->tipo ?? 'Protección de seguridad';
-    $data['stock'] = $request->cantidad ?? 0;
-    $data['entregado'] = 0;
-    $data['deteriorado'] = 0;
-    $data['vida_util_meses'] = $request->vida_util_meses ?? 12;
+        $data['tipo']        = $request->tipo ?? 'Protección de seguridad';
+        $data['stock']       = $request->cantidad ?? 0;
+        $data['entregado']   = 0;
+        $data['deteriorado'] = 0;
+        $data['vida_util_meses'] = $request->vida_util_meses ?? 12;
 
-    // Lógica de departamento_texto
-    if ($request->has('departamentos')) {
-        $nombres = \App\Models\Departamento::whereIn('id', $request->departamentos)->pluck('nombre')->toArray();
-        $data['departamento_texto'] = implode(', ', $nombres);
-    } else {
-        $data['departamento_texto'] = 'Sin departamento';
+        if ($request->has('departamentos')) {
+            $nombres = \App\Models\Departamento::whereIn('id', $request->departamentos)->pluck('nombre')->toArray();
+            $data['departamento_texto'] = implode(', ', $nombres);
+        } else {
+            $data['departamento_texto'] = 'Sin departamento';
+        }
+
+        $baseDate = $request->filled('fecha_ingreso_almacen')
+            ? Carbon::parse($request->fecha_ingreso_almacen)
+            : ($request->filled('fecha_registro') ? Carbon::parse($request->fecha_registro) : now());
+
+        if ($request->hasFile('imagen')) {
+            $data['imagen'] = $request->file('imagen')->store('epps', 'public');
+        }
+
+        $epp = Epp::create($data);
+        $epp->update(['created_at' => $baseDate]);
+
+        $epp->departamentos()->sync($request->input('departamentos', []));
+
+        return redirect()->route('epps.index')->with('success', 'EPP registrado correctamente');
     }
-
-    $baseDate = $request->filled('fecha_ingreso_almacen') 
-                ? Carbon::parse($request->fecha_ingreso_almacen) 
-                : ($request->filled('fecha_registro') ? Carbon::parse($request->fecha_registro) : now());
-
-    if ($request->hasFile('imagen')) {
-        $data['imagen'] = $request->file('imagen')->store('epps', 'public');
-    }
-
-    $epp = Epp::create($data);
-    $epp->update(['created_at' => $baseDate]);
-
-    // Relación Many-to-Many
-    $epp->departamentos()->sync($request->input('departamentos', []));
-
-    return redirect()->route('epps.index')->with('success', 'EPP registrado correctamente');
-}
 
     public function show($id)
     {
-        $epp = Epp::with('departamento')->findOrFail($id);
+        $epp = Epp::with(['departamento', 'departamentos'])->findOrFail($id);
         return view('epps.show', compact('epp'));
     }
 
     public function edit($id)
     {
-        $epp = Epp::findOrFail($id);
-        $categorias = Categoria::all();
-        $departamentos = Departamento::all(); 
+        $epp           = Epp::findOrFail($id);
+        $categorias    = Categoria::all();
+        $departamentos = Departamento::all();
         return view('epps.edit', compact('epp', 'categorias', 'departamentos'));
     }
 
     public function update(Request $request, $id)
-{
-    $epp = Epp::findOrFail($id);
+    {
+        $epp = Epp::findOrFail($id);
 
-    $request->validate([
-        'nombre' => 'required|string|max:255',
-        'categoria_id' => 'required|exists:categorias,id',
-        'cantidad' => 'nullable|integer|min:0',
-        'vida_util_meses' => 'required|integer|min:1',
-        'codigo_logistica' => 'nullable|string',
-        'fecha_ingreso_almacen' => 'nullable|date',
-        'fecha_registro' => 'nullable|date',
-        'departamentos' => 'nullable|array',
-        'departamentos.*' => 'exists:departamentos,id',
-    ]);
+        $request->validate([
+            'nombre'              => 'required|string|max:255',
+            'categoria_id'        => 'required|exists:categorias,id',
+            'cantidad'            => 'nullable|integer|min:0',
+            'vida_util_meses'     => 'required|integer|min:1',
+            'codigo_logistica'    => 'nullable|string',
+            'fecha_ingreso_almacen' => 'nullable|date',
+            'fecha_registro'      => 'nullable|date',
+            'departamentos'       => 'nullable|array',
+            'departamentos.*'     => 'exists:departamentos,id',
+        ]);
 
-    $data = $request->except(['fecha_vencimiento', 'fecha_ingreso_almacen', 'departamentos']);
+        $data = $request->except(['fecha_vencimiento', 'fecha_ingreso_almacen', 'departamentos']);
 
-    if ($request->hasFile('imagen')) {
-        $data['imagen'] = $request->file('imagen')->store('epps', 'public');
+        if ($request->hasFile('imagen')) {
+            $data['imagen'] = $request->file('imagen')->store('epps', 'public');
+        }
+
+        if ($request->has('cantidad')) {
+            $entregado   = $epp->entregado   ?? 0;
+            $deteriorado = $epp->deteriorado ?? 0;
+            $data['stock'] = $request->cantidad - $entregado - $deteriorado;
+        }
+
+        if ($request->has('departamentos')) {
+            $nombres = \App\Models\Departamento::whereIn('id', $request->departamentos)->pluck('nombre')->toArray();
+            $data['departamento_texto'] = implode(', ', $nombres);
+        } else {
+            $data['departamento_texto'] = 'Sin departamento';
+        }
+
+        $epp->fill($data);
+
+        if ($request->filled('fecha_ingreso_almacen')) {
+            $epp->created_at = Carbon::parse($request->fecha_ingreso_almacen);
+        } elseif ($request->filled('fecha_registro')) {
+            $epp->created_at = Carbon::parse($request->fecha_registro);
+        }
+
+        $epp->save();
+
+        $epp->departamentos()->sync($request->input('departamentos', []));
+
+        return redirect()->route('epps.index')->with('success', 'EPP actualizado correctamente');
     }
-
-    if ($request->has('cantidad')) {
-        $entregado = $epp->entregado ?? 0;
-        $deteriorado = $epp->deteriorado ?? 0;
-        $data['stock'] = $request->cantidad - $entregado - $deteriorado;
-    }
-
-    // Actualizar departamento_texto antes de guardar
-    if ($request->has('departamentos')) {
-        $nombres = \App\Models\Departamento::whereIn('id', $request->departamentos)->pluck('nombre')->toArray();
-        $data['departamento_texto'] = implode(', ', $nombres);
-    } else {
-        $data['departamento_texto'] = 'Sin departamento';
-    }
-
-    $epp->fill($data);
-
-    if ($request->filled('fecha_ingreso_almacen')) {
-        $epp->created_at = \Carbon\Carbon::parse($request->fecha_ingreso_almacen);
-    } elseif ($request->filled('fecha_registro')) {
-        $epp->created_at = \Carbon\Carbon::parse($request->fecha_registro);
-    }
-
-    $epp->save(); 
-
-    // Sincronizar relación Muchos a Muchos
-    $epp->departamentos()->sync($request->input('departamentos', []));
-
-    return redirect()->route('epps.index')->with('success', 'EPP actualizado correctamente');
-}
 
     public function destroy($id)
     {
@@ -139,20 +142,19 @@ class EppController extends Controller
         return redirect()->route('epps.index')->with('success', 'EPP eliminado');
     }
 
-    public function import(Request $request) 
+    public function import(Request $request)
     {
-        $request->validate(['file' => 'required|mimes:xlsx,xls,csv']);
+        $request->validate(['file'           => 'required|mimes:xlsx,xls,csv']);
         $request->validate(['fecha_registro' => 'nullable|date']);
         try {
-            $fechaRegistro = $request->input('fecha_registro');
-            // Paso 1: Extraer imágenes del Excel por nombre de EPP
-            $archivoPath = $request->file('file')->getRealPath();
-            $imagenesPorNombre = ExcelImageExtractor::extraerImagenesConNombres($archivoPath);
-            
+            $fechaRegistro      = $request->input('fecha_registro');
+            $archivoPath        = $request->file('file')->getRealPath();
+            $imagenesPorNombre  = ExcelImageExtractor::extraerImagenesConNombres($archivoPath);
+
             \Log::info('Imágenes extraídas: ' . count($imagenesPorNombre));
-            // Paso 2: Importar datos con el mapeo de imágenes por nombre
+
             Excel::import(new EppImport($imagenesPorNombre, $fechaRegistro), $request->file('file'));
-            
+
             return back()->with('success', '¡Matriz importada correctamente con imágenes!');
         } catch (\Exception $e) {
             \Log::error('Error en importación de EPP: ' . $e->getMessage());
@@ -161,17 +163,15 @@ class EppController extends Controller
     }
 
     public function clearAll()
-{
-    // Obtenemos todos los EPP que tienen imagen
-    $eppsConImagen = Epp::whereNotNull('imagen')->get();
-    
-    foreach ($eppsConImagen as $epp) {
-        \Storage::disk('public')->delete($epp->imagen);
-    }
+    {
+        $eppsConImagen = Epp::whereNotNull('imagen')->get();
 
-    // Ahora sí, vaciamos la tabla
-    Epp::query()->delete(); 
-    
-    return back()->with('success', 'Inventario y archivos vaciados correctamente');
-}
+        foreach ($eppsConImagen as $epp) {
+            \Storage::disk('public')->delete($epp->imagen);
+        }
+
+        Epp::query()->delete();
+
+        return back()->with('success', 'Inventario y archivos vaciados correctamente');
+    }
 }

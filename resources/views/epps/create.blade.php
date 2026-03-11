@@ -3,23 +3,84 @@
 @section('content')
 <style>
     .input-group-text { border: 1px solid #dee2e6; }
-    .form-control,
-    .form-select  { border: 1px solid #dee2e6; }
-    .form-control:focus,
-    .form-select:focus { border-color: #003366; box-shadow: none; }
+    .form-control, .form-select { border: 1px solid #dee2e6; }
+    .form-control:focus, .form-select:focus { border-color: #003366; box-shadow: none; }
     .page-title { font-size: clamp(1.2rem, 4vw, 1.6rem); }
+
+    .section-label {
+        font-size: .68rem; font-weight: 700; letter-spacing: .08em;
+        text-transform: uppercase; color: #6c757d;
+        display: flex; align-items: center; gap: 6px;
+        padding: 6px 10px; background: #f8f9fa;
+        border-radius: 6px; margin-bottom: 14px;
+        border-left: 3px solid #003366;
+    }
+
+    /* ── DEPTO CHIPS ── */
+    .depto-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+        gap: 8px;
+    }
+    .depto-chip {
+        display: flex; align-items: center; gap: 8px;
+        padding: 8px 12px; border-radius: 8px; cursor: pointer;
+        border: 1.5px solid #dee2e6; background: #fff;
+        transition: all .15s; font-size: .82rem; user-select: none;
+        line-height: 1.3;
+    }
+    .depto-chip:hover { border-color: #003366; background: #f0f4ff; }
+    .depto-chip:has(input:checked) {
+        border-color: #003366; background: #e8efff;
+        color: #003366; font-weight: 600;
+    }
+    .depto-chip input { display: none; }
+    .depto-chip .chip-icon { font-size: .9rem; flex-shrink: 0; opacity: .6; }
+    .depto-chip:has(input:checked) .chip-icon { opacity: 1; }
+
+    /* Preview imagen */
+    #preview-container img { border-radius: 10px; }
+
+    /* ── RESPONSIVE ── */
+
+    /* Chips en xs: 2 columnas fijas */
+    @media (max-width: 575.98px) {
+        .depto-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        .depto-chip {
+            font-size: .75rem;
+            padding: 6px 8px;
+        }
+
+        /* Botones de acción: ancho completo */
+        .form-actions .btn {
+            width: 100%;
+            justify-content: center;
+        }
+
+        /* Card body más compacto */
+        .card-body { padding: 1rem !important; }
+
+        /* Preview centrada en xs */
+        #preview-container { text-align: center; }
+    }
+
+    @media (min-width: 576px) {
+        .form-actions .btn { width: auto; }
+    }
 </style>
 
-<div class="container-fluid py-2">
+<div class="container-fluid py-2 px-3 px-md-4">
 
     {{-- ── HEADER ── --}}
     <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-4">
         <div>
             <h2 class="page-title fw-bold mb-0">Registrar Nuevo EPP</h2>
-            <p class="text-muted small mb-0">Asegúrate de completar todos los campos obligatorios.</p>
+            <p class="text-muted small mb-0">Completa los campos para agregar un nuevo equipo de protección personal.</p>
         </div>
         <a href="{{ route('epps.index') }}" class="btn btn-outline-secondary shadow-sm flex-shrink-0">
-            <i class="bi bi-arrow-left me-1"></i>Volver al listado
+            <i class="bi bi-arrow-left me-1"></i>Volver al catálogo
         </a>
     </div>
 
@@ -35,52 +96,46 @@
     @endif
 
     <div class="row justify-content-center">
-        <div class="col-12 col-lg-9 col-xl-8">
+        <div class="col-12 col-xl-10">
             <div class="card border-0 shadow-sm">
                 <div class="card-body p-3 p-md-4 p-lg-5">
                     <form action="{{ route('epps.store') }}" method="POST" enctype="multipart/form-data">
                         @csrf
 
-                        {{-- Nombre + Categoría --}}
-                        <div class="row g-3 mb-3">
+                        {{-- ── 1. IDENTIFICACIÓN ── --}}
+                        <div class="section-label"><i class="bi bi-card-text"></i>Identificación del equipo</div>
+                        <div class="row g-3 mb-4">
                             <div class="col-12 col-sm-6">
                                 <label class="form-label fw-bold small">Nombre del EPP <span class="text-danger">*</span></label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-box-seam"></i></span>
                                     <input type="text" name="nombre"
                                            class="form-control bg-light border-start-0"
-                                           placeholder="Ej: Casco de Seguridad"
+                                           placeholder="Ej. Casco de Seguridad modelo Jockey"
                                            value="{{ old('nombre') }}" required>
                                 </div>
                             </div>
                             <div class="col-12 col-sm-6">
-                                <label class="form-label fw-bold small">Tipo / Categoría <span class="text-danger">*</span></label>
+                                <label class="form-label fw-bold small">Categoría <span class="text-danger">*</span></label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-tag"></i></span>
-                                    <input type="text" name="tipo"
-                                           class="form-control bg-light border-start-0"
-                                           placeholder="Ej: Protección Craneal"
-                                           value="{{ old('tipo') }}" required>
+                                    <select name="categoria_id" class="form-select bg-light border-start-0" required>
+                                        <option value="">— Selecciona una categoría —</option>
+                                        @foreach($categorias as $cat)
+                                            <option value="{{ $cat->id }}" {{ old('categoria_id') == $cat->id ? 'selected' : '' }}>
+                                                {{ $cat->nombre }}
+                                            </option>
+                                        @endforeach
+                                    </select>
                                 </div>
                             </div>
-                        </div>
-
-                        {{-- Descripción --}}
-                        <div class="mb-3">
-                            <label class="form-label fw-bold small">Descripción</label>
-                            <textarea name="descripcion" class="form-control bg-light" rows="3"
-                                      placeholder="Describe las características y uso del EPP">{{ old('descripcion') }}</textarea>
-                        </div>
-
-                        {{-- Marca + Código --}}
-                        <div class="row g-3 mb-3">
                             <div class="col-12 col-sm-6">
                                 <label class="form-label fw-bold small">Marca / Modelo</label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-building"></i></span>
                                     <input type="text" name="marca_modelo"
                                            class="form-control bg-light border-start-0"
-                                           placeholder="Ej: 3M H-700"
+                                           placeholder="Ej. 3M H-700"
                                            value="{{ old('marca_modelo') }}">
                                 </div>
                             </div>
@@ -90,117 +145,107 @@
                                     <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-barcode"></i></span>
                                     <input type="text" name="codigo_logistica"
                                            class="form-control bg-light border-start-0"
-                                           placeholder="Ej: LOG-001"
+                                           placeholder="Ej. 24370"
                                            value="{{ old('codigo_logistica') }}">
                                 </div>
                             </div>
+                            <div class="col-12">
+                                <label class="form-label fw-bold small">Descripción / Especificaciones</label>
+                                <textarea name="descripcion" class="form-control bg-light" rows="3"
+                                          placeholder="Normas que cumple, material, características técnicas...">{{ old('descripcion') }}</textarea>
+                            </div>
                         </div>
 
-                        {{-- Departamento + Vida útil --}}
-                        <div class="row g-3 mb-3">
-                            <div class="col-12 col-sm-6">
-                                <label class="form-label fw-bold small">Departamento</label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-building"></i></span>
-                                    <select name="departamento_id" class="form-select bg-light border-start-0">
-                                        <option value="">— Selecciona un departamento —</option>
-                                        @forelse($departamentos as $depto)
-                                            <option value="{{ $depto->id }}"
-                                                {{ old('departamento_id') == $depto->id ? 'selected' : '' }}>
-                                                {{ $depto->nombre }}
-                                            </option>
-                                        @empty
-                                            <option value="" disabled>No hay departamentos disponibles</option>
-                                        @endforelse
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-12 col-sm-6">
+                        {{-- ── 2. CONFIGURACIÓN ── --}}
+                        <div class="section-label"><i class="bi bi-sliders"></i>Configuración y uso</div>
+                        <div class="row g-3 mb-4">
+                            <div class="col-12 col-sm-4">
                                 <label class="form-label fw-bold small">Vida útil (meses) <span class="text-danger">*</span></label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-calendar-event"></i></span>
                                     <input type="number" name="vida_util_meses"
                                            class="form-control bg-light border-start-0"
-                                           placeholder="Ej: 12"
-                                           value="{{ old('vida_util_meses') }}" required>
+                                           placeholder="Ej. 12"
+                                           value="{{ old('vida_util_meses', 12) }}" required min="1">
                                 </div>
+                                <small class="text-muted d-block mt-1" style="font-size:.72rem;">12 meses = 1 año</small>
                             </div>
-                        </div>
-
-                        {{-- Frecuencia + Precio + Cantidad --}}
-                        <div class="row g-3 mb-3">
                             <div class="col-12 col-sm-4">
                                 <label class="form-label fw-bold small">Frecuencia de Entrega</label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-arrow-repeat"></i></span>
                                     <input type="text" name="frecuencia_entrega"
                                            class="form-control bg-light border-start-0"
-                                           placeholder="Ej: Mensual"
+                                           placeholder="Ej. Anual, Mensual"
                                            value="{{ old('frecuencia_entrega') }}">
                                 </div>
                             </div>
-                            <div class="col-6 col-sm-4">
-                                <label class="form-label fw-bold small">Precio (USD)</label>
+                            <div class="col-12 col-sm-4">
+                                <label class="form-label fw-bold small">Fecha de Registro</label>
                                 <div class="input-group">
-                                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-currency-dollar"></i></span>
-                                    <input type="number" name="precio"
+                                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-calendar2-check"></i></span>
+                                    <input type="date" name="fecha_registro"
                                            class="form-control bg-light border-start-0"
-                                           placeholder="0.00" step="0.01"
-                                           value="{{ old('precio') }}">
+                                           value="{{ old('fecha_registro') }}">
                                 </div>
-                            </div>
-                            <div class="col-6 col-sm-4">
-                                <label class="form-label fw-bold small">Cantidad</label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-box"></i></span>
-                                    <input type="number" name="cantidad"
-                                           class="form-control bg-light border-start-0"
-                                           placeholder="0"
-                                           value="{{ old('cantidad') }}">
-                                </div>
+                                <small class="text-muted d-block mt-1" style="font-size:.72rem;">Vacío = se usa la fecha actual.</small>
                             </div>
                         </div>
 
-                        {{-- Ficha técnica + Imagen --}}
-                        <div class="row g-3 mb-3">
-                            <div class="col-12 col-sm-6">
-                                <label class="form-label fw-bold small">Ficha Técnica (PDF opcional)</label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-file-earmark-pdf"></i></span>
-                                    <input type="file" name="ficha_tecnica"
-                                           class="form-control bg-light border-start-0"
-                                           accept=".pdf">
+                        {{-- ── 3. DEPARTAMENTOS ── --}}
+                        <div class="section-label"><i class="bi bi-building"></i>Departamentos autorizados</div>
+                        <div class="mb-4">
+                            @if($departamentos->count())
+                                <div class="depto-grid">
+                                    @foreach($departamentos as $depto)
+                                        <label class="depto-chip" for="create_depto_{{ $depto->id }}">
+                                            <input type="checkbox"
+                                                   name="departamentos[]"
+                                                   value="{{ $depto->id }}"
+                                                   id="create_depto_{{ $depto->id }}"
+                                                   @if(in_array($depto->id, old('departamentos', []))) checked @endif>
+                                            <i class="bi bi-building chip-icon"></i>
+                                            <span>{{ $depto->nombre }}</span>
+                                        </label>
+                                    @endforeach
                                 </div>
-                            </div>
+                                <small class="text-muted d-block mt-2" style="font-size:.72rem;">
+                                    <i class="bi bi-info-circle me-1"></i>Selecciona los departamentos que pueden solicitar este EPP.
+                                </small>
+                            @else
+                                <p class="text-muted small mb-0">
+                                    <i class="bi bi-exclamation-circle me-1"></i>No hay departamentos registrados.
+                                </p>
+                            @endif
+                        </div>
+
+                        {{-- ── 4. IMAGEN ── --}}
+                        <div class="section-label"><i class="bi bi-image"></i>Imagen del EPP</div>
+                        <div class="row g-3 mb-4">
                             <div class="col-12 col-sm-6">
-                                <label class="form-label fw-bold small">Imagen del EPP</label>
+                                <label class="form-label fw-bold small">Subir imagen</label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-image"></i></span>
                                     <input type="file" name="imagen" id="imagenInput"
                                            class="form-control bg-light border-start-0"
                                            accept="image/*">
                                 </div>
-                                <small class="text-muted d-block mt-1">Formatos: JPG, PNG, GIF (Máx: 2MB)</small>
+                                <small class="text-muted d-block mt-1" style="font-size:.72rem;">JPG, PNG, GIF (Máx: 2MB)</small>
                             </div>
-                        </div>
-
-                        {{-- Image preview --}}
-                        <div id="preview-container" class="mb-3" style="display:none;">
-                            <label class="form-label fw-bold small">Vista Previa</label>
-                            <div class="text-center">
+                            <div id="preview-container" class="col-12 col-sm-6 text-center text-sm-start" style="display:none;">
+                                <label class="form-label fw-bold small d-block text-start">Vista previa</label>
                                 <img id="image-preview" src="" alt="Vista previa"
-                                     class="img-fluid rounded border"
-                                     style="max-width:280px; max-height:220px; object-fit:cover;">
+                                     class="rounded border shadow-sm"
+                                     style="max-width:180px; max-height:160px; object-fit:contain; background:#f8f9fa; padding:4px;">
                             </div>
                         </div>
 
-                        {{-- Actions --}}
-                        <div class="d-flex flex-column flex-sm-row justify-content-end gap-2 mt-4 pt-2 border-top">
-                            <button type="reset" class="btn btn-light order-sm-1"
-                                    onclick="document.getElementById('preview-container').style.display='none';">
-                                Limpiar Campos
-                            </button>
-                            <button type="submit" class="btn btn-primary px-4 order-sm-2"
+                        {{-- ── ACTIONS ── --}}
+                        <div class="form-actions d-flex flex-column flex-sm-row justify-content-end gap-2 mt-4 pt-3 border-top">
+                            <a href="{{ route('epps.index') }}" class="btn btn-outline-secondary order-sm-1">
+                                Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary px-5 fw-bold order-sm-2"
                                     style="background-color:#003366; border:none;">
                                 <i class="bi bi-save me-1"></i>Guardar EPP
                             </button>
@@ -215,9 +260,9 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const imageInput     = document.getElementById('imagenInput');
+    const imageInput       = document.getElementById('imagenInput');
     const previewContainer = document.getElementById('preview-container');
-    const imagePreview   = document.getElementById('image-preview');
+    const imagePreview     = document.getElementById('image-preview');
 
     if (imageInput) {
         imageInput.addEventListener('change', function (e) {
