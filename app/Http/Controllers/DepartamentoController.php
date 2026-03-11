@@ -13,44 +13,100 @@ use Illuminate\Support\Facades\DB;
 class DepartamentoController extends Controller
 {
     /**
-     * Mapa de imágenes por palabras clave del nombre del departamento.
+     * Mapa de imágenes por palabras clave.
+     * Usa Picsum Photos — IDs fijos, sin API key, sin hotlink blocking.
      * Se recorre en orden: la primera coincidencia gana.
      */
-    private function resolverImagenAutomatica(string $nombre): ?string
+    private function resolverImagenAutomatica(string $nombre): string
     {
-        $nombreLower = strtolower($nombre);
+        $lower = strtolower($nombre);
 
         $mapa = [
-            'mecánica'   => 'https://iesgraupiura.edu.pe/wp-content/uploads/2023/09/mecanico-industrial.jpg',
-            'mecanica'   => 'https://iesgraupiura.edu.pe/wp-content/uploads/2023/09/mecanico-industrial.jpg',
-            'minería'    => 'https://www.tecsup.edu.pe/wp-content/uploads/2024/09/WEB-DEPARTAMENTOS_DPTO.-MINERIA-Y-PROCESOS-QUIMICOS-Y-METALURGICOS-10.jpg',
-            'mineria'    => 'https://www.tecsup.edu.pe/wp-content/uploads/2024/09/WEB-DEPARTAMENTOS_DPTO.-MINERIA-Y-PROCESOS-QUIMICOS-Y-METALURGICOS-10.jpg',
-            'estudios generales' => 'https://www.businessempresarial.com.pe/wp-content/uploads/2023/04/img-390x220.png',
-            'tecnología digital' => 'https://www.tecsup.edu.pe/wp-content/uploads/2024/04/banner-3_Mesa-de-trabajo-1.png',
-            'tecnologia digital' => 'https://www.tecsup.edu.pe/wp-content/uploads/2024/04/banner-3_Mesa-de-trabajo-1.png',
+            // Mecánica / Mecatrónica / Mantenimiento
+            'mecatrónica'        => 'https://picsum.photos/id/137/800/600',
+            'mecatronica'        => 'https://picsum.photos/id/137/800/600',
+            'mecánica'           => 'https://picsum.photos/id/137/800/600',
+            'mecanica'           => 'https://picsum.photos/id/137/800/600',
+            'mantenimiento'      => 'https://picsum.photos/id/137/800/600',
+
+            // Minería / Metalúrgica / Topografía / Geomática
+            'minería'            => 'https://picsum.photos/id/162/800/600',
+            'mineria'            => 'https://picsum.photos/id/162/800/600',
+            'metalúrg'           => 'https://picsum.photos/id/162/800/600',
+            'metalurg'           => 'https://picsum.photos/id/162/800/600',
+            'topograf'           => 'https://picsum.photos/id/218/800/600',
+            'geomát'             => 'https://picsum.photos/id/218/800/600',
+            'geomat'             => 'https://picsum.photos/id/218/800/600',
+
+            // Química / Procesos
+            'químico'            => 'https://picsum.photos/id/366/800/600',
+            'quimico'            => 'https://picsum.photos/id/366/800/600',
+            'proceso'            => 'https://picsum.photos/id/366/800/600',
+
+            // Tecnología Digital / Sistemas / Computación / Software / Redes
+            'tecnología digital' => 'https://picsum.photos/id/180/800/600',
+            'tecnologia digital' => 'https://picsum.photos/id/180/800/600',
+            'digital'            => 'https://picsum.photos/id/180/800/600',
+            'sistemas'           => 'https://picsum.photos/id/180/800/600',
+            'computac'           => 'https://picsum.photos/id/180/800/600',
+            'software'           => 'https://picsum.photos/id/180/800/600',
+            'redes'              => 'https://picsum.photos/id/0/800/600',
+
+            // Electricidad / Electrónica / Automatización
+            'eléctric'           => 'https://picsum.photos/id/146/800/600',
+            'electric'           => 'https://picsum.photos/id/146/800/600',
+            'electrónic'         => 'https://picsum.photos/id/180/800/600',
+            'electronic'         => 'https://picsum.photos/id/180/800/600',
+            'automatiz'          => 'https://picsum.photos/id/96/800/600',
+
+            // Civil / Construcción / Arquitectura
+            'civil'              => 'https://picsum.photos/id/453/800/600',
+            'construcción'       => 'https://picsum.photos/id/453/800/600',
+            'construccion'       => 'https://picsum.photos/id/453/800/600',
+            'arquitect'          => 'https://picsum.photos/id/453/800/600',
+
+            // Logística / Administración / Gestión
+            'logística'          => 'https://picsum.photos/id/375/800/600',
+            'logistica'          => 'https://picsum.photos/id/375/800/600',
+            'administrac'        => 'https://picsum.photos/id/370/800/600',
+            'gestión'            => 'https://picsum.photos/id/370/800/600',
+            'gestion'            => 'https://picsum.photos/id/370/800/600',
+
+            // Estudios Generales / Humanidades / Ciencias
+            'estudios generales' => 'https://picsum.photos/id/501/800/600',
+            'estudios'           => 'https://picsum.photos/id/501/800/600',
+            'general'            => 'https://picsum.photos/id/501/800/600',
+            'humanidad'          => 'https://picsum.photos/id/501/800/600',
+            'ciencias'           => 'https://picsum.photos/id/366/800/600',
+
+            // Energía / Petróleo
+            'energía'            => 'https://picsum.photos/id/146/800/600',
+            'energia'            => 'https://picsum.photos/id/146/800/600',
+            'petróleo'           => 'https://picsum.photos/id/162/800/600',
+            'petroleo'           => 'https://picsum.photos/id/162/800/600',
+
+            // Salud / Seguridad / SST
+            'salud'              => 'https://picsum.photos/id/356/800/600',
+            'seguridad'          => 'https://picsum.photos/id/1/800/600',
+            'sst'                => 'https://picsum.photos/id/1/800/600',
         ];
 
         foreach ($mapa as $clave => $url) {
-            if (str_contains($nombreLower, $clave)) {
+            if (str_contains($lower, $clave)) {
                 return $url;
             }
         }
 
-        return null; // Sin imagen predefinida → el blade usará el fallback de Unsplash
+        // Fallback industrial genérico — nunca retorna null
+        return 'https://picsum.photos/id/96/800/600';
     }
 
-    /**
-     * Muestra las "Cards" de los departamentos en el Panel.
-     */
     public function index()
     {
         $departamentos = Departamento::withCount('personals')->get();
         return view('departamentos.index', compact('departamentos'));
     }
 
-    /**
-     * Guarda un nuevo departamento creado desde el modal.
-     */
     public function store(Request $request)
     {
         $request->validate([
@@ -61,32 +117,25 @@ class DepartamentoController extends Controller
 
         $imagenUrl = null;
 
-        // Prioridad 1: archivo subido manualmente
         if ($request->hasFile('imagen')) {
             $path = $request->file('imagen')->store('departamentos', 'public');
             $imagenUrl = 'storage/' . $path;
-        }
-        // Prioridad 2: URL pegada manualmente
-        elseif ($request->filled('imagen_url_text')) {
+        } elseif ($request->filled('imagen_url_text')) {
             $imagenUrl = $request->imagen_url_text;
-        }
-        // Prioridad 3: imagen automática por nombre
-        else {
+        } else {
+            // Siempre asigna Picsum — nunca queda null
             $imagenUrl = $this->resolverImagenAutomatica($request->nombre);
         }
 
         $departamento = new Departamento();
-        $departamento->nombre      = $request->nombre;
+        $departamento->nombre       = $request->nombre;
         $departamento->nivel_riesgo = 'Bajo';
-        $departamento->imagen_url  = $imagenUrl;
+        $departamento->imagen_url   = $imagenUrl;
         $departamento->save();
 
         return back()->with('success', '¡Departamento creado con éxito!');
     }
 
-    /**
-     * Actualiza un departamento existente.
-     */
     public function update(Request $request, $id)
     {
         $request->validate([
@@ -104,7 +153,6 @@ class DepartamentoController extends Controller
         } elseif ($request->filled('imagen_url_text')) {
             $departamento->imagen_url = $request->imagen_url_text;
         }
-        // Si no se sube nada nuevo, se conserva la imagen actual
 
         $departamento->save();
 
@@ -112,30 +160,33 @@ class DepartamentoController extends Controller
     }
 
     /**
-     * Asigna imágenes automáticas a todos los departamentos que no tienen imagen.
-     * Ruta: GET /departamentos/asignar-imagenes  (útil para los ya importados)
+     * Asigna imágenes Picsum a todos los departamentos sin imagen (o con imagen rota).
+     * Ruta: GET /departamentos/asignar-imagenes
      */
     public function asignarImagenesAutomaticas()
     {
         $actualizados = 0;
 
-        Departamento::whereNull('imagen_url')
-            ->orWhere('imagen_url', '')
-            ->each(function ($depto) use (&$actualizados) {
-                $url = $this->resolverImagenAutomatica($depto->nombre);
-                if ($url) {
-                    $depto->imagen_url = $url;
-                    $depto->save();
-                    $actualizados++;
-                }
-            });
+        // Actualiza TODOS los que no tengan imagen subida al storage
+        $departamentos = DB::table('departamentos')->get();
+
+        foreach ($departamentos as $depto) {
+            if (!empty($depto->imagen_url) && str_starts_with($depto->imagen_url, 'storage/')) {
+                continue;
+            }
+
+            $url = $this->resolverImagenAutomatica($depto->nombre);
+
+            DB::table('departamentos')
+                ->where('id', $depto->id)
+                ->update(['imagen_url' => $url]);
+
+            $actualizados++;
+        }
 
         return back()->with('success', "Imágenes asignadas a {$actualizados} departamento(s).");
     }
 
-    /**
-     * Muestra los detalles de un departamento y su lista de docentes asignados.
-     */
     public function show(string $id)
     {
         $departamento = Departamento::with(['personals' => function ($query) {
@@ -149,22 +200,15 @@ class DepartamentoController extends Controller
         return view('departamentos.show', compact('departamento', 'epps', 'talleres', 'matriz'));
     }
 
-    /**
-     * Elimina un departamento específico.
-     */
     public function destroy(string $id)
     {
         Personal::where('departamento_id', $id)->update(['departamento_id' => null]);
         Taller::where('departamento_id', $id)->update(['departamento_id' => null]);
-
         Departamento::findOrFail($id)->delete();
 
         return back()->with('success', 'Departamento eliminado correctamente.');
     }
 
-    /**
-     * Elimina todos los departamentos.
-     */
     public function destroyAll()
     {
         Personal::query()->update(['departamento_id' => null]);
@@ -174,9 +218,6 @@ class DepartamentoController extends Controller
         return back()->with('success', 'Departamentos eliminados. El personal ha vuelto a la Lista Maestra.');
     }
 
-    /**
-     * Elimina departamentos seleccionados.
-     */
     public function destroySelected(Request $request)
     {
         if (!$request->ids) {
@@ -190,9 +231,6 @@ class DepartamentoController extends Controller
         return back()->with('success', 'Departamentos eliminados correctamente.');
     }
 
-    /**
-     * Asigna un EPP a todo el personal del departamento.
-     */
     public function asignarMasivo(Request $request, $id)
     {
         $request->validate(['epps' => 'required|array']);

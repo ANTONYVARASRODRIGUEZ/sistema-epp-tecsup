@@ -19,22 +19,17 @@
         transform: translateY(-10px);
         box-shadow: 0 20px 40px rgba(0,0,0,0.12) !important;
     }
-    /* En touch/móvil sin hover quitamos el lift para evitar estados raros */
     @media (hover: none) {
         .card-modern:hover { transform: none; }
     }
 
     .img-container {
         position: relative;
-        height: 200px; /* un poco más compacto en móvil */
+        height: 200px;
         overflow: hidden;
     }
-    @media (min-width: 576px) {
-        .img-container { height: 220px; }
-    }
-    @media (min-width: 992px) {
-        .img-container { height: 240px; }
-    }
+    @media (min-width: 576px) { .img-container { height: 220px; } }
+    @media (min-width: 992px) { .img-container { height: 240px; } }
 
     .img-gradient {
         position: absolute;
@@ -76,112 +71,113 @@
         margin-bottom: 32px;
     }
     @media (min-width: 992px) {
-        .page-header {
-            padding: 40px 48px;
-            border-radius: 30px;
-            margin-bottom: 40px;
-        }
+        .page-header { padding: 40px 48px; border-radius: 30px; margin-bottom: 40px; }
     }
-
-    /* Títulos del header: no desbordan en xs */
     .page-header h1 {
         font-size: clamp(1.4rem, 5vw, 2.5rem);
         line-height: 1.15;
         word-break: break-word;
     }
-    .page-header p {
-        font-size: clamp(0.9rem, 2.5vw, 1.15rem);
-    }
+    .page-header p { font-size: clamp(0.9rem, 2.5vw, 1.15rem); }
 
     /* ── BOTONES DEL HEADER ── */
     .header-actions {
         display: flex;
         flex-wrap: wrap;
         gap: 8px;
-        /* En móvil: centrado; en lg: alineado a la derecha */
         justify-content: center;
     }
-    @media (min-width: 992px) {
-        .header-actions { justify-content: flex-end; }
-    }
-
-    .header-actions .btn {
-        min-height: 44px;   /* toque táctil mínimo */
-        white-space: nowrap;
-        font-size: 0.875rem;
-    }
-    /* En xs muy pequeño los textos largos se acortan */
+    @media (min-width: 992px) { .header-actions { justify-content: flex-end; } }
+    .header-actions .btn { min-height: 44px; white-space: nowrap; font-size: 0.875rem; }
     @media (max-width: 400px) {
         .header-actions .btn { font-size: 0.8rem; padding-left: 12px; padding-right: 12px; }
-        .header-actions .btn-text-long { display: none; }
     }
+    .btn-trash-only { min-width: 44px; display: flex; align-items: center; justify-content: center; }
 
-    /* Botón de papelera: cuadrado proporcional */
-    .btn-trash-only {
-        min-width: 44px;
-        display: flex; align-items: center; justify-content: center;
-    }
+    /* ── GRID ── */
+    .depto-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
+    @media (min-width: 576px) { .depto-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (min-width: 992px) { .depto-grid { grid-template-columns: repeat(3, 1fr); gap: 28px; } }
 
-    /* ── GRID DE CARDS: 1 col xs, 2 col sm, 3 col lg ── */
-    .depto-grid {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 20px;
-    }
-    @media (min-width: 576px) {
-        .depto-grid { grid-template-columns: repeat(2, 1fr); }
-    }
-    @media (min-width: 992px) {
-        .depto-grid { grid-template-columns: repeat(3, 1fr); gap: 28px; }
-    }
+    .card-modern .card-body { padding: 1rem 1.2rem; }
+    @media (min-width: 768px) { .card-modern .card-body { padding: 1.25rem 1.5rem; } }
 
-    /* Card body: un poco más compacto en móvil */
-    .card-modern .card-body {
-        padding: 1rem 1.2rem;
-    }
-    @media (min-width: 768px) {
-        .card-modern .card-body { padding: 1.25rem 1.5rem; }
-    }
-
-    /* Estado y Seguridad: etiquetas legibles en xs */
     .card-meta-label { font-size: 0.68rem; }
     .card-meta-value { font-size: 0.9rem; }
 
-    /* Nombre del depto sobre imagen: no desborda */
     .depto-title {
         word-break: break-word;
-        max-width: calc(100% - 60px); /* deja espacio al badge */
+        max-width: calc(100% - 60px);
         font-size: clamp(0.95rem, 3vw, 1.25rem);
     }
 
-    /* Dropdown de opciones: tamaño táctil */
     .dropdown > .btn {
         width: 36px; height: 36px;
         display: flex; align-items: center; justify-content: center;
         padding: 0;
     }
 
-    /* Modales: más cómodos en móvil */
     @media (max-width: 576px) {
         .modal-body.p-5 { padding: 1.5rem !important; }
         .modal-body h3 { font-size: 1.3rem; }
     }
 </style>
 
+@php
+/**
+ * Resuelve la URL de Picsum según el nombre del departamento.
+ * Mismo mapa que el Controller y el Seeder — fuente única de verdad visual.
+ */
+function picsumParaDepto(string $nombre, int $id): string {
+    $lower = strtolower($nombre);
+    $mapa  = [
+        'mecatrónica' => 137, 'mecatronica' => 137,
+        'mecánica'    => 137, 'mecanica'    => 137, 'mantenimiento' => 137,
+        'minería'     => 162, 'mineria'     => 162,
+        'metalúrg'    => 162, 'metalurg'    => 162,
+        'topograf'    => 218, 'geomát'      => 218, 'geomat' => 218,
+        'químico'     => 366, 'quimico'     => 366, 'proceso' => 366,
+        'tecnología digital' => 180, 'tecnologia digital' => 180,
+        'digital'     => 180, 'sistemas'    => 180,
+        'computac'    => 180, 'software'    => 180,
+        'redes'       => 0,
+        'eléctric'    => 146, 'electric'    => 146,
+        'electrónic'  => 180, 'electronic'  => 180,
+        'automatiz'   => 96,
+        'civil'       => 453, 'construcción' => 453, 'construccion' => 453,
+        'arquitect'   => 453,
+        'logística'   => 375, 'logistica'   => 375,
+        'administrac' => 370, 'gestión'     => 370, 'gestion' => 370,
+        'estudios generales' => 501, 'estudios' => 501,
+        'general'     => 501, 'humanidad'   => 501,
+        'ciencias'    => 366,
+        'energía'     => 146, 'energia'     => 146,
+        'petróleo'    => 162, 'petroleo'    => 162,
+        'salud'       => 356,
+        'seguridad'   => 1,   'sst'         => 1,
+    ];
+    foreach ($mapa as $clave => $picsumId) {
+        if (str_contains($lower, $clave)) {
+            return "https://picsum.photos/id/{$picsumId}/800/600";
+        }
+    }
+    // Fallback: usa el ID del depto para variar entre departamentos sin coincidencia
+    $ids = [96, 137, 180, 218, 366, 375, 453, 501];
+    return "https://picsum.photos/id/{$ids[$id % count($ids)]}/800/600";
+}
+@endphp
+
 <div class="container py-4">
 
     {{-- ── PAGE HEADER ── --}}
     <div class="page-header shadow-sm">
-        {{-- Layout: apilado en móvil, fila en lg --}}
         <div class="d-flex flex-column flex-lg-row align-items-start align-items-lg-center justify-content-lg-between gap-4">
 
-            {{-- Títulos --}}
             <div class="text-center text-lg-start">
                 <h1 class="fw-bold text-dark mb-1">Panel de Control</h1>
                 <p class="text-muted mb-0">Gestión de Seguridad por Departamentos</p>
             </div>
 
-            {{-- Botones --}}
             <div class="header-actions w-100 w-lg-auto">
                 <a href="{{ route('organizador.index') }}" class="btn btn-white shadow-sm rounded-pill px-4 py-2 fw-bold text-primary border d-flex align-items-center justify-content-center">
                     <i class="bi bi-person-gear me-2"></i>Organizar
@@ -196,8 +192,7 @@
                    class="btn btn-outline-info rounded-pill px-4 py-2 fw-bold shadow-sm d-flex align-items-center justify-content-center"
                    title="Asigna imágenes predefinidas a los {{ $sinImagen }} departamento(s) sin imagen">
                     <i class="bi bi-image me-2"></i>
-                    <span>Imágenes</span>
-                    <span class="ms-1">({{ $sinImagen }})</span>
+                    <span>Imágenes ({{ $sinImagen }})</span>
                 </a>
                 @endif
 
@@ -212,6 +207,14 @@
     {{-- ── GRID DE DEPARTAMENTOS ── --}}
     <div class="depto-grid">
         @foreach($departamentos as $depto)
+        @php
+            $imgFallback = picsumParaDepto($depto->nombre, $depto->id);
+            $imgSrc = $depto->imagen_url
+                ? (Str::startsWith($depto->imagen_url, 'http')
+                    ? $depto->imagen_url
+                    : asset($depto->imagen_url))
+                : $imgFallback;
+        @endphp
         <div class="card card-modern shadow-sm h-100">
             <div class="img-container">
                 <div class="badge-docentes">
@@ -236,10 +239,13 @@
                         </ul>
                     </div>
                 </div>
-                <img src="{{ $depto->imagen_url ? (Str::startsWith($depto->imagen_url, 'http') ? $depto->imagen_url : asset($depto->imagen_url)) : 'https://source.unsplash.com/featured/800x600?' . Str::slug($depto->nombre) . ',industrial&sig=' . $depto->id }}"
+
+                {{-- Imagen con fallback a Picsum — nunca queda negro --}}
+                <img src="{{ $imgSrc }}"
                      class="w-100 h-100 object-fit-cover"
                      alt="{{ $depto->nombre }}"
-                     onerror="this.onerror=null; this.src='https://placehold.co/800x600/003a70/ffffff?text={{ urlencode($depto->nombre) }}';">
+                     onerror="this.onerror=null; this.src='{{ $imgFallback }}';">
+
                 <div class="img-gradient"></div>
                 <h4 class="depto-title position-absolute bottom-0 start-0 m-3 text-white fw-bold z-2">{{ $depto->nombre }}</h4>
             </div>
@@ -281,16 +287,14 @@
                     <h3 class="fw-bold">Nueva Área</h3>
                     <p class="text-muted">Ingresa el nombre del departamento para comenzar la gestión de EPP.</p>
                 </div>
-
                 <form action="{{ route('departamentos.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <div class="mb-4">
                         <label class="form-label fw-bold">Nombre del Departamento</label>
                         <input type="text" name="nombre" class="form-control form-control-lg border-0 bg-light px-4 py-3"
                                placeholder="Nombre del Departamento..." required style="border-radius: 15px;">
-                        <small class="text-muted"><i class="bi bi-magic me-1"></i>Se asignará imagen automáticamente si el nombre coincide con un área conocida.</small>
+                        <small class="text-muted"><i class="bi bi-magic me-1"></i>Se asignará imagen automáticamente.</small>
                     </div>
-
                     <div class="mb-4">
                         <label class="form-label fw-bold">Imagen de Portada (Opcional)</label>
                         <ul class="nav nav-pills mb-2 gap-2" id="pills-tab" role="tablist">
@@ -306,7 +310,6 @@
                             </div>
                         </div>
                     </div>
-
                     <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill fw-bold py-3">
                         Crear Departamento
                     </button>
@@ -328,7 +331,6 @@
                     </div>
                     <h3 class="fw-bold">Editar Departamento</h3>
                 </div>
-
                 <form id="formEditarDepto" method="POST" enctype="multipart/form-data">
                     @csrf
                     @method('PUT')
@@ -336,7 +338,6 @@
                         <label class="form-label fw-bold">Nombre del Departamento</label>
                         <input type="text" name="nombre" id="edit_nombre" class="form-control form-control-lg border-0 bg-light px-4 py-3" required style="border-radius: 15px;">
                     </div>
-
                     <div class="mb-4">
                         <label class="form-label fw-bold">Actualizar Imagen (Opcional)</label>
                         <ul class="nav nav-pills mb-2 gap-2" id="pills-tab-edit" role="tablist">
@@ -352,7 +353,6 @@
                             </div>
                         </div>
                     </div>
-
                     <button type="submit" class="btn btn-warning btn-lg w-100 rounded-pill fw-bold py-3 text-white">
                         Guardar Cambios
                     </button>
@@ -373,7 +373,6 @@
                 </div>
                 <h4 class="fw-bold mb-2">¿Estás seguro de borrar todo?</h4>
                 <p class="text-muted mb-4">Esta acción eliminará <strong>todos los departamentos</strong>. Los docentes volverán a la lista maestra "Sin Asignar".</p>
-
                 <div class="d-flex justify-content-center gap-2">
                     <button type="button" class="btn btn-light rounded-pill px-4 py-2" data-bs-dismiss="modal">Cancelar</button>
                     <form action="{{ route('departamentos.destroy_all') }}" method="POST">
@@ -396,12 +395,10 @@
                 </div>
                 <h4 class="fw-bold mb-2">¿Eliminar Departamento?</h4>
                 <p class="text-muted mb-4" id="mensajeBorrarIndividual"></p>
-
                 <div class="d-flex justify-content-center gap-2">
                     <button type="button" class="btn btn-light rounded-pill px-4 py-2" data-bs-dismiss="modal">Cancelar</button>
                     <form id="formBorrarIndividual" method="POST" action="">
-                        @csrf
-                        @method('DELETE')
+                        @csrf @method('DELETE')
                         <button type="submit" class="btn btn-danger rounded-pill px-4 py-2 fw-bold">Sí, Eliminar</button>
                     </form>
                 </div>
