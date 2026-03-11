@@ -16,6 +16,7 @@ use App\Http\Controllers\OrganizadorController;
 use App\Http\Controllers\ReporteController;
 use App\Http\Controllers\EntregaController;
 use App\Http\Middleware\CheckFirstLogin;
+use App\Http\Controllers\InventarioController;
 
 Route::get('/debug-hola', function () {
     return "Si ves este mensaje, Laravel y las rutas funcionan. El problema es el Dashboard.";
@@ -156,5 +157,9 @@ Route::get('/api/matriz-taller/{taller}', [EntregaController::class, 'getMatrizP
         Route::get('/configuracion', [ConfiguracionController::class, 'index'])->name('configuracion.index');
 
     });
+
+    // Ruta para la vista principal del inventario
+Route::get('/inventario', [InventarioController::class, 'index'])->name('inventario.index');
+Route::patch('/inventario/{id}', [InventarioController::class, 'update'])->name('inventario.update');
 
 });

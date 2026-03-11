@@ -22,46 +22,50 @@ class EppController extends Controller
     }
 
     public function store(Request $request)
-    {
-        $request->validate([
-            'nombre' => 'required|string|max:255',
-            'categoria_id' => 'required|exists:categorias,id',
-            'cantidad' => 'nullable|integer|min:0',
-            'vida_util_meses' => 'nullable|integer|min:1',
-            'fecha_ingreso_almacen' => 'nullable|date',
-            'fecha_registro' => 'nullable|date',
-        ]);
+{
+    $request->validate([
+        'nombre' => 'required|string|max:255',
+        'categoria_id' => 'required|exists:categorias,id',
+        'cantidad' => 'nullable|integer|min:0',
+        'vida_util_meses' => 'nullable|integer|min:1',
+        'fecha_ingreso_almacen' => 'nullable|date',
+        'fecha_registro' => 'nullable|date',
+        'departamentos' => 'nullable|array', // Validar array de departamentos
+        'departamentos.*' => 'exists:departamentos,id',
+    ]);
 
-        $data = $request->except(['fecha_vencimiento']); // No permitimos setear vencimiento manualmente
+    $data = $request->except(['fecha_vencimiento', 'departamentos']); 
 
-        // Valores por defecto inteligentes
-        $data['tipo'] = $request->tipo ?? 'Protección de seguridad';
-        $data['stock'] = $request->cantidad ?? 0;
-        $data['entregado'] = 0;
-        $data['deteriorado'] = 0;
-        $data['vida_util_meses'] = $request->vida_util_meses ?? 12; // Valor por defecto: 1 año
+    $data['tipo'] = $request->tipo ?? 'Protección de seguridad';
+    $data['stock'] = $request->cantidad ?? 0;
+    $data['entregado'] = 0;
+    $data['deteriorado'] = 0;
+    $data['vida_util_meses'] = $request->vida_util_meses ?? 12;
 
-        // Base date: preferir fecha_ingreso_almacen; si no, fecha_registro; si no, now
-        $baseDate = null;
-        if ($request->filled('fecha_ingreso_almacen')) {
-            $baseDate = Carbon::parse($request->fecha_ingreso_almacen);
-        } elseif ($request->filled('fecha_registro')) {
-            $baseDate = Carbon::parse($request->fecha_registro);
-        } else {
-            $baseDate = now();
-        }
-
-        if ($request->hasFile('imagen')) {
-            $data['imagen'] = $request->file('imagen')->store('epps', 'public');
-        }
-
-        $epp = Epp::create($data);
-
-        // Sincronizar created_at para mantener consistencia histórica en accesorios/reportes
-        $epp->update(['created_at' => $baseDate]);
-
-        return redirect()->route('epps.index')->with('success', 'EPP registrado correctamente');
+    // Lógica de departamento_texto
+    if ($request->has('departamentos')) {
+        $nombres = \App\Models\Departamento::whereIn('id', $request->departamentos)->pluck('nombre')->toArray();
+        $data['departamento_texto'] = implode(', ', $nombres);
+    } else {
+        $data['departamento_texto'] = 'Sin departamento';
     }
+
+    $baseDate = $request->filled('fecha_ingreso_almacen') 
+                ? Carbon::parse($request->fecha_ingreso_almacen) 
+                : ($request->filled('fecha_registro') ? Carbon::parse($request->fecha_registro) : now());
+
+    if ($request->hasFile('imagen')) {
+        $data['imagen'] = $request->file('imagen')->store('epps', 'public');
+    }
+
+    $epp = Epp::create($data);
+    $epp->update(['created_at' => $baseDate]);
+
+    // Relación Many-to-Many
+    $epp->departamentos()->sync($request->input('departamentos', []));
+
+    return redirect()->route('epps.index')->with('success', 'EPP registrado correctamente');
+}
 
     public function show($id)
     {
@@ -78,46 +82,56 @@ class EppController extends Controller
     }
 
     public function update(Request $request, $id)
-    {
-        $epp = Epp::findOrFail($id);
+{
+    $epp = Epp::findOrFail($id);
 
-        $request->validate([
-            'nombre' => 'required|string|max:255',
-            'categoria_id' => 'required|exists:categorias,id',
-            'cantidad' => 'nullable|integer|min:0',
-            'vida_util_meses' => 'nullable|integer|min:1',
-            'codigo_logistica' => 'nullable|string',
-            'fecha_ingreso_almacen' => 'nullable|date',
-            'fecha_registro' => 'nullable|date',
-        ]);
+    $request->validate([
+        'nombre' => 'required|string|max:255',
+        'categoria_id' => 'required|exists:categorias,id',
+        'cantidad' => 'nullable|integer|min:0',
+        'vida_util_meses' => 'required|integer|min:1',
+        'codigo_logistica' => 'nullable|string',
+        'fecha_ingreso_almacen' => 'nullable|date',
+        'fecha_registro' => 'nullable|date',
+        'departamentos' => 'nullable|array',
+        'departamentos.*' => 'exists:departamentos,id',
+    ]);
 
-        $data = $request->except(['fecha_vencimiento', 'fecha_ingreso_almacen']); // Bloquear edición manual y campo inexistente
+    $data = $request->except(['fecha_vencimiento', 'fecha_ingreso_almacen', 'departamentos']);
 
-        if ($request->hasFile('imagen')) {
-            $data['imagen'] = $request->file('imagen')->store('epps', 'public');
-        }
-
-        // Si se actualiza la cantidad total, recalcular el stock disponible
-        if ($request->has('cantidad')) {
-            $entregado = $epp->entregado ?? 0;
-            $deteriorado = $epp->deteriorado ?? 0;
-            $data['stock'] = $request->cantidad - $entregado - $deteriorado;
-        }
-
-        $epp->fill($data);
-
-        // Sincronizar fechas base
-        if ($request->filled('fecha_ingreso_almacen')) {
-            $fecha = Carbon::parse($request->fecha_ingreso_almacen);
-            // Opcional: si quieres alinear created_at:
-            $epp->created_at = $fecha;
-        } elseif ($request->filled('fecha_registro')) {
-            $epp->created_at = Carbon::parse($request->fecha_registro);
-        }
-
-        $epp->save(); // El modelo recalculará fecha_vencimiento en saving
-        return redirect()->route('epps.index')->with('success', 'EPP actualizado correctamente');
+    if ($request->hasFile('imagen')) {
+        $data['imagen'] = $request->file('imagen')->store('epps', 'public');
     }
+
+    if ($request->has('cantidad')) {
+        $entregado = $epp->entregado ?? 0;
+        $deteriorado = $epp->deteriorado ?? 0;
+        $data['stock'] = $request->cantidad - $entregado - $deteriorado;
+    }
+
+    // Actualizar departamento_texto antes de guardar
+    if ($request->has('departamentos')) {
+        $nombres = \App\Models\Departamento::whereIn('id', $request->departamentos)->pluck('nombre')->toArray();
+        $data['departamento_texto'] = implode(', ', $nombres);
+    } else {
+        $data['departamento_texto'] = 'Sin departamento';
+    }
+
+    $epp->fill($data);
+
+    if ($request->filled('fecha_ingreso_almacen')) {
+        $epp->created_at = \Carbon\Carbon::parse($request->fecha_ingreso_almacen);
+    } elseif ($request->filled('fecha_registro')) {
+        $epp->created_at = \Carbon\Carbon::parse($request->fecha_registro);
+    }
+
+    $epp->save(); 
+
+    // Sincronizar relación Muchos a Muchos
+    $epp->departamentos()->sync($request->input('departamentos', []));
+
+    return redirect()->route('epps.index')->with('success', 'EPP actualizado correctamente');
+}
 
     public function destroy($id)
     {

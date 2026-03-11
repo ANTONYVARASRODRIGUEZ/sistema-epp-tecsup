@@ -109,10 +109,10 @@
                             </ul>
                         </div>
                     </div>
-                    <img src="{{ $depto->imagen_url ? (Str::startsWith($depto->imagen_url, 'http') ? $depto->imagen_url : asset($depto->imagen_url)) : 'https://source.unsplash.com/featured/?' . Str::slug($depto->nombre) . ',technology,industry' }}"
-                         class="w-100 h-100 object-fit-cover" 
-                         alt="{{ $depto->nombre }}"
-                         onerror="this.onerror=null; this.src='https://source.unsplash.com/featured/?{{ Str::slug($depto->nombre) }},technology,industry';">
+                    <img src="{{ $depto->imagen_url ? (Str::startsWith($depto->imagen_url, 'http') ? $depto->imagen_url : asset($depto->imagen_url)) : 'https://source.unsplash.com/featured/800x600?' . Str::slug($depto->nombre) . ',industrial&sig=' . $depto->id }}"
+     class="w-100 h-100 object-fit-cover" 
+     alt="{{ $depto->nombre }}"
+     onerror="this.onerror=null; this.src='https://loremflickr.com/800/600/{{ Str::slug($depto->nombre) }},industrial/all';">
                     <div class="img-gradient"></div>
                     <h4 class="position-absolute bottom-0 start-0 m-3 text-white fw-bold z-2">{{ $depto->nombre }}</h4>
                 </div>

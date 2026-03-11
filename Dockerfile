@@ -11,7 +11,7 @@ ENV CONF_LARAVEL_SITE 1
 
 RUN composer install --no-dev --optimize-autoloader
 
-# Borramos el index intruso
+
 RUN rm -f /var/www/html/index.php
 
 EXPOSE 80
@@ -19,7 +19,7 @@ EXPOSE 80
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache && \
     chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# CMD REFORZADO: Forzamos el WEBROOT en el archivo de configuración de Nginx antes de iniciar
+
 CMD sh -c "sed -i 's|root /var/www/html;|root /var/www/html/public;|g' /etc/nginx/sites-available/default.conf && \
     php artisan config:clear && \
     php artisan route:clear && \
@@ -27,4 +27,4 @@ CMD sh -c "sed -i 's|root /var/www/html;|root /var/www/html/public;|g' /etc/ngin
     php artisan cache:clear && \
     php artisan migrate --force && \
     php artisan db:seed --force && \
-    /usr/bin/supervisord -n -c /etc/supervisord.conf"
+    /usr/bin/supervisord -n -c /etc/supervisord.conf"s

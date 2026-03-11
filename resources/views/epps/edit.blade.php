@@ -99,39 +99,53 @@
                             </div>
                         </div>
 
-                        {{-- Departamento + Vida útil --}}
-                        <div class="row g-3 mb-3">
-                            <div class="col-12 col-sm-6">
-                                <label class="form-label fw-bold small">Departamento</label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-building"></i></span>
-                                    <select name="departamento_id" class="form-select bg-light border-start-0">
-                                        <option value="">— Selecciona un departamento —</option>
-                                        @forelse($departamentos as $depto)
-                                            <option value="{{ $depto->id }}"
-                                                {{ old('departamento_id', $epp->departamento_id) == $depto->id ? 'selected' : '' }}>
-                                                {{ $depto->nombre }}
-                                            </option>
-                                        @empty
-                                            <option value="" disabled>No hay departamentos disponibles</option>
-                                        @endforelse
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-12 col-sm-6">
-                                <label class="form-label fw-bold small">Vida útil (meses) <span class="text-danger">*</span></label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-calendar-event"></i></span>
-                                    <input type="number" name="vida_util_meses"
-                                           class="form-control bg-light border-start-0"
-                                           value="{{ old('vida_util_meses', $epp->vida_util_meses) }}" required>
-                                </div>
+                        {{-- Departamentos (Múltiple) + Vida útil --}}
+<div class="row g-3 mb-4">
+    <div class="col-12 col-md-8">
+        <label class="form-label fw-bold small">Áreas / Departamentos Autorizados</label>
+        <div class="card bg-light border-0 shadow-sm">
+            <div class="card-body p-3" style="max-height: 200px; overflow-y: auto;">
+                <div class="row g-2">
+                    @forelse($departamentos as $depto)
+                        <div class="col-6 col-sm-4">
+                            <div class="form-check custom-checkbox">
+                                <input class="form-check-input" type="checkbox" 
+                                       name="departamentos[]" 
+                                       value="{{ $depto->id }}" 
+                                       id="depto_{{ $depto->id }}"
+                                       {{-- Comprobamos si el EPP ya tiene este departamento asignado --}}
+                                       @if(in_array($depto->id, old('departamentos', $epp->departamentos->pluck('id')->toArray()))) checked @endif>
+                                <label class="form-check-label small text-dark" for="depto_{{ $depto->id }}">
+                                    {{ $depto->nombre }}
+                                </label>
                             </div>
                         </div>
+                    @empty
+                        <div class="col-12 text-center py-2">
+                            <small class="text-muted italic">No hay departamentos registrados.</small>
+                        </div>
+                    @endforelse
+                </div>
+            </div>
+        </div>
+        <small class="text-muted" style="font-size:.72rem;">Marca todos los departamentos que pueden solicitar este EPP.</small>
+    </div>
 
-                        {{-- Frecuencia + Precio + Cantidad + Fecha ingreso --}}
+    <div class="col-12 col-md-4">
+        <label class="form-label fw-bold small">Vida útil (meses) <span class="text-danger">*</span></label>
+        <div class="input-group">
+            <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-calendar-event"></i></span>
+            <input type="number" name="vida_util_meses"
+                   class="form-control bg-light border-start-0"
+                   value="{{ old('vida_util_meses', $epp->vida_util_meses) }}" required min="1">
+        </div>
+        <small class="text-muted d-block mt-1" style="font-size:.72rem;">Duración estimada del equipo.</small>
+    </div>
+</div>
+
+                        {{-- Frecuencia + Fecha ingreso --}}
                         <div class="row g-3 mb-3">
-                            <div class="col-12 col-sm-6 col-lg-3">
+                            <div class="col-12 col-sm-6">
                                 <label class="form-label fw-bold small">Frecuencia de Entrega</label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-arrow-repeat"></i></span>
@@ -140,26 +154,7 @@
                                            value="{{ old('frecuencia_entrega', $epp->frecuencia_entrega) }}">
                                 </div>
                             </div>
-                            <div class="col-6 col-sm-3 col-lg-3">
-                                <label class="form-label fw-bold small">Precio (USD)</label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-currency-dollar"></i></span>
-                                    <input type="number" name="precio"
-                                           class="form-control bg-light border-start-0"
-                                           placeholder="0.00" step="0.01"
-                                           value="{{ old('precio', $epp->precio) }}">
-                                </div>
-                            </div>
-                            <div class="col-6 col-sm-3 col-lg-3">
-                                <label class="form-label fw-bold small">Cantidad</label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-box"></i></span>
-                                    <input type="number" name="cantidad"
-                                           class="form-control bg-light border-start-0"
-                                           value="{{ old('cantidad', $epp->cantidad) }}">
-                                </div>
-                            </div>
-                            <div class="col-12 col-sm-6 col-lg-3">
+                            <div class="col-12 col-sm-6">
                                 <label class="form-label fw-bold small">Fecha Ingreso al Almacén</label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-calendar2-check"></i></span>

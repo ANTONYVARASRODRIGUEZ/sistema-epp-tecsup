@@ -15,14 +15,17 @@ class EntregaController extends Controller
     /**
      * Muestra la lista de TODO el personal para entregas de EPP.
      */
+    /**
+     * Muestra la lista de TODO el personal para entregas de EPP.
+     */
     public function index(Request $request)
     {
         $departamentoIdFiltro = $request->input('departamento_id');
 
-        // Obtener todo el personal ordenado por carrera y nombre
+        // 1. Obtener todo el personal ordenado por carrera y nombre
         $personalsQuery = Personal::orderBy('carrera', 'asc')
             ->orderBy('nombre_completo', 'asc')
-            ->with(['asignaciones.epp', 'talleres', 'departamento']);
+            ->with(['asignaciones.epp', 'departamento']); // Quitamos 'talleres' de la relación
 
         // Si se pasa un ID de departamento, filtramos la lista de personal
         if ($departamentoIdFiltro) {
@@ -31,12 +34,28 @@ class EntregaController extends Controller
 
         $personals = $personalsQuery->get();
 
+        // 2. Datos complementarios (Solo lo necesario)
         $epps = Epp::orderBy('nombre', 'asc')->get();
-        $talleres = Taller::where('activo', true)->orderBy('nombre')->get();
-        $matriz = MatrizHomologacion::where('activo', true)->get();
         $departamentos = Departamento::orderBy('nombre')->get();
 
-        return view('entregas.index', compact('personals', 'epps', 'talleres', 'matriz', 'departamentos', 'departamentoIdFiltro'));
+        // 3. MAPA DINÁMICO DE EPPS POR DEPARTAMENTO
+        $eppsVinculados = DB::table('departamento_epp')
+            ->select('departamento_id', 'epp_id')
+            ->get()
+            ->groupBy('departamento_id')
+            ->map(function ($items) {
+                return $items->pluck('epp_id')->toArray();
+            })
+            ->all();
+
+        // 4. Enviamos todo a la vista (Sin variables muertas)
+        return view('entregas.index', compact(
+            'personals', 
+            'epps', 
+            'departamentos', 
+            'departamentoIdFiltro',
+            'eppsVinculados'
+        ));
     }
 
     /**

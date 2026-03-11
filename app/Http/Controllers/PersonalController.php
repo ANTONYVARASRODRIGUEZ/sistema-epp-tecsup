@@ -15,13 +15,28 @@ use Illuminate\Support\Facades\DB;
 class PersonalController extends Controller
 {
     public function index()
-    {
-        $personals = Personal::with(['departamento', 'asignaciones' => function($query) {
-            $query->where('estado', 'Entregado');
-        }])->orderBy('nombre_completo', 'asc')->get();
-        
-        return view('personals.index', compact('personals'));
-    }
+{
+    // 1. Cargamos el personal con sus relaciones
+    $personals = Personal::with(['departamento', 'asignaciones' => function($query) {
+        $query->where('estado', 'Entregado');
+    }])->orderBy('nombre_completo', 'asc')->get();
+
+    // 2. Cargamos TODOS los EPPs para que estén disponibles en el HTML del modal
+    $epps = \App\Models\Epp::orderBy('nombre', 'asc')->get();
+
+    // 3. CREAMOS EL MAPA DINÁMICO (La clave del éxito)
+    // Esto consulta la tabla puente y agrupa los IDs de EPP por cada Departamento
+    $eppsVinculados = \Illuminate\Support\Facades\DB::table('departamento_epp')
+        ->select('departamento_id', 'epp_id')
+        ->get()
+        ->groupBy('departamento_id')
+        ->map(function ($items) {
+            return $items->pluck('epp_id');
+        });
+
+    // 4. Enviamos todo a la vista
+    return view('personals.index', compact('personals', 'epps', 'eppsVinculados'));
+}
 
     public function store(Request $request)
     {
@@ -149,22 +164,32 @@ class PersonalController extends Controller
             \Log::info("═══════════════════════════════════════════");
             
             Excel::import(new PersonalImport, $request->file('file'));
+
+            // 2. --- NUEVO: VINCULACIÓN AUTOMÁTICA DE EPPS ---
+            // Buscamos todos los EPPs que tienen texto pero no ID de departamento
+            $departamentosOficiales = \App\Models\Departamento::all();
+            $eppsSinAsociar = \App\Models\Epp::whereNotNull('departamento_texto')->get();
+
+            foreach ($eppsSinAsociar as $epp) {
+                $idsParaVincular = [];
+                foreach ($departamentosOficiales as $depto) {
+                    // Si el nombre del depto recién creado está en el texto del EPP
+                    if (str_contains(strtolower($epp->departamento_texto), strtolower($depto->nombre))) {
+                        $idsParaVincular[] = $depto->id;
+                    }
+                }
+                // Sincronizamos la tabla puente
+                $epp->departamentos()->sync($idsParaVincular);
+            }
+            \Log::info("🔗 EPPs vinculados automáticamente a los nuevos departamentos.");
+            // -----------------------------------------------
             
             $personalsCount = Personal::count();
 
             // --- INICIO CÓDIGO INVISIBLE PARA LA MATRIZ ---
             // Una vez importado el personal y creados los departamentos,
             // ejecutamos el seeder de la matriz automáticamente.
-            try {
-                \Illuminate\Support\Facades\Artisan::call('db:seed', [
-                    '--class' => 'MatrizDinamicaSeeder',
-                    '--force' => true
-                ]);
-                \Log::info("✅ Matriz de EPP sincronizada automáticamente.");
-            } catch (\Exception $seederError) {
-                \Log::error("⚠️ El Excel cargó pero la Matriz falló: " . $seederError->getMessage());
-            }
-            // --- FIN CÓDIGO INVISIBLE ---
+          
 
 
 

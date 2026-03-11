@@ -110,132 +110,109 @@
     </div>
 
     {{-- ── EPP GRID ── --}}
-    <div class="row g-3" id="eppGrid">
-        @forelse($epps as $epp)
-        <div class="col-12 col-sm-6 col-lg-4 col-xl-3 epp-item cat-{{ $epp->categoria_id }}"
-             data-subtipo="{{ strtolower($epp->nombre) }}"
-             data-nombre="{{ strtolower($epp->nombre) }}"
-             data-descripcion="{{ strtolower($epp->descripcion) }}"
-             data-codigo="{{ strtolower($epp->codigo_logistica ?? '') }}">
+<div class="row g-3" id="eppGrid">
+    @forelse($epps as $epp)
+    <div class="col-12 col-sm-6 col-lg-4 col-xl-3 epp-item cat-{{ $epp->categoria_id }}"
+         data-subtipo="{{ strtolower($epp->nombre) }}"
+         data-nombre="{{ strtolower($epp->nombre) }}"
+         data-descripcion="{{ strtolower($epp->descripcion) }}"
+         data-codigo="{{ strtolower($epp->codigo_logistica ?? '') }}">
 
-            <div class="card border-0 shadow-sm h-100 card-epp">
+        <div class="card border-0 shadow-sm h-100 card-epp">
 
-                {{-- Image --}}
-                <div class="position-relative d-flex align-items-center justify-content-center bg-light"
-                     style="height:170px;">
-                    @if($epp->imagen)
-                        <img src="{{ asset('storage/' . $epp->imagen) }}"
-                             class="img-fluid h-100 p-2" style="object-fit:contain;">
-                    @else
-                        <i class="bi bi-box-seam display-4 text-light"></i>
-                    @endif
+            {{-- Image --}}
+            <div class="position-relative d-flex align-items-center justify-content-center bg-light"
+                 style="height:170px; border-bottom: 1px solid #f0f0f0;">
+                @if($epp->imagen)
+                    <img src="{{ asset('storage/' . $epp->imagen) }}"
+                         class="img-fluid h-100 p-2" style="object-fit:contain;">
+                @else
+                    <div class="text-center px-3">
+                        <p class="text-muted fw-bold mb-0" style="font-size: 0.7rem; letter-spacing: 1px; text-transform: uppercase;">
+                            Imagen no<br>adjuntada
+                        </p>
+                    </div>
+                @endif
+            </div>
 
-                    {{-- Stock badge --}}
-                    <div class="position-absolute top-0 end-0 m-2" style="z-index:2;">
-                        @if($epp->stock > 10)
-                            <span class="badge bg-success shadow-sm">Disponible</span>
-                        @elseif($epp->stock > 0)
-                            <span class="badge bg-warning text-dark shadow-sm">Stock Bajo</span>
-                        @else
-                            <span class="badge bg-danger shadow-sm">Agotado</span>
+            {{-- Body --}}
+            <div class="card-body d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div class="me-2">
+                        @php
+                            $partes = explode('-', $epp->nombre);
+                            $principal = trim($partes[0]);
+                            $subtipoDetalle = isset($partes[1]) ? trim($partes[1]) : null;
+                        @endphp
+                        <h6 class="fw-bold mb-0 text-dark" style="font-size:.95rem; line-height: 1.2;">{{ Str::upper($principal) }}</h6>
+                        @if($subtipoDetalle)
+                            <span class="text-primary fw-semibold" style="font-size:0.75rem;">
+                                {{ Str::upper($subtipoDetalle) }}
+                            </span>
                         @endif
+                    </div>
+                    <div class="dropdown flex-shrink-0">
+                        <button class="btn btn-light btn-sm border-0" type="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-three-dots-vertical"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                            <li><a class="dropdown-item" href="{{ route('epps.show', $epp->id) }}"><i class="bi bi-eye me-2 text-info"></i>Ficha Técnica</a></li>
+                            <li><a class="dropdown-item" href="{{ route('epps.edit', $epp->id) }}"><i class="bi bi-pencil me-2 text-primary"></i>Editar</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <button type="button" class="dropdown-item text-danger"
+                                        data-bs-toggle="modal" data-bs-target="#modalEliminarEpp"
+                                        data-epp-nombre="{{ $epp->nombre }}"
+                                        data-epp-url="{{ route('epps.destroy', $epp->id) }}">
+                                    <i class="bi bi-trash me-2"></i>Eliminar
+                                </button>
+                            </li>
+                        </ul>
                     </div>
                 </div>
 
-                {{-- Body --}}
-                <div class="card-body d-flex flex-column">
-                    <div class="d-flex justify-content-between align-items-start mb-2">
-                        <div class="me-2">
-                            @php
-                                $partes = explode('-', $epp->nombre);
-                                $principal = trim($partes[0]);
-                                $subtipoDetalle = isset($partes[1]) ? trim($partes[1]) : null;
-                            @endphp
-                            <h6 class="fw-bold mb-0 text-dark" style="font-size:.9rem;">{{ Str::upper($principal) }}</h6>
-                            @if($subtipoDetalle)
-                                <span class="badge bg-light text-primary border border-primary-subtle"
-                                      style="font-size:0.62rem;">
-                                    {{ Str::upper($subtipoDetalle) }}
-                                </span>
-                            @endif
-                        </div>
-                        <div class="dropdown flex-shrink-0">
-                            <button class="btn btn-light btn-sm border" type="button" data-bs-toggle="dropdown">
-                                <i class="bi bi-three-dots-vertical"></i>
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
-                                <li>
-                                    <a class="dropdown-item" href="{{ route('epps.show', $epp->id) }}">
-                                        <i class="bi bi-eye me-2 text-info"></i>Ver Detalles
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" href="{{ route('epps.edit', $epp->id) }}">
-                                        <i class="bi bi-pencil me-2 text-primary"></i>Editar EPP
-                                    </a>
-                                </li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <button type="button" class="dropdown-item text-danger"
-                                            data-bs-toggle="modal" data-bs-target="#modalEliminarEpp"
-                                            data-epp-nombre="{{ $epp->nombre }}"
-                                            data-epp-url="{{ route('epps.destroy', $epp->id) }}">
-                                        <i class="bi bi-trash me-2"></i>Eliminar
-                                    </button>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
+                {{-- Descripción / Modelo --}}
+                <p class="text-muted mb-3" style="font-size:0.8rem; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; min-height: 2.4rem;">
+                    {{ $epp->descripcion ?? 'Sin especificaciones del modelo.' }}
+                </p>
 
-                    <p class="text-muted mb-3 mt-1"
-                       style="font-size:0.8rem; line-height:1.3; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">
-                        {{ $epp->descripcion ?? 'Sin descripción adicional disponible.' }}
-                    </p>
-
-                    {{-- Specs --}}
-                    <div class="specs-box bg-light rounded-3 p-2 mb-3">
-                        <div class="d-flex justify-content-between align-items-center mb-1 border-bottom pb-1">
-                            <span class="text-muted" style="font-size:0.7rem;"><i class="bi bi-shield-check me-1"></i>VIGENCIA:</span>
-                            <span class="fw-bold text-dark" style="font-size:0.75rem;">
-                                @if($epp->vida_util_meses)
-                                    {{ $epp->vida_util_meses >= 12 ? ($epp->vida_util_meses / 12).' Años' : $epp->vida_util_meses.' Meses' }}
-                                @else
-                                    Sin definir
-                                @endif
-                            </span>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center mb-1 border-bottom pb-1">
-                            <span class="text-muted" style="font-size:0.7rem;"><i class="bi bi-upc-scan me-1"></i>CÓDIGO:</span>
-                            <span class="fw-bold text-dark" style="font-size:0.75rem;">{{ $epp->codigo_logistica ?? 'CSK-'.$epp->id }}</span>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="text-muted" style="font-size:0.7rem;"><i class="bi bi-box-seam me-1"></i>STOCK:</span>
-                            <span class="fw-bold {{ $epp->stock <= 10 ? 'text-danger' : 'text-success' }}" style="font-size:0.75rem;">
-                                {{ $epp->stock }} und.
-                            </span>
-                        </div>
+                {{-- Specs Box (Rediseñada para mostrar Código y Vida Útil) --}}
+                <div class="specs-box bg-light rounded-3 p-2 mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-1 border-bottom pb-1">
+                        <span class="text-muted" style="font-size:0.65rem;"><i class="bi bi-barcode me-1"></i>CÓD. LOGÍSTICA:</span>
+                        <span class="fw-bold text-dark" style="font-size:0.7rem;">
+                            {{ $epp->codigo_logistica ?? 'N/A' }}
+                        </span>
                     </div>
-
-                    <div class="mt-auto">
-                        <a href="{{ route('departamentos.index') }}"
-                           class="btn btn-success btn-sm shadow-sm w-100 {{ $epp->stock <= 0 ? 'disabled' : '' }}">
-                            <i class="bi bi-building me-1"></i>Asignar a Departamento
-                        </a>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-muted" style="font-size:0.65rem;"><i class="bi bi-clock-history me-1"></i>VIDA ÚTIL:</span>
+                        <span class="fw-bold text-dark" style="font-size:0.7rem;">
+                            {{ $epp->vida_util_meses >= 12 ? ($epp->vida_util_meses / 12).' Años' : $epp->vida_util_meses.' Meses' }}
+                        </span>
                     </div>
+                </div>
+
+                <div class="mt-auto">
+                    <a href="{{ route('epps.show', $epp->id) }}" class="btn btn-outline-dark btn-sm w-100 py-1 fw-bold">
+                        <i class="bi bi-info-circle me-1"></i>Ver Ficha Técnica
+                    </a>
                 </div>
             </div>
         </div>
-        @empty
-        <div class="col-12 text-center py-5">
-            <i class="bi bi-archive display-1 text-muted opacity-25"></i>
-            <p class="mt-3 text-muted">No hay EPPs registrados.</p>
-        </div>
-        @endforelse
     </div>
+    @empty
+    <div class="col-12 text-center py-5">
+        <i class="bi bi-box-seam display-1 text-muted opacity-25"></i>
+        <p class="mt-3 text-muted">No se encontraron equipos de protección personal.</p>
+    </div>
+    @endforelse
+</div>
 
 </div>
 
-{{-- ════ MODAL: Eliminar EPP ════ --}}
+{{-- ════ MODALES ════ --}}
+
+{{-- Eliminar EPP --}}
 <div class="modal fade" id="modalEliminarEpp" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content shadow-lg">
@@ -258,7 +235,7 @@
     </div>
 </div>
 
-{{-- ════ MODAL: Nuevo EPP ════ --}}
+{{-- Nuevo EPP --}}
 <div class="modal fade" id="modalNuevoEpp" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content shadow-lg">
@@ -272,8 +249,7 @@
                     <div class="row g-3">
                         <div class="col-12 col-sm-6">
                             <label class="form-label fw-bold small">Nombre del Equipo</label>
-                            <input type="text" name="nombre" class="form-control"
-                                   placeholder="Ej. Guante - Nitrilo" required>
+                            <input type="text" name="nombre" class="form-control" placeholder="Ej. Guante - Nitrilo" required>
                         </div>
                         <div class="col-12 col-sm-6">
                             <label class="form-label fw-bold small">Fecha de Vencimiento (Opcional)</label>
@@ -281,8 +257,7 @@
                         </div>
                         <div class="col-12">
                             <label class="form-label fw-bold small">Descripción / Notas</label>
-                            <textarea name="descripcion" class="form-control" rows="2"
-                                      placeholder="Detalles del material, talla o uso específico..."></textarea>
+                            <textarea name="descripcion" class="form-control" rows="2" placeholder="Detalles del material, talla o uso específico..."></textarea>
                         </div>
                         <div class="col-6 col-sm-3">
                             <label class="form-label fw-bold small">Categoría</label>
@@ -296,10 +271,6 @@
                         <div class="col-6 col-sm-3">
                             <label class="form-label fw-bold small">Código Logística</label>
                             <input type="text" name="codigo_logistica" class="form-control">
-                        </div>
-                        <div class="col-6 col-sm-3">
-                            <label class="form-label fw-bold small">Stock Inicial</label>
-                            <input type="number" name="cantidad" class="form-control" value="0">
                         </div>
                         <div class="col-6 col-sm-3">
                             <label class="form-label fw-bold small">Vida Útil (Meses)</label>
@@ -325,7 +296,7 @@
     </div>
 </div>
 
-{{-- ════ MODAL: Vaciar Todo ════ --}}
+{{-- Vaciar Todo --}}
 <div class="modal fade" id="modalVaciarEpps" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content shadow-lg">
@@ -348,7 +319,7 @@
     </div>
 </div>
 
-{{-- ════ MODAL: Importar Excel ════ --}}
+{{-- Importar Excel --}}
 <div class="modal fade" id="modalImportarEpp" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content shadow-lg">
@@ -367,14 +338,6 @@
                     <div class="text-start">
                         <label for="fecha_registro_excel" class="form-label fw-bold small">Fecha de Registro (opcional)</label>
                         <input type="date" name="fecha_registro" id="fecha_registro_excel" class="form-control mb-1">
-                        <small class="text-muted" style="font-size:.72rem;">Si no se especifica, se usará la fecha actual.</small>
-                    </div>
-                    <div class="mt-3 small text-muted text-start">
-                        <p class="mb-1 fw-bold">Requisitos del archivo:</p>
-                        <ul class="ps-3 mb-0">
-                            <li>Columnas: Nombre, Categoría, Stock Inicial, Código.</li>
-                            <li>La categoría debe existir previamente en el sistema.</li>
-                        </ul>
                     </div>
                 </div>
                 <div class="modal-footer border-0">
@@ -389,7 +352,7 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
 
-    // Delete modal
+    // Lógica para el modal de eliminación dinámica
     const modalEliminar = document.getElementById('modalEliminarEpp');
     if (modalEliminar) {
         modalEliminar.addEventListener('show.bs.modal', function (event) {
@@ -399,7 +362,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Filters
+    // Filtros de búsqueda y categoría
     const filterBtns   = document.querySelectorAll('.filter-btn');
     const subtipoFilter = document.getElementById('subtipoFilter');
     const searchInput   = document.getElementById('searchEpp');

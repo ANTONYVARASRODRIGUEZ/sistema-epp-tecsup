@@ -62,9 +62,9 @@
             <p class="text-muted mb-0 small">Lista de personal y asignación de equipos</p>
         </div>
         <button class="btn btn-dark rounded-pill px-4 shadow-sm flex-shrink-0"
-                data-bs-toggle="modal" data-bs-target="#modalMasivo">
-            <i class="bi bi-boxes me-2"></i>Asignar a Todos
-        </button>
+        onclick="abrirModalMasivo('{{ $departamentoIdFiltro }}')">
+    <i class="bi bi-boxes me-2"></i>Asignar a Todos
+</button>
     </div>
 
     {{-- ── FILTER BAR ── --}}
@@ -122,20 +122,19 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($personals as $persona)
-                    @php $tallerNombre = $persona->talleres->first()->nombre ?? ''; @endphp
+                    @foreach($personals as $persona) {{-- <--- ASEGÚRATE DE QUE ESTA LÍNEA ESTÉ AQUÍ --}}
                     <tr>
                         <td>
                             <div class="d-flex align-items-center">
                                 <div>
                                     <p class="mb-0 fw-semibold">{{ $persona->nombre_completo }}</p>
-                                    <small class="text-muted">{{ $tallerNombre }}</small>
+                                
                                 </div>
                                 <button class="btn btn-link btn-sm text-muted ms-2 p-0"
-                                        onclick="editarPersonal({{ $persona->id }}, '{{ addslashes($persona->nombre_completo) }}', '{{ $persona->dni }}', '{{ addslashes($persona->carrera) }}', '{{ $persona->tipo_contrato }}', '{{ addslashes($tallerNombre) }}')"
-                                        title="Editar datos">
-                                    <i class="bi bi-pencil-square"></i>
-                                </button>
+        onclick="editarPersonal({{ $persona->id }}, '{{ addslashes($persona->nombre_completo) }}', '{{ $persona->dni }}', '{{ addslashes($persona->carrera) }}', '{{ $persona->tipo_contrato }}')"
+        title="Editar datos">
+    <i class="bi bi-pencil-square"></i>
+</button>
                             </div>
                         </td>
                         <td>
@@ -199,17 +198,16 @@
 
                         <td class="text-center">
                             <button class="btn btn-primary btn-sm rounded-pill px-3"
-                                    onclick="abrirModalEntrega(
-                                        {{ $persona->id }},
-                                        '{{ addslashes($persona->nombre_completo) }}',
-                                        '{{ addslashes($tallerNombre) }}',
-                                        '{{ addslashes($persona->tipo_contrato ?? '') }}'
-                                    )">
-                                <i class="bi bi-hand-index-thumb me-1"></i>Entregar
-                            </button>
+    onclick="abrirModalEntrega(
+        {{ $persona->id }},
+        '{{ addslashes($persona->nombre_completo) }}',
+        {{ $persona->departamento_id ?? 'null' }}
+    )">
+    <i class="bi bi-hand-index-thumb me-1"></i>Entregar
+</button>
                         </td>
                     </tr>
-                    @endforeach
+                    @endforeach {{-- <--- ¡ESTA LÍNEA ES LA QUE FALTABA! --}}
                 </tbody>
             </table>
         </div>
@@ -220,7 +218,7 @@
     ══════════════════════════════════════ --}}
     <div class="d-md-none" id="listaCardsMobile">
         @forelse($personals as $persona)
-        @php $tallerNombre = $persona->talleres->first()->nombre ?? ''; @endphp
+       
         <div class="card card-personal shadow-sm mb-3 card-mobile-item"
              data-nombre="{{ strtolower($persona->nombre_completo) }}"
              data-dni="{{ strtolower($persona->dni) }}">
@@ -232,27 +230,24 @@
                         <div class="d-flex align-items-center gap-2 flex-wrap">
                             <span class="fw-bold">{{ $persona->nombre_completo }}</span>
                             <button class="btn btn-link btn-sm text-muted p-0"
-                                    onclick="editarPersonal({{ $persona->id }}, '{{ addslashes($persona->nombre_completo) }}', '{{ $persona->dni }}', '{{ addslashes($persona->carrera) }}', '{{ $persona->tipo_contrato }}', '{{ addslashes($tallerNombre) }}')"
-                                    title="Editar">
-                                <i class="bi bi-pencil-square small"></i>
-                            </button>
+        onclick="editarPersonal({{ $persona->id }}, '{{ addslashes($persona->nombre_completo) }}', '{{ $persona->dni }}', '{{ addslashes($persona->carrera) }}', '{{ $persona->tipo_contrato }}')"
+        title="Editar">
+    <i class="bi bi-pencil-square small"></i>
+</button>
                         </div>
                         <div class="d-flex flex-wrap gap-1 mt-1">
-                            @if($tallerNombre)
-                                <span class="epp-chip text-muted"><i class="bi bi-tools"></i>{{ $tallerNombre }}</span>
-                            @endif
+                           
                             <span class="epp-chip text-muted"><i class="bi bi-credit-card"></i>{{ $persona->dni }}</span>
                         </div>
                     </div>
                     <button class="btn btn-primary btn-sm rounded-pill px-3 flex-shrink-0"
-                            onclick="abrirModalEntrega(
-                                {{ $persona->id }},
-                                '{{ addslashes($persona->nombre_completo) }}',
-                                '{{ addslashes($tallerNombre) }}',
-                                '{{ addslashes($persona->tipo_contrato ?? '') }}'
-                            )">
-                        <i class="bi bi-hand-index-thumb"></i>
-                    </button>
+        onclick="abrirModalEntrega(
+            {{ $persona->id }},
+            '{{ addslashes($persona->nombre_completo) }}',
+            '{{ $persona->departamento_id }}' {{-- Cambiamos tallerNombre por el ID del depto --}}
+        )">
+    <i class="bi bi-hand-index-thumb"></i>
+</button>
                 </div>
 
                 {{-- Badges --}}
@@ -326,7 +321,6 @@
     </div>
 
 </div>
-
 {{-- ════════════════════════════════════════
      MODAL: Entrega Individual
 ════════════════════════════════════════ --}}
@@ -367,40 +361,38 @@
                                     <th style="width:80px;">Cant.</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                @foreach($epps as $epp)
-                                @php $sinStock = $epp->stock <= 0; @endphp
-                                <tr class="{{ $sinStock ? 'table-light text-muted' : '' }}">
-                                    <td>
-                                        <input class="form-check-input" type="checkbox"
-                                               name="epps[{{ $epp->id }}][checked]" value="1"
-                                               id="check_ind_{{ $epp->id }}"
-                                               data-stock="{{ $epp->stock }}"
-                                               {{ $sinStock ? 'disabled' : '' }}>
-                                    </td>
-                                    <td>
-                                        <label class="form-check-label w-100 small"
-                                               for="check_ind_{{ $epp->id }}"
-                                               style="{{ $sinStock ? '' : 'cursor:pointer;' }}">
-                                            {{ $epp->nombre }}
-                                            @if($sinStock)
-                                                <span class="badge bg-danger ms-1" style="font-size:.7em;">AGOTADO</span>
-                                            @endif
-                                            <span id="badge_info_{{ $epp->id }}" class="badge ms-1" style="display:none; font-size:.7em;"></span>
-                                        </label>
-                                    </td>
-                                    <td class="text-center">
-                                        <span class="badge {{ $sinStock ? 'bg-danger' : 'bg-secondary' }}">{{ $epp->stock }}</span>
-                                    </td>
-                                    <td>
-                                        <input type="number" name="epps[{{ $epp->id }}][cantidad]"
-                                               class="form-control form-control-sm text-center"
-                                               value="1" min="1"
-                                               {{ $sinStock ? 'disabled' : '' }}>
-                                    </td>
-                                </tr>
-                                @endforeach
-                            </tbody>
+                            
+                            {{-- En el tbody del modalEntrega --}}
+<tbody>
+    @foreach($epps as $epp)
+        {{-- NUEVA CONDICIÓN: Solo procesar si el stock es mayor a 0 --}}
+        @if($epp->stock > 0) 
+            <tr>
+                <td>
+                    <input class="form-check-input" type="checkbox"
+                           name="epps[{{ $epp->id }}][checked]" value="1"
+                           id="check_ind_{{ $epp->id }}"
+                           data-stock="{{ $epp->stock }}">
+                </td>
+                <td>
+                    <label class="form-check-label w-100 small"
+                           for="check_ind_{{ $epp->id }}"
+                           style="cursor:pointer;">
+                        {{ $epp->nombre }}
+                    </label>
+                </td>
+                <td class="text-center">
+                    <span class="badge bg-secondary">{{ $epp->stock }}</span>
+                </td>
+                <td>
+                    <input type="number" name="epps[{{ $epp->id }}][cantidad]"
+                           class="form-control form-control-sm text-center"
+                           value="1" min="1">
+                </td>
+            </tr>
+        @endif
+    @endforeach
+</tbody>
                         </table>
                     </div>
                 </div>
@@ -453,39 +445,37 @@
                                     <th style="width:90px;">Cant.</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                @foreach($epps as $epp)
-                                @php $sinStock = $epp->stock <= 0; @endphp
-                                <tr class="{{ $sinStock ? 'table-light text-muted' : '' }}">
-                                    <td>
-                                        <input class="form-check-input" type="checkbox"
-                                               name="epps[{{ $epp->id }}][checked]" value="1"
-                                               id="check_epp_{{ $epp->id }}"
-                                               data-stock="{{ $epp->stock }}"
-                                               {{ $sinStock ? 'disabled' : '' }}>
-                                    </td>
-                                    <td>
-                                        <label class="form-check-label w-100 small"
-                                               for="check_epp_{{ $epp->id }}"
-                                               style="{{ $sinStock ? '' : 'cursor:pointer;' }}">
-                                            {{ $epp->nombre }}
-                                            @if($sinStock)
-                                                <span class="badge bg-danger ms-1" style="font-size:.7em;">AGOTADO</span>
-                                            @endif
-                                        </label>
-                                    </td>
-                                    <td class="text-center">
-                                        <span class="badge {{ $sinStock ? 'bg-danger' : 'bg-secondary' }}">{{ $epp->stock }}</span>
-                                    </td>
-                                    <td>
-                                        <input type="number" name="epps[{{ $epp->id }}][cantidad]"
-                                               class="form-control form-control-sm text-center"
-                                               value="1" min="1"
-                                               {{ $sinStock ? 'disabled' : '' }}>
-                                    </td>
-                                </tr>
-                                @endforeach
-                            </tbody>
+                            {{-- En el tbody del modalMasivo --}}
+<tbody>
+    @foreach($epps as $epp)
+        {{-- NUEVA CONDICIÓN: Solo procesar si el stock es mayor a 0 --}}
+        @if($epp->stock > 0)
+            <tr>
+                <td>
+                    <input class="form-check-input" type="checkbox"
+                           name="epps[{{ $epp->id }}][checked]" value="1"
+                           id="check_epp_{{ $epp->id }}"
+                           data-stock="{{ $epp->stock }}">
+                </td>
+                <td>
+                    <label class="form-check-label w-100 small"
+                           for="check_epp_{{ $epp->id }}"
+                           style="cursor:pointer;">
+                        {{ $epp->nombre }}
+                    </label>
+                </td>
+                <td class="text-center">
+                    <span class="badge bg-secondary">{{ $epp->stock }}</span>
+                </td>
+                <td>
+                    <input type="number" name="epps[{{ $epp->id }}][cantidad]"
+                           class="form-control form-control-sm text-center"
+                           value="1" min="1">
+                </td>
+            </tr>
+        @endif
+    @endforeach
+</tbody>
                         </table>
                     </div>
                 </div>
@@ -531,17 +521,7 @@
                             <option value="Administrativo">Administrativo</option>
                         </select>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold">Taller / Laboratorio</label>
-                        <input type="text" name="taller_nombre" id="edit_taller"
-                               class="form-control" list="listaTalleres"
-                               placeholder="Escribe o selecciona..." autocomplete="off">
-                        <datalist id="listaTalleres">
-                            @foreach($talleres as $taller)
-                                <option value="{{ $taller->nombre }}">
-                            @endforeach
-                        </datalist>
-                    </div>
+                    
                 </div>
                 <div class="modal-footer border-0">
                     <button type="submit" class="btn btn-primary rounded-pill w-100 fw-bold">Guardar Cambios</button>
@@ -581,74 +561,138 @@
 </div>
 
 <script>
-const matrizReglas = @json($matriz ?? []);
 
 function normalizar(str) {
     return str ? str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().trim() : "";
 }
 
-function abrirModalEntrega(id, nombre, tallerDocente, puestoDocente) {
+function abrirModalEntrega(id, nombre, departamentoIdDocente) {
+    // 1. Asignaciones básicas
     document.getElementById('personal_id').value = id;
     document.getElementById('nombreDocente').innerText = nombre;
+    document.getElementById('personal_id').dataset.deptoId = departamentoIdDocente;
 
-    document.querySelectorAll('#modalEntrega input[type="checkbox"]').forEach(c => c.checked = false);
-    document.querySelectorAll('[id^="badge_info_"]').forEach(b => {
-        b.style.display = 'none'; b.innerText = ''; b.className = 'badge ms-1';
+    // 2. Traer el mapa de EPPs
+    const eppsPorDepartamento = @json($eppsVinculados ?? []);
+    
+    // --- CONSOLA PARA DEPURAR ---
+    console.log("Mapa completo recibido:", eppsPorDepartamento);
+    console.log("Buscando llave:", departamentoIdDocente);
+    // ----------------------------
+
+    // 3. Ocultar todas las filas primero
+    document.querySelectorAll('#modalEntrega tbody tr').forEach(row => {
+        row.style.display = 'none';
+        const check = row.querySelector('input[type="checkbox"]');
+        if (check) check.checked = false;
     });
 
-    let tallerDoc = normalizar(tallerDocente).replace(/\s*[,\/]\s*/g, '|');
-    let talleresDocente = tallerDoc.split('|').map(t => t.trim()).filter(t => t !== '');
+    // 4. Obtener IDs permitidos (forzamos que la llave sea tratada correctamente)
+    let idsPermitidos = eppsPorDepartamento[departamentoIdDocente] || [];
 
-    matrizReglas.forEach(regla => {
-        let tallerRegla = normalizar(regla.taller ? regla.taller.toString() : "");
-        let aplica = tallerRegla === "" || tallerRegla === "TODOS"
-            || talleresDocente.some(t => t === tallerRegla || t.includes(tallerRegla) || tallerRegla.includes(t));
-
-        if (aplica) {
-            let checkbox = document.getElementById('check_ind_' + regla.epp_id);
-            let badge    = document.getElementById('badge_info_' + regla.epp_id);
+    if (idsPermitidos.length > 0) {
+        idsPermitidos.forEach(eppId => {
+            // Intentamos encontrar el checkbox por ID
+            let checkbox = document.getElementById('check_ind_' + eppId);
             if (checkbox) {
-                checkbox.checked  = true;
-                checkbox.disabled = parseInt(checkbox.getAttribute('data-stock') ?? '0') <= 0;
-                if (badge) {
-                    let esObl = regla.tipo_requerimiento === 'obligatorio';
-                    badge.innerText   = esObl ? 'Obligatorio' : 'Específico';
-                    badge.className   = esObl ? 'badge bg-danger ms-1' : 'badge bg-info text-dark ms-1';
-                    badge.style.display = 'inline-block';
-                }
+                checkbox.closest('tr').style.display = '';
+            } else {
+                console.warn("EPP vinculado ID " + eppId + " no existe en la lista general del modal.");
+            }
+        });
+    } else {
+        console.error("No se encontraron EPPs para el depto:", departamentoIdDocente);
+    }
+
+    new bootstrap.Modal(document.getElementById('modalEntrega')).show();
+}
+
+
+function abrirModalMasivo() {
+    // 1. Obtenemos el ID del departamento filtrado en la vista (está en el input hidden del modal)
+    let deptoId = document.querySelector('#modalMasivo input[name="departamento_id"]').value;
+    
+    // 2. Traer el mapa de vinculaciones
+    const eppsPorDepartamento = @json($eppsVinculados ?? []);
+    let idsPermitidos = (eppsPorDepartamento[deptoId] || []).map(id => String(id));
+
+    // 3. Filtrar las filas de la tabla masiva
+    document.querySelectorAll('#modalMasivo tbody tr').forEach(row => {
+        let checkbox = row.querySelector('input[type="checkbox"]');
+        // Usamos el mismo patrón que tu buscador: 'check_epp_XX'
+        let eppId = checkbox ? checkbox.id.replace('check_epp_', '') : null;
+
+        if (!deptoId) {
+            // Si no hay filtro, mostrar todo
+            row.style.display = '';
+        } else {
+            // Si hay filtro, mostrar solo si coincide con el mapa
+            if (idsPermitidos.includes(eppId)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+                if (checkbox) checkbox.checked = false; // Desmarcar por seguridad
             }
         }
     });
 
-    // Reordenar: marcados+stock → marcados+agotado → disponibles → agotados
-    let tbody = document.querySelector('#modalEntrega tbody');
-    let rows  = Array.from(tbody.querySelectorAll('tr'));
-    rows.sort((a, b) => {
-        let cbA = a.querySelector('input[type="checkbox"]');
-        let cbB = b.querySelector('input[type="checkbox"]');
-        let [cA, cB] = [cbA?.checked ? 1 : 0, cbB?.checked ? 1 : 0];
-        let [sA, sB] = [parseInt(cbA?.getAttribute('data-stock') ?? '0'), parseInt(cbB?.getAttribute('data-stock') ?? '0')];
-        let pA = cA && sA > 0 ? 3 : cA && sA <= 0 ? 2 : sA > 0 ? 1 : 0;
-        let pB = cB && sB > 0 ? 3 : cB && sB <= 0 ? 2 : sB > 0 ? 1 : 0;
-        return pB - pA;
-    });
-    rows.forEach(r => tbody.appendChild(r));
-
-    new bootstrap.Modal(document.getElementById('modalEntrega')).show();
+    // 4. Mostrar el modal
+    new bootstrap.Modal(document.getElementById('modalMasivo')).show();
 }
 
 // Buscadores en modales
 document.getElementById('buscadorIndividual').addEventListener('keyup', function () {
     let f = this.value.toLowerCase();
+    
+    // 1. Obtenemos el ID del departamento que guardamos al abrir el modal
+    let deptoId = document.getElementById('personal_id').dataset.deptoId;
+    
+    // 2. Obtenemos la lista de lo que sí está permitido para ese depto
+    const eppsPorDepartamento = @json($eppsVinculados ?? []);
+    let idsPermitidos = (eppsPorDepartamento[deptoId] || []).map(id => String(id));
+
     document.querySelectorAll('#modalEntrega tbody tr').forEach(row => {
-        row.style.display = (row.querySelector('label')?.textContent.toLowerCase() ?? '').includes(f) ? '' : 'none';
+        // Obtenemos el ID del EPP de esta fila (asumiendo que el checkbox tiene el ID check_ind_XX)
+        let checkbox = row.querySelector('input[type="checkbox"]');
+        let eppId = checkbox ? checkbox.id.replace('check_ind_', '') : null;
+        
+        let nombreMatch = (row.querySelector('label')?.textContent.toLowerCase() ?? '').includes(f);
+        
+        // REGLA DE ORO: Solo se muestra si (Coincide el nombre) Y (El ID está en los permitidos)
+        if (nombreMatch && idsPermitidos.includes(eppId)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
     });
 });
 
+// --- Ajuste para el Buscador Masivo ---
 document.getElementById('buscadorMasivo').addEventListener('keyup', function () {
     let f = this.value.toLowerCase();
+    // En el masivo, el ID del depto suele venir de un input hidden que ya tienes:
+    // <input type="hidden" name="departamento_id" value="{{ $departamentoIdFiltro ?? '' }}">
+    let deptoId = document.querySelector('#modalMasivo input[name="departamento_id"]').value;
+    
+    const eppsPorDepartamento = @json($eppsVinculados ?? []);
+    let idsPermitidos = (eppsPorDepartamento[deptoId] || []).map(id => String(id));
+
     document.querySelectorAll('#modalMasivo tbody tr').forEach(row => {
-        row.style.display = (row.querySelector('label')?.textContent.toLowerCase() ?? '').includes(f) ? '' : 'none';
+        let checkbox = row.querySelector('input[type="checkbox"]');
+        let eppId = checkbox ? checkbox.id.replace('check_epp_', '') : null;
+        let nombreMatch = (row.querySelector('label')?.textContent.toLowerCase() ?? '').includes(f);
+
+        // Si hay un departamento filtrado, aplicamos la restricción. 
+        // Si deptoId está vacío (vistas generales), mostramos todo según el buscador.
+        if (!deptoId) {
+            row.style.display = nombreMatch ? '' : 'none';
+        } else {
+            if (nombreMatch && idsPermitidos.includes(eppId)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        }
     });
 });
 
@@ -671,13 +715,13 @@ function filtrarTabla() {
     });
 }
 
-function editarPersonal(id, nombre, dni, carrera, tipo, tallerNombre) {
+function editarPersonal(id, nombre, dni, carrera, tipo) {
     document.getElementById('formEditarPersonal').action = '/personals/' + id;
     document.getElementById('edit_nombre').value  = nombre;
     document.getElementById('edit_dni').value     = dni;
     document.getElementById('edit_carrera').value = carrera;
     document.getElementById('edit_tipo').value    = tipo;
-    document.getElementById('edit_taller').value  = tallerNombre;
+    
     new bootstrap.Modal(document.getElementById('modalEditarPersonal')).show();
 }
 

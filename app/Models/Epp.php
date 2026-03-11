@@ -14,7 +14,7 @@ class Epp extends Model
         'nombre', 'tipo', 'descripcion', 'vida_util_meses', 'ficha_tecnica',
         'imagen', 'frecuencia_entrega', 'codigo_logistica', 'marca_modelo',
         'precio', 'cantidad', 'stock', 'entregado', 'deteriorado',
-        'departamento_id', 'categoria_id', 'subcategoria_id', 'estado', 'fecha_vencimiento', 'activo',
+        'departamento_id', 'departamento_texto','categoria_id', 'subcategoria_id', 'estado', 'fecha_vencimiento', 'activo',
         'fecha_ingreso_almacen',
     ];
 
@@ -81,4 +81,11 @@ class Epp extends Model
     public function categoria() { return $this->belongsTo(Categoria::class); }
     public function subcategoria() { return $this->belongsTo(Subcategoria::class); }
     public function departamento() { return $this->belongsTo(Departamento::class); }
+
+
+    public function departamentos()
+{
+    // Esta es la relación de muchos a muchos con la tabla puente
+    return $this->belongsToMany(Departamento::class, 'departamento_epp');
+}
 }
